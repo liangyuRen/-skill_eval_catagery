@@ -1,0 +1,642 @@
+{
+  "repo": "astropy/astropy",
+  "instance_id": "astropy__astropy-187",
+  "pr_title": "Fix doc building to use astropy source",
+  "pr_statement": "Fixing this was more subtle than I realized, but this PR now finally makes the sphinx build operate consistently.  Now, `python setup.py build_sphinx` always uses the version of astropy in the build directory, while `make html` in the `docs` directory will use the installed version.\n\nAs part of this, a critical bug is fixed that in the past meant you _had_ to have the C extensions installed via `python setup.py develop` or `python setup.py build_ext --inplace` to get the docs to build.  That is no longer the case.\n\nThis closes #134 .\n",
+  "change_introduced": true,
+  "base_commit": "b7ab6b2f702fd94439bf9459cf971703dfff6f61",
+  "created_at": "2012-04-01T01:30:18+00:00",
+  "changes": [
+    {
+      "change_type": "F.2 Logic",
+      "change_introducing": {
+        "code_snippet": "astropy/setup_helpers.py\n@@ -88,9 +120,9 @@ def run(self):\n            from sphinx.setup_command import *\n\n            os.chdir('docs')\n-            sys.path.insert(0,'{build_path}')\n+            sys.path.insert(0,'{build_cmd_path}')\n \n-            \"\").format(build_path=build_path)\n+            \"\").format(build_cmd_path=build_cmd_path)\n            #runlines[1:] removes 'def run(self)' on the first line\n            subproccode += dedent(''.join(runlines[1:]))\n \n@@ -100,7 +132,7 @@ def run(self):\n            subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)\n            for i in range(1, len(subproccode), 2):\n                iden = subproccode[i]\n-                subproccode[i] = repr(getattr(self, iden))\n+                val = getattr(self, iden)\n+                subproccode[i] = repr(val)\n            subproccode = ''.join(subproccode)\n \n            log.debug('Starting subprocess of {0} with python code:\\n{1}\\n'",
+        "commit_sha": "63f073d149fac93d34e280a6b0eafd6b410aa00e"
+      },
+      "change_discussion": {
+        "discussion_summary": "Reviewer `mdboom` reported that the documentation build output was placed in an incorrect nested directory (`docs/docs/_build/html`). Reviewer `embray` confirmed seeing the same behavior. The author (`eteq`) later acknowledged the issue, identified the cause as changing the directory within the subprocess (`os.chdir('docs')`) without properly handling relative paths, and provided a fix.",
+        "first_mention_timestamp": "2012-04-02T14:47:00+00:00",
+        "original_reviewer_comment": "Very welcome change.  For me, `python setup.py build_sphinx` seems to dump the built docs into `docs/docs/_build/html` rather than `docs/_build/html`.  Any idea why?"
+      },
+      "change_resolve_info": {
+        "code_snippet": "astropy/setup_helpers.py\n@@ -119,10 +119,10 @@ def run(self):\n            subproccode = dedent(\"\"\"\n            from sphinx.setup_command import *\n\n-            os.chdir('docs')\n+            os.chdir('{srcdir}')\n            sys.path.insert(0,'{build_cmd_path}')\n\n-            \"\").format(build_cmd_path=build_cmd_path)\n+            \"\").format(build_cmd_path=build_cmd_path, srcdir=self.source_dir)\n            #runlines[1:] removes 'def run(self)' on the first line\n            subproccode += dedent(''.join(runlines[1:]))\n\n@@ -131,7 +131,13 @@ def run(self):\n            subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)\n            for i in range(1, len(subproccode), 2):\n                iden = subproccode[i]\n-                subproccode[i] = repr(getattr(self, iden))\n+                val = getattr(self, iden)\n+                if iden.endswith('_dir'):\n+                    #Directories should be absolute, because the `chdir` call\n+                    #in the new process moves to a different directory\n+                    subproccode[i] = repr(os.path.abspath(val))\n+                else:\n+                    subproccode[i] = repr(val)\n            subproccode = ''.join(subproccode)\n\n            log.debug('Starting subprocess of {0} with python code:\\n{1}\\n'",
+        "commit_sha": "71a2cc42e567ac879d501d09322186a7bc248eaf",
+        "resolution_explanation": "The fix addresses the issue by ensuring that all directory paths (`iden` ending with `_dir`) passed into the subprocess code are converted to absolute paths using `os.path.abspath(val)`. This prevents the `os.chdir()` call within the subprocess from causing relative paths (like the build output directory) to be resolved incorrectly, thus ensuring the documentation is built in the intended `docs/_build/html` location instead of `docs/docs/_build/html`."
+      }
+    }
+  ],
+  "pr_commits": [
+    {
+      "type": "commit",
+      "sha": "b47c52ecf1bd46f0a2a361553f44aa8c70803171",
+      "message": "cosmetic fixes in build_sphinx",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-03-30T02:50:41+00:00",
+      "author_date": "2012-03-30T02:50:41+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-03-30T02:50:41+00:00",
+      "date": "2012-03-30T02:50:41+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -36,16 +36,21 @@\n     from sphinx.setup_command import BuildDoc\n \n     class AstropyBuildSphinx(BuildDoc):\n-        \"\"\" A version of build_sphinx that automatically creates the\n-        docs/_static directories - this is needed because\n-        github won't create the _static dir because it has no tracked files.\n+        \"\"\" A version of the ``build_sphinx`` command that uses the\n+        version of Astropy that is built by the setup ``build`` command,\n+        rather than whatever is installed on the system - to build docs\n+        against the installed version, run ``make html`` in the\n+        ``astropy/docs`` directory.\n+\n+        This also automatically creates the docs/_static directories -\n+        this is needed because github won't create the _static dir\n+        because it has no tracked files.\n         \"\"\"\n         def run(self):\n-            from os.path import split,join\n-\n+            from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n \n-            #If possible, creat the _static dir\n+            # If possible, create the _static dir\n             if self.build_dir is not None:\n                 # the _static dir should be in the same place as the _build dir\n                 # for Astropy\n@@ -60,7 +65,7 @@ def run(self):\n                 self.mkpath(staticdir)\n \n             #Now make sure Astropy is built and inject it into the sphinx path\n-            #self.reinitialize_command('build', inplace=False)\n+            self.reinitialize_command('build')#, inplace=False)\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n             new_path = os.path.abspath(build_cmd.build_lib)",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -36,16 +36,21 @@\n     from sphinx.setup_command import BuildDoc\n \n     class AstropyBuildSphinx(BuildDoc):\n-        \"\"\" A version of build_sphinx that automatically creates the\n-        docs/_static directories - this is needed because\n-        github won't create the _static dir because it has no tracked files.\n+        \"\"\" A version of the ``build_sphinx`` command that uses the\n+        version of Astropy that is built by the setup ``build`` command,\n+        rather than whatever is installed on the system - to build docs\n+        against the installed version, run ``make html`` in the\n+        ``astropy/docs`` directory.\n+\n+        This also automatically creates the docs/_static directories -\n+        this is needed because github won't create the _static dir\n+        because it has no tracked files.\n         \"\"\"\n         def run(self):\n-            from os.path import split,join\n-\n+            from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n \n-            #If possible, creat the _static dir\n+            # If possible, create the _static dir\n             if self.build_dir is not None:\n                 # the _static dir should be in the same place as the _build dir\n                 # for Astropy\n@@ -60,7 +65,7 @@ def run(self):\n                 self.mkpath(staticdir)\n \n             #Now make sure Astropy is built and inject it into the sphinx path\n-            #self.reinitialize_command('build', inplace=False)\n+            self.reinitialize_command('build')#, inplace=False)\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n             new_path = os.path.abspath(build_cmd.build_lib)"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "f9f8a2fa939481efd3754ade027ee58b5adb5947",
+      "message": "fixed reinitialization inplace-forcing",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-03-30T09:57:11+00:00",
+      "author_date": "2012-03-30T09:57:11+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-03-30T09:57:11+00:00",
+      "date": "2012-03-30T09:57:11+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -65,7 +65,8 @@ def run(self):\n                 self.mkpath(staticdir)\n \n             #Now make sure Astropy is built and inject it into the sphinx path\n-            self.reinitialize_command('build')#, inplace=False)\n+            build_cmd = self.reinitialize_command('build')\n+            build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n             new_path = os.path.abspath(build_cmd.build_lib)",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -65,7 +65,8 @@ def run(self):\n                 self.mkpath(staticdir)\n \n             #Now make sure Astropy is built and inject it into the sphinx path\n-            self.reinitialize_command('build')#, inplace=False)\n+            build_cmd = self.reinitialize_command('build')\n+            build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n             new_path = os.path.abspath(build_cmd.build_lib)"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "8565819d234bdca295ddececd48c4c32269721b7",
+      "message": "attempted path clearing, but may not work - will try multiprocess",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-03-30T19:11:45+00:00",
+      "author_date": "2012-03-30T19:11:45+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-03-30T19:11:45+00:00",
+      "date": "2012-03-30T19:11:45+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -64,14 +64,25 @@ def run(self):\n                         staticdir + 'is a file.  Must be a directory.')\n                 self.mkpath(staticdir)\n \n-            #Now make sure Astropy is built and inject it into the sphinx path\n+            #Now make sure Astropy is built and inject it into the python path\n+            #so that sphinx will see the built version\n             build_cmd = self.reinitialize_command('build')\n             build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n             new_path = os.path.abspath(build_cmd.build_lib)\n             sys.path.insert(0, os.path.abspath(new_path))\n \n+            #NEW APPROACH: subprocess?\n+            #now clean out all references to the source directory in sys.path\n+            pkgdir = os.path.abspath('')\n+            todel = []\n+            for i, p in enumerate(sys.path):\n+                if os.path.abspath(p) == pkgdir:\n+                    todel.append(i)\n+            for i in reversed(todel):\n+                del sys.path[i]\n+\n             return BuildDoc.run(self)\n \n except ImportError as e:",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -64,14 +64,25 @@ def run(self):\n                         staticdir + 'is a file.  Must be a directory.')\n                 self.mkpath(staticdir)\n \n-            #Now make sure Astropy is built and inject it into the sphinx path\n+            #Now make sure Astropy is built and inject it into the python path\n+            #so that sphinx will see the built version\n             build_cmd = self.reinitialize_command('build')\n             build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n             new_path = os.path.abspath(build_cmd.build_lib)\n             sys.path.insert(0, os.path.abspath(new_path))\n \n+            #NEW APPROACH: subprocess?\n+            #now clean out all references to the source directory in sys.path\n+            pkgdir = os.path.abspath('')\n+            todel = []\n+            for i, p in enumerate(sys.path):\n+                if os.path.abspath(p) == pkgdir:\n+                    todel.append(i)\n+            for i in reversed(todel):\n+                del sys.path[i]\n+\n             return BuildDoc.run(self)\n \n except ImportError as e:"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "224a763ff0b423fbde3accbd4b1da2faf50ea6cd",
+      "message": "possible approach of calling sphinx BuildDoc... but need Distribution object",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-03-31T22:30:30+00:00",
+      "author_date": "2012-03-31T22:30:30+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-03-31T22:30:30+00:00",
+      "date": "2012-03-31T22:30:30+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -49,6 +49,9 @@ class AstropyBuildSphinx(BuildDoc):\n         def run(self):\n             from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n+            from subprocess import Popen, PIPE\n+            from textwrap import dedent\n+            from distutils.fancy_getopt import translate_longopt\n \n             # If possible, create the _static dir\n             if self.build_dir is not None:\n@@ -73,17 +76,29 @@ def run(self):\n             new_path = os.path.abspath(build_cmd.build_lib)\n             sys.path.insert(0, os.path.abspath(new_path))\n \n-            #NEW APPROACH: subprocess?\n-            #now clean out all references to the source directory in sys.path\n-            pkgdir = os.path.abspath('')\n-            todel = []\n-            for i, p in enumerate(sys.path):\n-                if os.path.abspath(p) == pkgdir:\n-                    todel.append(i)\n-            for i in reversed(todel):\n-                del sys.path[i]\n-\n-            return BuildDoc.run(self)\n+            #Now spawn a new python process that runs a BuildDoc command.\n+            optionnames = [translate_longopt(nm[:-1] if nm[-1] == '=' else nm)\n+                           for (nm, _, _) in BuildDoc.user_options]\n+            optionvals = [getattr(self, nm) for nm in optionnames]\n+\n+            subproccode = dedent(\"\"\"\n+            from sphinx.setup_command import BuildDoc\n+            cmd = BuildDoc()\n+            for onm, oval in zip([{opnms}], [{opvals}]):\n+                setattr(cmd, onm, oval)\n+            cmd.finalize_options()\n+            cmd.run()\n+            \"\"\").format(opnms=','.join(optionnames),\n+                        opvals=','.join([repr(v) for v in optionvals]))\n+\n+            log.debug('Starting subprocess of {0} with python '\n+                      'code:\\n{1}'.format(sys.executable, subproccode))\n+\n+            proc = Popen([sys.executable], stdin=PIPE)\n+            proc.communicate(subproccode)\n+            if proc.returncode != 0:\n+                log.warn('Sphinx Documentation subprocess failed with return '\n+                         'code ' + str(proc.returncode))\n \n except ImportError as e:\n     if 'sphinx' in e.args[0]:  # Sphinx not present",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -49,6 +49,9 @@ class AstropyBuildSphinx(BuildDoc):\n         def run(self):\n             from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n+            from subprocess import Popen, PIPE\n+            from textwrap import dedent\n+            from distutils.fancy_getopt import translate_longopt\n \n             # If possible, create the _static dir\n             if self.build_dir is not None:\n@@ -73,17 +76,29 @@ def run(self):\n             new_path = os.path.abspath(build_cmd.build_lib)\n             sys.path.insert(0, os.path.abspath(new_path))\n \n-            #NEW APPROACH: subprocess?\n-            #now clean out all references to the source directory in sys.path\n-            pkgdir = os.path.abspath('')\n-            todel = []\n-            for i, p in enumerate(sys.path):\n-                if os.path.abspath(p) == pkgdir:\n-                    todel.append(i)\n-            for i in reversed(todel):\n-                del sys.path[i]\n-\n-            return BuildDoc.run(self)\n+            #Now spawn a new python process that runs a BuildDoc command.\n+            optionnames = [translate_longopt(nm[:-1] if nm[-1] == '=' else nm)\n+                           for (nm, _, _) in BuildDoc.user_options]\n+            optionvals = [getattr(self, nm) for nm in optionnames]\n+\n+            subproccode = dedent(\"\"\"\n+            from sphinx.setup_command import BuildDoc\n+            cmd = BuildDoc()\n+            for onm, oval in zip([{opnms}], [{opvals}]):\n+                setattr(cmd, onm, oval)\n+            cmd.finalize_options()\n+            cmd.run()\n+            \"\"\").format(opnms=','.join(optionnames),\n+                        opvals=','.join([repr(v) for v in optionvals]))\n+\n+            log.debug('Starting subprocess of {0} with python '\n+                      'code:\\n{1}'.format(sys.executable, subproccode))\n+\n+            proc = Popen([sys.executable], stdin=PIPE)\n+            proc.communicate(subproccode)\n+            if proc.returncode != 0:\n+                log.warn('Sphinx Documentation subprocess failed with return '\n+                         'code ' + str(proc.returncode))\n \n except ImportError as e:\n     if 'sphinx' in e.args[0]:  # Sphinx not present"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "63f073d149fac93d34e280a6b0eafd6b410aa00e",
+      "message": "build_sphinx now working as intended, but still having path issues",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-03-31T23:38:31+00:00",
+      "author_date": "2012-03-31T23:38:31+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-03-31T23:38:31+00:00",
+      "date": "2012-03-31T23:38:31+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -10,6 +10,7 @@\n import os\n import shutil\n import sys\n+import re\n \n from distutils import log\n from distutils.dist import Distribution\n@@ -46,12 +47,16 @@ class AstropyBuildSphinx(BuildDoc):\n         this is needed because github won't create the _static dir\n         because it has no tracked files.\n         \"\"\"\n+\n+        _self_iden_rex = re.compile(r\"self\\.([^\\d\\W][\\w]+)\", re.UNICODE)\n+\n         def run(self):\n             from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n             from subprocess import Popen, PIPE\n             from textwrap import dedent\n-            from distutils.fancy_getopt import translate_longopt\n+            from inspect import getsourcelines\n+\n \n             # If possible, create the _static dir\n             if self.build_dir is not None:\n@@ -67,32 +72,38 @@ def run(self):\n                         staticdir + 'is a file.  Must be a directory.')\n                 self.mkpath(staticdir)\n \n-            #Now make sure Astropy is built and inject it into the python path\n-            #so that sphinx will see the built version\n+            #Now make sure Astropy is built and determine where it was built\n             build_cmd = self.reinitialize_command('build')\n             build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n-            new_path = os.path.abspath(build_cmd.build_lib)\n-            sys.path.insert(0, os.path.abspath(new_path))\n+            build_path = os.path.abspath(build_cmd.build_lib)\n \n-            #Now spawn a new python process that runs a BuildDoc command.\n-            optionnames = [translate_longopt(nm[:-1] if nm[-1] == '=' else nm)\n-                           for (nm, _, _) in BuildDoc.user_options]\n-            optionvals = [getattr(self, nm) for nm in optionnames]\n+            #Now generate the source for and spawn a new process that runs the\n+            #command.  This is needed to get the correct imports for the built\n+            #version\n \n+            runlines, runlineno = getsourcelines(BuildDoc.run)\n             subproccode = dedent(\"\"\"\n-            from sphinx.setup_command import BuildDoc\n-            cmd = BuildDoc()\n-            for onm, oval in zip([{opnms}], [{opvals}]):\n-                setattr(cmd, onm, oval)\n-            cmd.finalize_options()\n-            cmd.run()\n-            \"\"\").format(opnms=','.join(optionnames),\n-                        opvals=','.join([repr(v) for v in optionvals]))\n-\n-            log.debug('Starting subprocess of {0} with python '\n-                      'code:\\n{1}'.format(sys.executable, subproccode))\n+            from sphinx.setup_command import *\n+\n+            os.chdir('docs')\n+            sys.path.insert(0,'{build_path}')\n+\n+            \"\"\").format(build_path=build_path)\n+            #runlines[1:] removes 'def run(self)' on the first line\n+            subproccode += dedent(''.join(runlines[1:]))\n+\n+            # All \"self.foo\" in the subprocess code needs to be replaced by the\n+            # values taken from the current self in *this* process\n+            subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)\n+            for i in range(1, len(subproccode), 2):\n+                iden = subproccode[i]\n+                subproccode[i] = repr(getattr(self, iden))\n+            subproccode = ''.join(subproccode)\n+\n+            log.debug('Starting subprocess of {0} with python code:\\n{1}\\n'\n+                      '[CODE END])'.format(sys.executable, subproccode))\n \n             proc = Popen([sys.executable], stdin=PIPE)\n             proc.communicate(subproccode)",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -10,6 +10,7 @@\n import os\n import shutil\n import sys\n+import re\n \n from distutils import log\n from distutils.dist import Distribution\n@@ -46,12 +47,16 @@ class AstropyBuildSphinx(BuildDoc):\n         this is needed because github won't create the _static dir\n         because it has no tracked files.\n         \"\"\"\n+\n+        _self_iden_rex = re.compile(r\"self\\.([^\\d\\W][\\w]+)\", re.UNICODE)\n+\n         def run(self):\n             from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n             from subprocess import Popen, PIPE\n             from textwrap import dedent\n-            from distutils.fancy_getopt import translate_longopt\n+            from inspect import getsourcelines\n+\n \n             # If possible, create the _static dir\n             if self.build_dir is not None:\n@@ -67,32 +72,38 @@ def run(self):\n                         staticdir + 'is a file.  Must be a directory.')\n                 self.mkpath(staticdir)\n \n-            #Now make sure Astropy is built and inject it into the python path\n-            #so that sphinx will see the built version\n+            #Now make sure Astropy is built and determine where it was built\n             build_cmd = self.reinitialize_command('build')\n             build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n-            new_path = os.path.abspath(build_cmd.build_lib)\n-            sys.path.insert(0, os.path.abspath(new_path))\n+            build_path = os.path.abspath(build_cmd.build_lib)\n \n-            #Now spawn a new python process that runs a BuildDoc command.\n-            optionnames = [translate_longopt(nm[:-1] if nm[-1] == '=' else nm)\n-                           for (nm, _, _) in BuildDoc.user_options]\n-            optionvals = [getattr(self, nm) for nm in optionnames]\n+            #Now generate the source for and spawn a new process that runs the\n+            #command.  This is needed to get the correct imports for the built\n+            #version\n \n+            runlines, runlineno = getsourcelines(BuildDoc.run)\n             subproccode = dedent(\"\"\"\n-            from sphinx.setup_command import BuildDoc\n-            cmd = BuildDoc()\n-            for onm, oval in zip([{opnms}], [{opvals}]):\n-                setattr(cmd, onm, oval)\n-            cmd.finalize_options()\n-            cmd.run()\n-            \"\"\").format(opnms=','.join(optionnames),\n-                        opvals=','.join([repr(v) for v in optionvals]))\n-\n-            log.debug('Starting subprocess of {0} with python '\n-                      'code:\\n{1}'.format(sys.executable, subproccode))\n+            from sphinx.setup_command import *\n+\n+            os.chdir('docs')\n+            sys.path.insert(0,'{build_path}')\n+\n+            \"\"\").format(build_path=build_path)\n+            #runlines[1:] removes 'def run(self)' on the first line\n+            subproccode += dedent(''.join(runlines[1:]))\n+\n+            # All \"self.foo\" in the subprocess code needs to be replaced by the\n+            # values taken from the current self in *this* process\n+            subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)\n+            for i in range(1, len(subproccode), 2):\n+                iden = subproccode[i]\n+                subproccode[i] = repr(getattr(self, iden))\n+            subproccode = ''.join(subproccode)\n+\n+            log.debug('Starting subprocess of {0} with python code:\\n{1}\\n'\n+                      '[CODE END])'.format(sys.executable, subproccode))\n \n             proc = Popen([sys.executable], stdin=PIPE)\n             proc.communicate(subproccode)"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "3baeaf2cbcab8f18e61586d342a91d05d4119365",
+      "message": "added cleaning option to build_sphinx",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-04-01T00:14:21+00:00",
+      "author_date": "2012-04-01T00:14:21+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-04-01T00:14:21+00:00",
+      "date": "2012-04-01T00:14:21+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -48,16 +48,48 @@ class AstropyBuildSphinx(BuildDoc):\n         because it has no tracked files.\n         \"\"\"\n \n+        description = 'Build Sphinx documentation for Astropy environment'\n+        user_options = BuildDoc.user_options[:]\n+        user_options.append(('clean-docs', 'l', 'Clean previously-built docs '\n+                                                'before building new ones'))\n+        boolean_options = BuildDoc.boolean_options[:]\n+        boolean_options.append('clean-docs')\n+\n         _self_iden_rex = re.compile(r\"self\\.([^\\d\\W][\\w]+)\", re.UNICODE)\n \n+        def initialize_options(self):\n+            BuildDoc.initialize_options(self)\n+            self.clean_docs = False\n+\n+        def finalize_options(self):\n+            from os.path import isdir\n+            from shutil import rmtree\n+\n+            #Clear out previous sphinx builds, if requested\n+            if self.clean_docs:\n+                dirstorm = ['docs/_generated']\n+                if self.build_dir is None:\n+                    dirstorm.append('docs/_build')\n+                else:\n+                    dirstorm.append(self.build_dir)\n+\n+                for d in dirstorm:\n+                    if isdir(d):\n+                        log.info('Cleaning directory ' + d)\n+                        rmtree(d)\n+                    else:\n+                        log.info('Not cleaning directory ' + d + ' because '\n+                                 'not present or not a directory')\n+\n+            BuildDoc.finalize_options(self)\n+\n         def run(self):\n             from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n             from subprocess import Popen, PIPE\n             from textwrap import dedent\n             from inspect import getsourcelines\n \n-\n             # If possible, create the _static dir\n             if self.build_dir is not None:\n                 # the _static dir should be in the same place as the _build dir\n@@ -77,7 +109,7 @@ def run(self):\n             build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n-            build_path = os.path.abspath(build_cmd.build_lib)\n+            build_cmd_path = os.path.abspath(build_cmd.build_lib)\n \n             #Now generate the source for and spawn a new process that runs the\n             #command.  This is needed to get the correct imports for the built\n@@ -88,9 +120,9 @@ def run(self):\n             from sphinx.setup_command import *\n \n             os.chdir('docs')\n-            sys.path.insert(0,'{build_path}')\n+            sys.path.insert(0,'{build_cmd_path}')\n \n-            \"\"\").format(build_path=build_path)\n+            \"\"\").format(build_cmd_path=build_cmd_path)\n             #runlines[1:] removes 'def run(self)' on the first line\n             subproccode += dedent(''.join(runlines[1:]))\n ",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -48,16 +48,48 @@ class AstropyBuildSphinx(BuildDoc):\n         because it has no tracked files.\n         \"\"\"\n \n+        description = 'Build Sphinx documentation for Astropy environment'\n+        user_options = BuildDoc.user_options[:]\n+        user_options.append(('clean-docs', 'l', 'Clean previously-built docs '\n+                                                'before building new ones'))\n+        boolean_options = BuildDoc.boolean_options[:]\n+        boolean_options.append('clean-docs')\n+\n         _self_iden_rex = re.compile(r\"self\\.([^\\d\\W][\\w]+)\", re.UNICODE)\n \n+        def initialize_options(self):\n+            BuildDoc.initialize_options(self)\n+            self.clean_docs = False\n+\n+        def finalize_options(self):\n+            from os.path import isdir\n+            from shutil import rmtree\n+\n+            #Clear out previous sphinx builds, if requested\n+            if self.clean_docs:\n+                dirstorm = ['docs/_generated']\n+                if self.build_dir is None:\n+                    dirstorm.append('docs/_build')\n+                else:\n+                    dirstorm.append(self.build_dir)\n+\n+                for d in dirstorm:\n+                    if isdir(d):\n+                        log.info('Cleaning directory ' + d)\n+                        rmtree(d)\n+                    else:\n+                        log.info('Not cleaning directory ' + d + ' because '\n+                                 'not present or not a directory')\n+\n+            BuildDoc.finalize_options(self)\n+\n         def run(self):\n             from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n             from subprocess import Popen, PIPE\n             from textwrap import dedent\n             from inspect import getsourcelines\n \n-\n             # If possible, create the _static dir\n             if self.build_dir is not None:\n                 # the _static dir should be in the same place as the _build dir\n@@ -77,7 +109,7 @@ def run(self):\n             build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n-            build_path = os.path.abspath(build_cmd.build_lib)\n+            build_cmd_path = os.path.abspath(build_cmd.build_lib)\n \n             #Now generate the source for and spawn a new process that runs the\n             #command.  This is needed to get the correct imports for the built\n@@ -88,9 +120,9 @@ def run(self):\n             from sphinx.setup_command import *\n \n             os.chdir('docs')\n-            sys.path.insert(0,'{build_path}')\n+            sys.path.insert(0,'{build_cmd_path}')\n \n-            \"\"\").format(build_path=build_path)\n+            \"\"\").format(build_cmd_path=build_cmd_path)\n             #runlines[1:] removes 'def run(self)' on the first line\n             subproccode += dedent(''.join(runlines[1:]))\n "
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "93d35c2d9aadd10cc42455f201ce64933e4875f8",
+      "message": "fixed conf.py to not screw up build paths",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-04-01T00:50:34+00:00",
+      "author_date": "2012-04-01T00:50:34+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-04-01T00:50:34+00:00",
+      "date": "2012-04-01T00:50:34+00:00",
+      "diff_text": "docs/conf.py\n@@ -12,16 +12,22 @@\n # All configuration values have a default; values that are commented out\n # serve to show the default.\n \n-import os\n-import sys\n-\n #some of the docs require the autodoc special-members option, in 1.1\n needs_sphinx = '1.1'\n \n # If extensions (or modules to document with autodoc) are in another directory,\n # add these directories to sys.path here. If the directory is relative to the\n # documentation root, use os.path.abspath to make it absolute, like shown here.\n-sys.path.insert(0, os.path.abspath('..'))\n+# sys.path.insert(0, os.path.abspath('..'))\n+# IMPORTANT: the above commented section was generated by sphinx-quickstart, but\n+# is *NOT* appropriate for astropy or Astropy affiliated packages. It is left\n+# commented oout with this explanation to make it clear why this should not be\n+# done. If the sys.path entry above is added, when the astropy.sphinx.conf\n+# import occurs, it will import the *source* version of astropy instead of the\n+# version installed (if invoked as \"make html\" or directly with sphinx), or the\n+# version in the build directory (if \" pythonsetup.py build_sphinx\" is used).\n+# Thus, any C-extensions that are needed to build the documentation will *not*\n+# be accessible, and the documentation will not build correctly.\n \n # Load all of the global Astropy configuration\n from astropy.sphinx.conf import *",
+      "diff": [
+        {
+          "file": "docs/conf.py",
+          "patch": "@@ -12,16 +12,22 @@\n # All configuration values have a default; values that are commented out\n # serve to show the default.\n \n-import os\n-import sys\n-\n #some of the docs require the autodoc special-members option, in 1.1\n needs_sphinx = '1.1'\n \n # If extensions (or modules to document with autodoc) are in another directory,\n # add these directories to sys.path here. If the directory is relative to the\n # documentation root, use os.path.abspath to make it absolute, like shown here.\n-sys.path.insert(0, os.path.abspath('..'))\n+# sys.path.insert(0, os.path.abspath('..'))\n+# IMPORTANT: the above commented section was generated by sphinx-quickstart, but\n+# is *NOT* appropriate for astropy or Astropy affiliated packages. It is left\n+# commented oout with this explanation to make it clear why this should not be\n+# done. If the sys.path entry above is added, when the astropy.sphinx.conf\n+# import occurs, it will import the *source* version of astropy instead of the\n+# version installed (if invoked as \"make html\" or directly with sphinx), or the\n+# version in the build directory (if \" pythonsetup.py build_sphinx\" is used).\n+# Thus, any C-extensions that are needed to build the documentation will *not*\n+# be accessible, and the documentation will not build correctly.\n \n # Load all of the global Astropy configuration\n from astropy.sphinx.conf import *"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "6e135b86ce609b8639b554ee0cebbf0e5f510487",
+      "message": "updated docs to clarify two installation procedures",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-04-01T01:27:37+00:00",
+      "author_date": "2012-04-01T01:27:37+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-04-01T01:27:37+00:00",
+      "date": "2012-04-01T01:27:37+00:00",
+      "diff_text": "docs/install.rst\n@@ -86,18 +86,29 @@ To install Astropy (from the root of the source tree)::\n Building documentation\n ``````````````````````\n \n-Building the documentation requires some additional packages:\n+Building the documentation requires the Astropy source code and some additional\n+packages:\n \n     - `Sphinx <http://sphinx.pocoo.org>`_ (and its dependencies) 1.0 or later\n \n     - `Graphviz <http://www.graphviz.org>`_\n \n-To build the Astropy documentation (from the root of the source tree)::\n+There are two ways to build the Astropy documentation. The most straightforward\n+way is to execute the command (from the astropy source directory)::\n \n     python setup.py build_sphinx\n \n-The documentation tree will be built in the `docs/_build/html`\n-directory.\n+The documentation will be built in the ``docs/_build/html`` directory, and can\n+be read by pointing a web browser to ``docs/_build/html/index.html``.\n+\n+The above method builds the API documentation from the source code.\n+Alternatively, you can do::\n+\n+    cd docs\n+    make html\n+\n+And the documentation will be generated in the same location, but using the\n+*installed* version of Astropy.\n \n Testing Astropy\n ```````````````",
+      "diff": [
+        {
+          "file": "docs/install.rst",
+          "patch": "@@ -86,18 +86,29 @@ To install Astropy (from the root of the source tree)::\n Building documentation\n ``````````````````````\n \n-Building the documentation requires some additional packages:\n+Building the documentation requires the Astropy source code and some additional\n+packages:\n \n     - `Sphinx <http://sphinx.pocoo.org>`_ (and its dependencies) 1.0 or later\n \n     - `Graphviz <http://www.graphviz.org>`_\n \n-To build the Astropy documentation (from the root of the source tree)::\n+There are two ways to build the Astropy documentation. The most straightforward\n+way is to execute the command (from the astropy source directory)::\n \n     python setup.py build_sphinx\n \n-The documentation tree will be built in the `docs/_build/html`\n-directory.\n+The documentation will be built in the ``docs/_build/html`` directory, and can\n+be read by pointing a web browser to ``docs/_build/html/index.html``.\n+\n+The above method builds the API documentation from the source code.\n+Alternatively, you can do::\n+\n+    cd docs\n+    make html\n+\n+And the documentation will be generated in the same location, but using the\n+*installed* version of Astropy.\n \n Testing Astropy\n ```````````````"
+        }
+      ]
+    }
+  ],
+  "pr_timeline": [
+    {
+      "type": "commit",
+      "sha": "b47c52ecf1bd46f0a2a361553f44aa8c70803171",
+      "message": "cosmetic fixes in build_sphinx",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-03-30T02:50:41+00:00",
+      "author_date": "2012-03-30T02:50:41+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-03-30T02:50:41+00:00",
+      "date": "2012-03-30T02:50:41+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -36,16 +36,21 @@\n     from sphinx.setup_command import BuildDoc\n \n     class AstropyBuildSphinx(BuildDoc):\n-        \"\"\" A version of build_sphinx that automatically creates the\n-        docs/_static directories - this is needed because\n-        github won't create the _static dir because it has no tracked files.\n+        \"\"\" A version of the ``build_sphinx`` command that uses the\n+        version of Astropy that is built by the setup ``build`` command,\n+        rather than whatever is installed on the system - to build docs\n+        against the installed version, run ``make html`` in the\n+        ``astropy/docs`` directory.\n+\n+        This also automatically creates the docs/_static directories -\n+        this is needed because github won't create the _static dir\n+        because it has no tracked files.\n         \"\"\"\n         def run(self):\n-            from os.path import split,join\n-\n+            from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n \n-            #If possible, creat the _static dir\n+            # If possible, create the _static dir\n             if self.build_dir is not None:\n                 # the _static dir should be in the same place as the _build dir\n                 # for Astropy\n@@ -60,7 +65,7 @@ def run(self):\n                 self.mkpath(staticdir)\n \n             #Now make sure Astropy is built and inject it into the sphinx path\n-            #self.reinitialize_command('build', inplace=False)\n+            self.reinitialize_command('build')#, inplace=False)\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n             new_path = os.path.abspath(build_cmd.build_lib)",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -36,16 +36,21 @@\n     from sphinx.setup_command import BuildDoc\n \n     class AstropyBuildSphinx(BuildDoc):\n-        \"\"\" A version of build_sphinx that automatically creates the\n-        docs/_static directories - this is needed because\n-        github won't create the _static dir because it has no tracked files.\n+        \"\"\" A version of the ``build_sphinx`` command that uses the\n+        version of Astropy that is built by the setup ``build`` command,\n+        rather than whatever is installed on the system - to build docs\n+        against the installed version, run ``make html`` in the\n+        ``astropy/docs`` directory.\n+\n+        This also automatically creates the docs/_static directories -\n+        this is needed because github won't create the _static dir\n+        because it has no tracked files.\n         \"\"\"\n         def run(self):\n-            from os.path import split,join\n-\n+            from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n \n-            #If possible, creat the _static dir\n+            # If possible, create the _static dir\n             if self.build_dir is not None:\n                 # the _static dir should be in the same place as the _build dir\n                 # for Astropy\n@@ -60,7 +65,7 @@ def run(self):\n                 self.mkpath(staticdir)\n \n             #Now make sure Astropy is built and inject it into the sphinx path\n-            #self.reinitialize_command('build', inplace=False)\n+            self.reinitialize_command('build')#, inplace=False)\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n             new_path = os.path.abspath(build_cmd.build_lib)"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "f9f8a2fa939481efd3754ade027ee58b5adb5947",
+      "message": "fixed reinitialization inplace-forcing",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-03-30T09:57:11+00:00",
+      "author_date": "2012-03-30T09:57:11+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-03-30T09:57:11+00:00",
+      "date": "2012-03-30T09:57:11+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -65,7 +65,8 @@ def run(self):\n                 self.mkpath(staticdir)\n \n             #Now make sure Astropy is built and inject it into the sphinx path\n-            self.reinitialize_command('build')#, inplace=False)\n+            build_cmd = self.reinitialize_command('build')\n+            build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n             new_path = os.path.abspath(build_cmd.build_lib)",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -65,7 +65,8 @@ def run(self):\n                 self.mkpath(staticdir)\n \n             #Now make sure Astropy is built and inject it into the sphinx path\n-            self.reinitialize_command('build')#, inplace=False)\n+            build_cmd = self.reinitialize_command('build')\n+            build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n             new_path = os.path.abspath(build_cmd.build_lib)"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "8565819d234bdca295ddececd48c4c32269721b7",
+      "message": "attempted path clearing, but may not work - will try multiprocess",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-03-30T19:11:45+00:00",
+      "author_date": "2012-03-30T19:11:45+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-03-30T19:11:45+00:00",
+      "date": "2012-03-30T19:11:45+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -64,14 +64,25 @@ def run(self):\n                         staticdir + 'is a file.  Must be a directory.')\n                 self.mkpath(staticdir)\n \n-            #Now make sure Astropy is built and inject it into the sphinx path\n+            #Now make sure Astropy is built and inject it into the python path\n+            #so that sphinx will see the built version\n             build_cmd = self.reinitialize_command('build')\n             build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n             new_path = os.path.abspath(build_cmd.build_lib)\n             sys.path.insert(0, os.path.abspath(new_path))\n \n+            #NEW APPROACH: subprocess?\n+            #now clean out all references to the source directory in sys.path\n+            pkgdir = os.path.abspath('')\n+            todel = []\n+            for i, p in enumerate(sys.path):\n+                if os.path.abspath(p) == pkgdir:\n+                    todel.append(i)\n+            for i in reversed(todel):\n+                del sys.path[i]\n+\n             return BuildDoc.run(self)\n \n except ImportError as e:",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -64,14 +64,25 @@ def run(self):\n                         staticdir + 'is a file.  Must be a directory.')\n                 self.mkpath(staticdir)\n \n-            #Now make sure Astropy is built and inject it into the sphinx path\n+            #Now make sure Astropy is built and inject it into the python path\n+            #so that sphinx will see the built version\n             build_cmd = self.reinitialize_command('build')\n             build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n             new_path = os.path.abspath(build_cmd.build_lib)\n             sys.path.insert(0, os.path.abspath(new_path))\n \n+            #NEW APPROACH: subprocess?\n+            #now clean out all references to the source directory in sys.path\n+            pkgdir = os.path.abspath('')\n+            todel = []\n+            for i, p in enumerate(sys.path):\n+                if os.path.abspath(p) == pkgdir:\n+                    todel.append(i)\n+            for i in reversed(todel):\n+                del sys.path[i]\n+\n             return BuildDoc.run(self)\n \n except ImportError as e:"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "224a763ff0b423fbde3accbd4b1da2faf50ea6cd",
+      "message": "possible approach of calling sphinx BuildDoc... but need Distribution object",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-03-31T22:30:30+00:00",
+      "author_date": "2012-03-31T22:30:30+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-03-31T22:30:30+00:00",
+      "date": "2012-03-31T22:30:30+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -49,6 +49,9 @@ class AstropyBuildSphinx(BuildDoc):\n         def run(self):\n             from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n+            from subprocess import Popen, PIPE\n+            from textwrap import dedent\n+            from distutils.fancy_getopt import translate_longopt\n \n             # If possible, create the _static dir\n             if self.build_dir is not None:\n@@ -73,17 +76,29 @@ def run(self):\n             new_path = os.path.abspath(build_cmd.build_lib)\n             sys.path.insert(0, os.path.abspath(new_path))\n \n-            #NEW APPROACH: subprocess?\n-            #now clean out all references to the source directory in sys.path\n-            pkgdir = os.path.abspath('')\n-            todel = []\n-            for i, p in enumerate(sys.path):\n-                if os.path.abspath(p) == pkgdir:\n-                    todel.append(i)\n-            for i in reversed(todel):\n-                del sys.path[i]\n-\n-            return BuildDoc.run(self)\n+            #Now spawn a new python process that runs a BuildDoc command.\n+            optionnames = [translate_longopt(nm[:-1] if nm[-1] == '=' else nm)\n+                           for (nm, _, _) in BuildDoc.user_options]\n+            optionvals = [getattr(self, nm) for nm in optionnames]\n+\n+            subproccode = dedent(\"\"\"\n+            from sphinx.setup_command import BuildDoc\n+            cmd = BuildDoc()\n+            for onm, oval in zip([{opnms}], [{opvals}]):\n+                setattr(cmd, onm, oval)\n+            cmd.finalize_options()\n+            cmd.run()\n+            \"\"\").format(opnms=','.join(optionnames),\n+                        opvals=','.join([repr(v) for v in optionvals]))\n+\n+            log.debug('Starting subprocess of {0} with python '\n+                      'code:\\n{1}'.format(sys.executable, subproccode))\n+\n+            proc = Popen([sys.executable], stdin=PIPE)\n+            proc.communicate(subproccode)\n+            if proc.returncode != 0:\n+                log.warn('Sphinx Documentation subprocess failed with return '\n+                         'code ' + str(proc.returncode))\n \n except ImportError as e:\n     if 'sphinx' in e.args[0]:  # Sphinx not present",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -49,6 +49,9 @@ class AstropyBuildSphinx(BuildDoc):\n         def run(self):\n             from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n+            from subprocess import Popen, PIPE\n+            from textwrap import dedent\n+            from distutils.fancy_getopt import translate_longopt\n \n             # If possible, create the _static dir\n             if self.build_dir is not None:\n@@ -73,17 +76,29 @@ def run(self):\n             new_path = os.path.abspath(build_cmd.build_lib)\n             sys.path.insert(0, os.path.abspath(new_path))\n \n-            #NEW APPROACH: subprocess?\n-            #now clean out all references to the source directory in sys.path\n-            pkgdir = os.path.abspath('')\n-            todel = []\n-            for i, p in enumerate(sys.path):\n-                if os.path.abspath(p) == pkgdir:\n-                    todel.append(i)\n-            for i in reversed(todel):\n-                del sys.path[i]\n-\n-            return BuildDoc.run(self)\n+            #Now spawn a new python process that runs a BuildDoc command.\n+            optionnames = [translate_longopt(nm[:-1] if nm[-1] == '=' else nm)\n+                           for (nm, _, _) in BuildDoc.user_options]\n+            optionvals = [getattr(self, nm) for nm in optionnames]\n+\n+            subproccode = dedent(\"\"\"\n+            from sphinx.setup_command import BuildDoc\n+            cmd = BuildDoc()\n+            for onm, oval in zip([{opnms}], [{opvals}]):\n+                setattr(cmd, onm, oval)\n+            cmd.finalize_options()\n+            cmd.run()\n+            \"\"\").format(opnms=','.join(optionnames),\n+                        opvals=','.join([repr(v) for v in optionvals]))\n+\n+            log.debug('Starting subprocess of {0} with python '\n+                      'code:\\n{1}'.format(sys.executable, subproccode))\n+\n+            proc = Popen([sys.executable], stdin=PIPE)\n+            proc.communicate(subproccode)\n+            if proc.returncode != 0:\n+                log.warn('Sphinx Documentation subprocess failed with return '\n+                         'code ' + str(proc.returncode))\n \n except ImportError as e:\n     if 'sphinx' in e.args[0]:  # Sphinx not present"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "63f073d149fac93d34e280a6b0eafd6b410aa00e",
+      "message": "build_sphinx now working as intended, but still having path issues",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-03-31T23:38:31+00:00",
+      "author_date": "2012-03-31T23:38:31+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-03-31T23:38:31+00:00",
+      "date": "2012-03-31T23:38:31+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -10,6 +10,7 @@\n import os\n import shutil\n import sys\n+import re\n \n from distutils import log\n from distutils.dist import Distribution\n@@ -46,12 +47,16 @@ class AstropyBuildSphinx(BuildDoc):\n         this is needed because github won't create the _static dir\n         because it has no tracked files.\n         \"\"\"\n+\n+        _self_iden_rex = re.compile(r\"self\\.([^\\d\\W][\\w]+)\", re.UNICODE)\n+\n         def run(self):\n             from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n             from subprocess import Popen, PIPE\n             from textwrap import dedent\n-            from distutils.fancy_getopt import translate_longopt\n+            from inspect import getsourcelines\n+\n \n             # If possible, create the _static dir\n             if self.build_dir is not None:\n@@ -67,32 +72,38 @@ def run(self):\n                         staticdir + 'is a file.  Must be a directory.')\n                 self.mkpath(staticdir)\n \n-            #Now make sure Astropy is built and inject it into the python path\n-            #so that sphinx will see the built version\n+            #Now make sure Astropy is built and determine where it was built\n             build_cmd = self.reinitialize_command('build')\n             build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n-            new_path = os.path.abspath(build_cmd.build_lib)\n-            sys.path.insert(0, os.path.abspath(new_path))\n+            build_path = os.path.abspath(build_cmd.build_lib)\n \n-            #Now spawn a new python process that runs a BuildDoc command.\n-            optionnames = [translate_longopt(nm[:-1] if nm[-1] == '=' else nm)\n-                           for (nm, _, _) in BuildDoc.user_options]\n-            optionvals = [getattr(self, nm) for nm in optionnames]\n+            #Now generate the source for and spawn a new process that runs the\n+            #command.  This is needed to get the correct imports for the built\n+            #version\n \n+            runlines, runlineno = getsourcelines(BuildDoc.run)\n             subproccode = dedent(\"\"\"\n-            from sphinx.setup_command import BuildDoc\n-            cmd = BuildDoc()\n-            for onm, oval in zip([{opnms}], [{opvals}]):\n-                setattr(cmd, onm, oval)\n-            cmd.finalize_options()\n-            cmd.run()\n-            \"\"\").format(opnms=','.join(optionnames),\n-                        opvals=','.join([repr(v) for v in optionvals]))\n-\n-            log.debug('Starting subprocess of {0} with python '\n-                      'code:\\n{1}'.format(sys.executable, subproccode))\n+            from sphinx.setup_command import *\n+\n+            os.chdir('docs')\n+            sys.path.insert(0,'{build_path}')\n+\n+            \"\"\").format(build_path=build_path)\n+            #runlines[1:] removes 'def run(self)' on the first line\n+            subproccode += dedent(''.join(runlines[1:]))\n+\n+            # All \"self.foo\" in the subprocess code needs to be replaced by the\n+            # values taken from the current self in *this* process\n+            subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)\n+            for i in range(1, len(subproccode), 2):\n+                iden = subproccode[i]\n+                subproccode[i] = repr(getattr(self, iden))\n+            subproccode = ''.join(subproccode)\n+\n+            log.debug('Starting subprocess of {0} with python code:\\n{1}\\n'\n+                      '[CODE END])'.format(sys.executable, subproccode))\n \n             proc = Popen([sys.executable], stdin=PIPE)\n             proc.communicate(subproccode)",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -10,6 +10,7 @@\n import os\n import shutil\n import sys\n+import re\n \n from distutils import log\n from distutils.dist import Distribution\n@@ -46,12 +47,16 @@ class AstropyBuildSphinx(BuildDoc):\n         this is needed because github won't create the _static dir\n         because it has no tracked files.\n         \"\"\"\n+\n+        _self_iden_rex = re.compile(r\"self\\.([^\\d\\W][\\w]+)\", re.UNICODE)\n+\n         def run(self):\n             from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n             from subprocess import Popen, PIPE\n             from textwrap import dedent\n-            from distutils.fancy_getopt import translate_longopt\n+            from inspect import getsourcelines\n+\n \n             # If possible, create the _static dir\n             if self.build_dir is not None:\n@@ -67,32 +72,38 @@ def run(self):\n                         staticdir + 'is a file.  Must be a directory.')\n                 self.mkpath(staticdir)\n \n-            #Now make sure Astropy is built and inject it into the python path\n-            #so that sphinx will see the built version\n+            #Now make sure Astropy is built and determine where it was built\n             build_cmd = self.reinitialize_command('build')\n             build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n-            new_path = os.path.abspath(build_cmd.build_lib)\n-            sys.path.insert(0, os.path.abspath(new_path))\n+            build_path = os.path.abspath(build_cmd.build_lib)\n \n-            #Now spawn a new python process that runs a BuildDoc command.\n-            optionnames = [translate_longopt(nm[:-1] if nm[-1] == '=' else nm)\n-                           for (nm, _, _) in BuildDoc.user_options]\n-            optionvals = [getattr(self, nm) for nm in optionnames]\n+            #Now generate the source for and spawn a new process that runs the\n+            #command.  This is needed to get the correct imports for the built\n+            #version\n \n+            runlines, runlineno = getsourcelines(BuildDoc.run)\n             subproccode = dedent(\"\"\"\n-            from sphinx.setup_command import BuildDoc\n-            cmd = BuildDoc()\n-            for onm, oval in zip([{opnms}], [{opvals}]):\n-                setattr(cmd, onm, oval)\n-            cmd.finalize_options()\n-            cmd.run()\n-            \"\"\").format(opnms=','.join(optionnames),\n-                        opvals=','.join([repr(v) for v in optionvals]))\n-\n-            log.debug('Starting subprocess of {0} with python '\n-                      'code:\\n{1}'.format(sys.executable, subproccode))\n+            from sphinx.setup_command import *\n+\n+            os.chdir('docs')\n+            sys.path.insert(0,'{build_path}')\n+\n+            \"\"\").format(build_path=build_path)\n+            #runlines[1:] removes 'def run(self)' on the first line\n+            subproccode += dedent(''.join(runlines[1:]))\n+\n+            # All \"self.foo\" in the subprocess code needs to be replaced by the\n+            # values taken from the current self in *this* process\n+            subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)\n+            for i in range(1, len(subproccode), 2):\n+                iden = subproccode[i]\n+                subproccode[i] = repr(getattr(self, iden))\n+            subproccode = ''.join(subproccode)\n+\n+            log.debug('Starting subprocess of {0} with python code:\\n{1}\\n'\n+                      '[CODE END])'.format(sys.executable, subproccode))\n \n             proc = Popen([sys.executable], stdin=PIPE)\n             proc.communicate(subproccode)"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "3baeaf2cbcab8f18e61586d342a91d05d4119365",
+      "message": "added cleaning option to build_sphinx",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-04-01T00:14:21+00:00",
+      "author_date": "2012-04-01T00:14:21+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-04-01T00:14:21+00:00",
+      "date": "2012-04-01T00:14:21+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -48,16 +48,48 @@ class AstropyBuildSphinx(BuildDoc):\n         because it has no tracked files.\n         \"\"\"\n \n+        description = 'Build Sphinx documentation for Astropy environment'\n+        user_options = BuildDoc.user_options[:]\n+        user_options.append(('clean-docs', 'l', 'Clean previously-built docs '\n+                                                'before building new ones'))\n+        boolean_options = BuildDoc.boolean_options[:]\n+        boolean_options.append('clean-docs')\n+\n         _self_iden_rex = re.compile(r\"self\\.([^\\d\\W][\\w]+)\", re.UNICODE)\n \n+        def initialize_options(self):\n+            BuildDoc.initialize_options(self)\n+            self.clean_docs = False\n+\n+        def finalize_options(self):\n+            from os.path import isdir\n+            from shutil import rmtree\n+\n+            #Clear out previous sphinx builds, if requested\n+            if self.clean_docs:\n+                dirstorm = ['docs/_generated']\n+                if self.build_dir is None:\n+                    dirstorm.append('docs/_build')\n+                else:\n+                    dirstorm.append(self.build_dir)\n+\n+                for d in dirstorm:\n+                    if isdir(d):\n+                        log.info('Cleaning directory ' + d)\n+                        rmtree(d)\n+                    else:\n+                        log.info('Not cleaning directory ' + d + ' because '\n+                                 'not present or not a directory')\n+\n+            BuildDoc.finalize_options(self)\n+\n         def run(self):\n             from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n             from subprocess import Popen, PIPE\n             from textwrap import dedent\n             from inspect import getsourcelines\n \n-\n             # If possible, create the _static dir\n             if self.build_dir is not None:\n                 # the _static dir should be in the same place as the _build dir\n@@ -77,7 +109,7 @@ def run(self):\n             build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n-            build_path = os.path.abspath(build_cmd.build_lib)\n+            build_cmd_path = os.path.abspath(build_cmd.build_lib)\n \n             #Now generate the source for and spawn a new process that runs the\n             #command.  This is needed to get the correct imports for the built\n@@ -88,9 +120,9 @@ def run(self):\n             from sphinx.setup_command import *\n \n             os.chdir('docs')\n-            sys.path.insert(0,'{build_path}')\n+            sys.path.insert(0,'{build_cmd_path}')\n \n-            \"\"\").format(build_path=build_path)\n+            \"\"\").format(build_cmd_path=build_cmd_path)\n             #runlines[1:] removes 'def run(self)' on the first line\n             subproccode += dedent(''.join(runlines[1:]))\n ",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -48,16 +48,48 @@ class AstropyBuildSphinx(BuildDoc):\n         because it has no tracked files.\n         \"\"\"\n \n+        description = 'Build Sphinx documentation for Astropy environment'\n+        user_options = BuildDoc.user_options[:]\n+        user_options.append(('clean-docs', 'l', 'Clean previously-built docs '\n+                                                'before building new ones'))\n+        boolean_options = BuildDoc.boolean_options[:]\n+        boolean_options.append('clean-docs')\n+\n         _self_iden_rex = re.compile(r\"self\\.([^\\d\\W][\\w]+)\", re.UNICODE)\n \n+        def initialize_options(self):\n+            BuildDoc.initialize_options(self)\n+            self.clean_docs = False\n+\n+        def finalize_options(self):\n+            from os.path import isdir\n+            from shutil import rmtree\n+\n+            #Clear out previous sphinx builds, if requested\n+            if self.clean_docs:\n+                dirstorm = ['docs/_generated']\n+                if self.build_dir is None:\n+                    dirstorm.append('docs/_build')\n+                else:\n+                    dirstorm.append(self.build_dir)\n+\n+                for d in dirstorm:\n+                    if isdir(d):\n+                        log.info('Cleaning directory ' + d)\n+                        rmtree(d)\n+                    else:\n+                        log.info('Not cleaning directory ' + d + ' because '\n+                                 'not present or not a directory')\n+\n+            BuildDoc.finalize_options(self)\n+\n         def run(self):\n             from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n             from subprocess import Popen, PIPE\n             from textwrap import dedent\n             from inspect import getsourcelines\n \n-\n             # If possible, create the _static dir\n             if self.build_dir is not None:\n                 # the _static dir should be in the same place as the _build dir\n@@ -77,7 +109,7 @@ def run(self):\n             build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n-            build_path = os.path.abspath(build_cmd.build_lib)\n+            build_cmd_path = os.path.abspath(build_cmd.build_lib)\n \n             #Now generate the source for and spawn a new process that runs the\n             #command.  This is needed to get the correct imports for the built\n@@ -88,9 +120,9 @@ def run(self):\n             from sphinx.setup_command import *\n \n             os.chdir('docs')\n-            sys.path.insert(0,'{build_path}')\n+            sys.path.insert(0,'{build_cmd_path}')\n \n-            \"\"\").format(build_path=build_path)\n+            \"\"\").format(build_cmd_path=build_cmd_path)\n             #runlines[1:] removes 'def run(self)' on the first line\n             subproccode += dedent(''.join(runlines[1:]))\n "
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "93d35c2d9aadd10cc42455f201ce64933e4875f8",
+      "message": "fixed conf.py to not screw up build paths",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-04-01T00:50:34+00:00",
+      "author_date": "2012-04-01T00:50:34+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-04-01T00:50:34+00:00",
+      "date": "2012-04-01T00:50:34+00:00",
+      "diff_text": "docs/conf.py\n@@ -12,16 +12,22 @@\n # All configuration values have a default; values that are commented out\n # serve to show the default.\n \n-import os\n-import sys\n-\n #some of the docs require the autodoc special-members option, in 1.1\n needs_sphinx = '1.1'\n \n # If extensions (or modules to document with autodoc) are in another directory,\n # add these directories to sys.path here. If the directory is relative to the\n # documentation root, use os.path.abspath to make it absolute, like shown here.\n-sys.path.insert(0, os.path.abspath('..'))\n+# sys.path.insert(0, os.path.abspath('..'))\n+# IMPORTANT: the above commented section was generated by sphinx-quickstart, but\n+# is *NOT* appropriate for astropy or Astropy affiliated packages. It is left\n+# commented oout with this explanation to make it clear why this should not be\n+# done. If the sys.path entry above is added, when the astropy.sphinx.conf\n+# import occurs, it will import the *source* version of astropy instead of the\n+# version installed (if invoked as \"make html\" or directly with sphinx), or the\n+# version in the build directory (if \" pythonsetup.py build_sphinx\" is used).\n+# Thus, any C-extensions that are needed to build the documentation will *not*\n+# be accessible, and the documentation will not build correctly.\n \n # Load all of the global Astropy configuration\n from astropy.sphinx.conf import *",
+      "diff": [
+        {
+          "file": "docs/conf.py",
+          "patch": "@@ -12,16 +12,22 @@\n # All configuration values have a default; values that are commented out\n # serve to show the default.\n \n-import os\n-import sys\n-\n #some of the docs require the autodoc special-members option, in 1.1\n needs_sphinx = '1.1'\n \n # If extensions (or modules to document with autodoc) are in another directory,\n # add these directories to sys.path here. If the directory is relative to the\n # documentation root, use os.path.abspath to make it absolute, like shown here.\n-sys.path.insert(0, os.path.abspath('..'))\n+# sys.path.insert(0, os.path.abspath('..'))\n+# IMPORTANT: the above commented section was generated by sphinx-quickstart, but\n+# is *NOT* appropriate for astropy or Astropy affiliated packages. It is left\n+# commented oout with this explanation to make it clear why this should not be\n+# done. If the sys.path entry above is added, when the astropy.sphinx.conf\n+# import occurs, it will import the *source* version of astropy instead of the\n+# version installed (if invoked as \"make html\" or directly with sphinx), or the\n+# version in the build directory (if \" pythonsetup.py build_sphinx\" is used).\n+# Thus, any C-extensions that are needed to build the documentation will *not*\n+# be accessible, and the documentation will not build correctly.\n \n # Load all of the global Astropy configuration\n from astropy.sphinx.conf import *"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "6e135b86ce609b8639b554ee0cebbf0e5f510487",
+      "message": "updated docs to clarify two installation procedures",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-04-01T01:27:37+00:00",
+      "author_date": "2012-04-01T01:27:37+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-04-01T01:27:37+00:00",
+      "date": "2012-04-01T01:27:37+00:00",
+      "diff_text": "docs/install.rst\n@@ -86,18 +86,29 @@ To install Astropy (from the root of the source tree)::\n Building documentation\n ``````````````````````\n \n-Building the documentation requires some additional packages:\n+Building the documentation requires the Astropy source code and some additional\n+packages:\n \n     - `Sphinx <http://sphinx.pocoo.org>`_ (and its dependencies) 1.0 or later\n \n     - `Graphviz <http://www.graphviz.org>`_\n \n-To build the Astropy documentation (from the root of the source tree)::\n+There are two ways to build the Astropy documentation. The most straightforward\n+way is to execute the command (from the astropy source directory)::\n \n     python setup.py build_sphinx\n \n-The documentation tree will be built in the `docs/_build/html`\n-directory.\n+The documentation will be built in the ``docs/_build/html`` directory, and can\n+be read by pointing a web browser to ``docs/_build/html/index.html``.\n+\n+The above method builds the API documentation from the source code.\n+Alternatively, you can do::\n+\n+    cd docs\n+    make html\n+\n+And the documentation will be generated in the same location, but using the\n+*installed* version of Astropy.\n \n Testing Astropy\n ```````````````",
+      "diff": [
+        {
+          "file": "docs/install.rst",
+          "patch": "@@ -86,18 +86,29 @@ To install Astropy (from the root of the source tree)::\n Building documentation\n ``````````````````````\n \n-Building the documentation requires some additional packages:\n+Building the documentation requires the Astropy source code and some additional\n+packages:\n \n     - `Sphinx <http://sphinx.pocoo.org>`_ (and its dependencies) 1.0 or later\n \n     - `Graphviz <http://www.graphviz.org>`_\n \n-To build the Astropy documentation (from the root of the source tree)::\n+There are two ways to build the Astropy documentation. The most straightforward\n+way is to execute the command (from the astropy source directory)::\n \n     python setup.py build_sphinx\n \n-The documentation tree will be built in the `docs/_build/html`\n-directory.\n+The documentation will be built in the ``docs/_build/html`` directory, and can\n+be read by pointing a web browser to ``docs/_build/html/index.html``.\n+\n+The above method builds the API documentation from the source code.\n+Alternatively, you can do::\n+\n+    cd docs\n+    make html\n+\n+And the documentation will be generated in the same location, but using the\n+*installed* version of Astropy.\n \n Testing Astropy\n ```````````````"
+        }
+      ]
+    },
+    {
+      "type": "description",
+      "user": "eteq",
+      "body": "Fixing this was more subtle than I realized, but this PR now finally makes the sphinx build operate consistently.  Now, `python setup.py build_sphinx` always uses the version of astropy in the build directory, while `make html` in the `docs` directory will use the installed version.\n\nAs part of this, a critical bug is fixed that in the past meant you _had_ to have the C extensions installed via `python setup.py develop` or `python setup.py build_ext --inplace` to get the docs to build.  That is no longer the case.\n\nThis closes #134 .\n",
+      "created_at": "2012-04-01T01:30:18+00:00"
+    },
+    {
+      "type": "commit",
+      "sha": "6d24b43afdbefa43d968675d95a0ac8aedb23e74",
+      "message": "typo fixes in conf.py comment",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-04-01T20:36:14+00:00",
+      "author_date": "2012-04-01T20:36:14+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-04-01T20:36:27+00:00",
+      "date": "2012-04-01T20:36:27+00:00",
+      "diff_text": "docs/conf.py\n@@ -21,11 +21,11 @@\n # sys.path.insert(0, os.path.abspath('..'))\n # IMPORTANT: the above commented section was generated by sphinx-quickstart, but\n # is *NOT* appropriate for astropy or Astropy affiliated packages. It is left\n-# commented oout with this explanation to make it clear why this should not be\n+# commented out with this explanation to make it clear why this should not be\n # done. If the sys.path entry above is added, when the astropy.sphinx.conf\n # import occurs, it will import the *source* version of astropy instead of the\n # version installed (if invoked as \"make html\" or directly with sphinx), or the\n-# version in the build directory (if \" pythonsetup.py build_sphinx\" is used).\n+# version in the build directory (if \"python setup.py build_sphinx\" is used).\n # Thus, any C-extensions that are needed to build the documentation will *not*\n # be accessible, and the documentation will not build correctly.\n ",
+      "diff": [
+        {
+          "file": "docs/conf.py",
+          "patch": "@@ -21,11 +21,11 @@\n # sys.path.insert(0, os.path.abspath('..'))\n # IMPORTANT: the above commented section was generated by sphinx-quickstart, but\n # is *NOT* appropriate for astropy or Astropy affiliated packages. It is left\n-# commented oout with this explanation to make it clear why this should not be\n+# commented out with this explanation to make it clear why this should not be\n # done. If the sys.path entry above is added, when the astropy.sphinx.conf\n # import occurs, it will import the *source* version of astropy instead of the\n # version installed (if invoked as \"make html\" or directly with sphinx), or the\n-# version in the build directory (if \" pythonsetup.py build_sphinx\" is used).\n+# version in the build directory (if \"python setup.py build_sphinx\" is used).\n # Thus, any C-extensions that are needed to build the documentation will *not*\n # be accessible, and the documentation will not build correctly.\n "
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "id": 4879872,
+      "user": "mdboom",
+      "body": "Very welcome change.  For me, `python setup.py build_sphinx` seems to dump the built docs into `docs/docs/_build/html` rather than `docs/_build/html`.  Any idea why?\n",
+      "created_at": "2012-04-02T14:47:00+00:00"
+    },
+    {
+      "type": "comment",
+      "id": 4880522,
+      "user": "embray",
+      "body": "Awesome, thanks for fixing this.  I'm seeing the same docs/docs behavior, but otherwise seems good.\n\nWe've put a lot of work, I think, into developing workarounds to a lot of the annoyances with Python software builds--it seems almost worth pulling out a lot of Astropy's package framework as a drop-in template to use for arbitrary Python-based projects (we've already done that to an extent with the affiliated package template, thought that's still tied to Astropy).  But that's another project for another time :)\n",
+      "created_at": "2012-04-02T15:15:47+00:00"
+    },
+    {
+      "type": "comment",
+      "id": 4882411,
+      "user": "mdboom",
+      "body": "I agree.  The infrastructure for this project is really good!\n",
+      "created_at": "2012-04-02T16:34:05+00:00"
+    },
+    {
+      "type": "commit",
+      "sha": "71a2cc42e567ac879d501d09322186a7bc248eaf",
+      "message": "fixed extra 'docs' directory in build_sphinx by using all absolute paths",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-04-03T08:35:29+00:00",
+      "author_date": "2012-04-03T08:35:29+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-04-03T08:35:29+00:00",
+      "date": "2012-04-03T08:35:29+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -100,7 +100,7 @@ def run(self):\n                 staticdir = join(basedir, '_static')\n                 if os.path.isfile(staticdir):\n                     raise DistutilsOptionError(\n-                        'Attempted to build_sphinx such in a location where' +\n+                        'Attempted to build_sphinx in a location where' +\n                         staticdir + 'is a file.  Must be a directory.')\n                 self.mkpath(staticdir)\n \n@@ -119,10 +119,10 @@ def run(self):\n             subproccode = dedent(\"\"\"\n             from sphinx.setup_command import *\n \n-            os.chdir('docs')\n+            os.chdir('{srcdir}')\n             sys.path.insert(0,'{build_cmd_path}')\n \n-            \"\"\").format(build_cmd_path=build_cmd_path)\n+            \"\"\").format(build_cmd_path=build_cmd_path, srcdir=self.source_dir)\n             #runlines[1:] removes 'def run(self)' on the first line\n             subproccode += dedent(''.join(runlines[1:]))\n \n@@ -131,7 +131,13 @@ def run(self):\n             subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)\n             for i in range(1, len(subproccode), 2):\n                 iden = subproccode[i]\n-                subproccode[i] = repr(getattr(self, iden))\n+                val = getattr(self, iden)\n+                if iden.endswith('_dir'):\n+                    #Directories should be absolute, because the `chdir` call\n+                    #in the new process moves to a different directory\n+                    subproccode[i] = repr(os.path.abspath(val))\n+                else:\n+                    subproccode[i] = repr(val)\n             subproccode = ''.join(subproccode)\n \n             log.debug('Starting subprocess of {0} with python code:\\n{1}\\n'",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -100,7 +100,7 @@ def run(self):\n                 staticdir = join(basedir, '_static')\n                 if os.path.isfile(staticdir):\n                     raise DistutilsOptionError(\n-                        'Attempted to build_sphinx such in a location where' +\n+                        'Attempted to build_sphinx in a location where' +\n                         staticdir + 'is a file.  Must be a directory.')\n                 self.mkpath(staticdir)\n \n@@ -119,10 +119,10 @@ def run(self):\n             subproccode = dedent(\"\"\"\n             from sphinx.setup_command import *\n \n-            os.chdir('docs')\n+            os.chdir('{srcdir}')\n             sys.path.insert(0,'{build_cmd_path}')\n \n-            \"\"\").format(build_cmd_path=build_cmd_path)\n+            \"\"\").format(build_cmd_path=build_cmd_path, srcdir=self.source_dir)\n             #runlines[1:] removes 'def run(self)' on the first line\n             subproccode += dedent(''.join(runlines[1:]))\n \n@@ -131,7 +131,13 @@ def run(self):\n             subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)\n             for i in range(1, len(subproccode), 2):\n                 iden = subproccode[i]\n-                subproccode[i] = repr(getattr(self, iden))\n+                val = getattr(self, iden)\n+                if iden.endswith('_dir'):\n+                    #Directories should be absolute, because the `chdir` call\n+                    #in the new process moves to a different directory\n+                    subproccode[i] = repr(os.path.abspath(val))\n+                else:\n+                    subproccode[i] = repr(val)\n             subproccode = ''.join(subproccode)\n \n             log.debug('Starting subprocess of {0} with python code:\\n{1}\\n'"
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "id": 4896819,
+      "user": "eteq",
+      "body": "The errant 'docs' directory was because I was changing into the docs directory in the subprocess to get it to put the generated docs in the right place... but that meant the directory names from the `build_sphinx` command were wrong.  Fixed by just using all absolute paths computed in the correct places. @iguananaut and @mdboom, can you double-check this fixes it for you?\n\n@iguananaut - Yeah, maybe we should make our own packaging/build tools from scratch and call it `distutils3` or `packaging2`? :)  Seriously, though, I agree it could be worth factoring the non-astro stuff out if someone has the time/inclination...\n",
+      "created_at": "2012-04-03T08:40:47+00:00"
+    },
+    {
+      "type": "comment",
+      "id": 4897218,
+      "user": "astrofrog",
+      "body": "This works for me! The docs appear in the right place.\n",
+      "created_at": "2012-04-03T09:06:07+00:00"
+    },
+    {
+      "type": "comment",
+      "id": 5021117,
+      "user": "eteq",
+      "body": "Alright, looks like its all building as expected.  Merging!\n",
+      "created_at": "2012-04-09T05:14:58+00:00"
+    }
+  ],
+  "all_commits": [
+    {
+      "type": "commit",
+      "sha": "b47c52ecf1bd46f0a2a361553f44aa8c70803171",
+      "message": "cosmetic fixes in build_sphinx",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-03-30T02:50:41+00:00",
+      "author_date": "2012-03-30T02:50:41+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-03-30T02:50:41+00:00",
+      "date": "2012-03-30T02:50:41+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -36,16 +36,21 @@\n     from sphinx.setup_command import BuildDoc\n \n     class AstropyBuildSphinx(BuildDoc):\n-        \"\"\" A version of build_sphinx that automatically creates the\n-        docs/_static directories - this is needed because\n-        github won't create the _static dir because it has no tracked files.\n+        \"\"\" A version of the ``build_sphinx`` command that uses the\n+        version of Astropy that is built by the setup ``build`` command,\n+        rather than whatever is installed on the system - to build docs\n+        against the installed version, run ``make html`` in the\n+        ``astropy/docs`` directory.\n+\n+        This also automatically creates the docs/_static directories -\n+        this is needed because github won't create the _static dir\n+        because it has no tracked files.\n         \"\"\"\n         def run(self):\n-            from os.path import split,join\n-\n+            from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n \n-            #If possible, creat the _static dir\n+            # If possible, create the _static dir\n             if self.build_dir is not None:\n                 # the _static dir should be in the same place as the _build dir\n                 # for Astropy\n@@ -60,7 +65,7 @@ def run(self):\n                 self.mkpath(staticdir)\n \n             #Now make sure Astropy is built and inject it into the sphinx path\n-            #self.reinitialize_command('build', inplace=False)\n+            self.reinitialize_command('build')#, inplace=False)\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n             new_path = os.path.abspath(build_cmd.build_lib)",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -36,16 +36,21 @@\n     from sphinx.setup_command import BuildDoc\n \n     class AstropyBuildSphinx(BuildDoc):\n-        \"\"\" A version of build_sphinx that automatically creates the\n-        docs/_static directories - this is needed because\n-        github won't create the _static dir because it has no tracked files.\n+        \"\"\" A version of the ``build_sphinx`` command that uses the\n+        version of Astropy that is built by the setup ``build`` command,\n+        rather than whatever is installed on the system - to build docs\n+        against the installed version, run ``make html`` in the\n+        ``astropy/docs`` directory.\n+\n+        This also automatically creates the docs/_static directories -\n+        this is needed because github won't create the _static dir\n+        because it has no tracked files.\n         \"\"\"\n         def run(self):\n-            from os.path import split,join\n-\n+            from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n \n-            #If possible, creat the _static dir\n+            # If possible, create the _static dir\n             if self.build_dir is not None:\n                 # the _static dir should be in the same place as the _build dir\n                 # for Astropy\n@@ -60,7 +65,7 @@ def run(self):\n                 self.mkpath(staticdir)\n \n             #Now make sure Astropy is built and inject it into the sphinx path\n-            #self.reinitialize_command('build', inplace=False)\n+            self.reinitialize_command('build')#, inplace=False)\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n             new_path = os.path.abspath(build_cmd.build_lib)"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "f9f8a2fa939481efd3754ade027ee58b5adb5947",
+      "message": "fixed reinitialization inplace-forcing",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-03-30T09:57:11+00:00",
+      "author_date": "2012-03-30T09:57:11+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-03-30T09:57:11+00:00",
+      "date": "2012-03-30T09:57:11+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -65,7 +65,8 @@ def run(self):\n                 self.mkpath(staticdir)\n \n             #Now make sure Astropy is built and inject it into the sphinx path\n-            self.reinitialize_command('build')#, inplace=False)\n+            build_cmd = self.reinitialize_command('build')\n+            build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n             new_path = os.path.abspath(build_cmd.build_lib)",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -65,7 +65,8 @@ def run(self):\n                 self.mkpath(staticdir)\n \n             #Now make sure Astropy is built and inject it into the sphinx path\n-            self.reinitialize_command('build')#, inplace=False)\n+            build_cmd = self.reinitialize_command('build')\n+            build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n             new_path = os.path.abspath(build_cmd.build_lib)"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "8565819d234bdca295ddececd48c4c32269721b7",
+      "message": "attempted path clearing, but may not work - will try multiprocess",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-03-30T19:11:45+00:00",
+      "author_date": "2012-03-30T19:11:45+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-03-30T19:11:45+00:00",
+      "date": "2012-03-30T19:11:45+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -64,14 +64,25 @@ def run(self):\n                         staticdir + 'is a file.  Must be a directory.')\n                 self.mkpath(staticdir)\n \n-            #Now make sure Astropy is built and inject it into the sphinx path\n+            #Now make sure Astropy is built and inject it into the python path\n+            #so that sphinx will see the built version\n             build_cmd = self.reinitialize_command('build')\n             build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n             new_path = os.path.abspath(build_cmd.build_lib)\n             sys.path.insert(0, os.path.abspath(new_path))\n \n+            #NEW APPROACH: subprocess?\n+            #now clean out all references to the source directory in sys.path\n+            pkgdir = os.path.abspath('')\n+            todel = []\n+            for i, p in enumerate(sys.path):\n+                if os.path.abspath(p) == pkgdir:\n+                    todel.append(i)\n+            for i in reversed(todel):\n+                del sys.path[i]\n+\n             return BuildDoc.run(self)\n \n except ImportError as e:",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -64,14 +64,25 @@ def run(self):\n                         staticdir + 'is a file.  Must be a directory.')\n                 self.mkpath(staticdir)\n \n-            #Now make sure Astropy is built and inject it into the sphinx path\n+            #Now make sure Astropy is built and inject it into the python path\n+            #so that sphinx will see the built version\n             build_cmd = self.reinitialize_command('build')\n             build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n             new_path = os.path.abspath(build_cmd.build_lib)\n             sys.path.insert(0, os.path.abspath(new_path))\n \n+            #NEW APPROACH: subprocess?\n+            #now clean out all references to the source directory in sys.path\n+            pkgdir = os.path.abspath('')\n+            todel = []\n+            for i, p in enumerate(sys.path):\n+                if os.path.abspath(p) == pkgdir:\n+                    todel.append(i)\n+            for i in reversed(todel):\n+                del sys.path[i]\n+\n             return BuildDoc.run(self)\n \n except ImportError as e:"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "224a763ff0b423fbde3accbd4b1da2faf50ea6cd",
+      "message": "possible approach of calling sphinx BuildDoc... but need Distribution object",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-03-31T22:30:30+00:00",
+      "author_date": "2012-03-31T22:30:30+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-03-31T22:30:30+00:00",
+      "date": "2012-03-31T22:30:30+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -49,6 +49,9 @@ class AstropyBuildSphinx(BuildDoc):\n         def run(self):\n             from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n+            from subprocess import Popen, PIPE\n+            from textwrap import dedent\n+            from distutils.fancy_getopt import translate_longopt\n \n             # If possible, create the _static dir\n             if self.build_dir is not None:\n@@ -73,17 +76,29 @@ def run(self):\n             new_path = os.path.abspath(build_cmd.build_lib)\n             sys.path.insert(0, os.path.abspath(new_path))\n \n-            #NEW APPROACH: subprocess?\n-            #now clean out all references to the source directory in sys.path\n-            pkgdir = os.path.abspath('')\n-            todel = []\n-            for i, p in enumerate(sys.path):\n-                if os.path.abspath(p) == pkgdir:\n-                    todel.append(i)\n-            for i in reversed(todel):\n-                del sys.path[i]\n-\n-            return BuildDoc.run(self)\n+            #Now spawn a new python process that runs a BuildDoc command.\n+            optionnames = [translate_longopt(nm[:-1] if nm[-1] == '=' else nm)\n+                           for (nm, _, _) in BuildDoc.user_options]\n+            optionvals = [getattr(self, nm) for nm in optionnames]\n+\n+            subproccode = dedent(\"\"\"\n+            from sphinx.setup_command import BuildDoc\n+            cmd = BuildDoc()\n+            for onm, oval in zip([{opnms}], [{opvals}]):\n+                setattr(cmd, onm, oval)\n+            cmd.finalize_options()\n+            cmd.run()\n+            \"\"\").format(opnms=','.join(optionnames),\n+                        opvals=','.join([repr(v) for v in optionvals]))\n+\n+            log.debug('Starting subprocess of {0} with python '\n+                      'code:\\n{1}'.format(sys.executable, subproccode))\n+\n+            proc = Popen([sys.executable], stdin=PIPE)\n+            proc.communicate(subproccode)\n+            if proc.returncode != 0:\n+                log.warn('Sphinx Documentation subprocess failed with return '\n+                         'code ' + str(proc.returncode))\n \n except ImportError as e:\n     if 'sphinx' in e.args[0]:  # Sphinx not present",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -49,6 +49,9 @@ class AstropyBuildSphinx(BuildDoc):\n         def run(self):\n             from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n+            from subprocess import Popen, PIPE\n+            from textwrap import dedent\n+            from distutils.fancy_getopt import translate_longopt\n \n             # If possible, create the _static dir\n             if self.build_dir is not None:\n@@ -73,17 +76,29 @@ def run(self):\n             new_path = os.path.abspath(build_cmd.build_lib)\n             sys.path.insert(0, os.path.abspath(new_path))\n \n-            #NEW APPROACH: subprocess?\n-            #now clean out all references to the source directory in sys.path\n-            pkgdir = os.path.abspath('')\n-            todel = []\n-            for i, p in enumerate(sys.path):\n-                if os.path.abspath(p) == pkgdir:\n-                    todel.append(i)\n-            for i in reversed(todel):\n-                del sys.path[i]\n-\n-            return BuildDoc.run(self)\n+            #Now spawn a new python process that runs a BuildDoc command.\n+            optionnames = [translate_longopt(nm[:-1] if nm[-1] == '=' else nm)\n+                           for (nm, _, _) in BuildDoc.user_options]\n+            optionvals = [getattr(self, nm) for nm in optionnames]\n+\n+            subproccode = dedent(\"\"\"\n+            from sphinx.setup_command import BuildDoc\n+            cmd = BuildDoc()\n+            for onm, oval in zip([{opnms}], [{opvals}]):\n+                setattr(cmd, onm, oval)\n+            cmd.finalize_options()\n+            cmd.run()\n+            \"\"\").format(opnms=','.join(optionnames),\n+                        opvals=','.join([repr(v) for v in optionvals]))\n+\n+            log.debug('Starting subprocess of {0} with python '\n+                      'code:\\n{1}'.format(sys.executable, subproccode))\n+\n+            proc = Popen([sys.executable], stdin=PIPE)\n+            proc.communicate(subproccode)\n+            if proc.returncode != 0:\n+                log.warn('Sphinx Documentation subprocess failed with return '\n+                         'code ' + str(proc.returncode))\n \n except ImportError as e:\n     if 'sphinx' in e.args[0]:  # Sphinx not present"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "63f073d149fac93d34e280a6b0eafd6b410aa00e",
+      "message": "build_sphinx now working as intended, but still having path issues",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-03-31T23:38:31+00:00",
+      "author_date": "2012-03-31T23:38:31+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-03-31T23:38:31+00:00",
+      "date": "2012-03-31T23:38:31+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -10,6 +10,7 @@\n import os\n import shutil\n import sys\n+import re\n \n from distutils import log\n from distutils.dist import Distribution\n@@ -46,12 +47,16 @@ class AstropyBuildSphinx(BuildDoc):\n         this is needed because github won't create the _static dir\n         because it has no tracked files.\n         \"\"\"\n+\n+        _self_iden_rex = re.compile(r\"self\\.([^\\d\\W][\\w]+)\", re.UNICODE)\n+\n         def run(self):\n             from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n             from subprocess import Popen, PIPE\n             from textwrap import dedent\n-            from distutils.fancy_getopt import translate_longopt\n+            from inspect import getsourcelines\n+\n \n             # If possible, create the _static dir\n             if self.build_dir is not None:\n@@ -67,32 +72,38 @@ def run(self):\n                         staticdir + 'is a file.  Must be a directory.')\n                 self.mkpath(staticdir)\n \n-            #Now make sure Astropy is built and inject it into the python path\n-            #so that sphinx will see the built version\n+            #Now make sure Astropy is built and determine where it was built\n             build_cmd = self.reinitialize_command('build')\n             build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n-            new_path = os.path.abspath(build_cmd.build_lib)\n-            sys.path.insert(0, os.path.abspath(new_path))\n+            build_path = os.path.abspath(build_cmd.build_lib)\n \n-            #Now spawn a new python process that runs a BuildDoc command.\n-            optionnames = [translate_longopt(nm[:-1] if nm[-1] == '=' else nm)\n-                           for (nm, _, _) in BuildDoc.user_options]\n-            optionvals = [getattr(self, nm) for nm in optionnames]\n+            #Now generate the source for and spawn a new process that runs the\n+            #command.  This is needed to get the correct imports for the built\n+            #version\n \n+            runlines, runlineno = getsourcelines(BuildDoc.run)\n             subproccode = dedent(\"\"\"\n-            from sphinx.setup_command import BuildDoc\n-            cmd = BuildDoc()\n-            for onm, oval in zip([{opnms}], [{opvals}]):\n-                setattr(cmd, onm, oval)\n-            cmd.finalize_options()\n-            cmd.run()\n-            \"\"\").format(opnms=','.join(optionnames),\n-                        opvals=','.join([repr(v) for v in optionvals]))\n-\n-            log.debug('Starting subprocess of {0} with python '\n-                      'code:\\n{1}'.format(sys.executable, subproccode))\n+            from sphinx.setup_command import *\n+\n+            os.chdir('docs')\n+            sys.path.insert(0,'{build_path}')\n+\n+            \"\"\").format(build_path=build_path)\n+            #runlines[1:] removes 'def run(self)' on the first line\n+            subproccode += dedent(''.join(runlines[1:]))\n+\n+            # All \"self.foo\" in the subprocess code needs to be replaced by the\n+            # values taken from the current self in *this* process\n+            subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)\n+            for i in range(1, len(subproccode), 2):\n+                iden = subproccode[i]\n+                subproccode[i] = repr(getattr(self, iden))\n+            subproccode = ''.join(subproccode)\n+\n+            log.debug('Starting subprocess of {0} with python code:\\n{1}\\n'\n+                      '[CODE END])'.format(sys.executable, subproccode))\n \n             proc = Popen([sys.executable], stdin=PIPE)\n             proc.communicate(subproccode)",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -10,6 +10,7 @@\n import os\n import shutil\n import sys\n+import re\n \n from distutils import log\n from distutils.dist import Distribution\n@@ -46,12 +47,16 @@ class AstropyBuildSphinx(BuildDoc):\n         this is needed because github won't create the _static dir\n         because it has no tracked files.\n         \"\"\"\n+\n+        _self_iden_rex = re.compile(r\"self\\.([^\\d\\W][\\w]+)\", re.UNICODE)\n+\n         def run(self):\n             from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n             from subprocess import Popen, PIPE\n             from textwrap import dedent\n-            from distutils.fancy_getopt import translate_longopt\n+            from inspect import getsourcelines\n+\n \n             # If possible, create the _static dir\n             if self.build_dir is not None:\n@@ -67,32 +72,38 @@ def run(self):\n                         staticdir + 'is a file.  Must be a directory.')\n                 self.mkpath(staticdir)\n \n-            #Now make sure Astropy is built and inject it into the python path\n-            #so that sphinx will see the built version\n+            #Now make sure Astropy is built and determine where it was built\n             build_cmd = self.reinitialize_command('build')\n             build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n-            new_path = os.path.abspath(build_cmd.build_lib)\n-            sys.path.insert(0, os.path.abspath(new_path))\n+            build_path = os.path.abspath(build_cmd.build_lib)\n \n-            #Now spawn a new python process that runs a BuildDoc command.\n-            optionnames = [translate_longopt(nm[:-1] if nm[-1] == '=' else nm)\n-                           for (nm, _, _) in BuildDoc.user_options]\n-            optionvals = [getattr(self, nm) for nm in optionnames]\n+            #Now generate the source for and spawn a new process that runs the\n+            #command.  This is needed to get the correct imports for the built\n+            #version\n \n+            runlines, runlineno = getsourcelines(BuildDoc.run)\n             subproccode = dedent(\"\"\"\n-            from sphinx.setup_command import BuildDoc\n-            cmd = BuildDoc()\n-            for onm, oval in zip([{opnms}], [{opvals}]):\n-                setattr(cmd, onm, oval)\n-            cmd.finalize_options()\n-            cmd.run()\n-            \"\"\").format(opnms=','.join(optionnames),\n-                        opvals=','.join([repr(v) for v in optionvals]))\n-\n-            log.debug('Starting subprocess of {0} with python '\n-                      'code:\\n{1}'.format(sys.executable, subproccode))\n+            from sphinx.setup_command import *\n+\n+            os.chdir('docs')\n+            sys.path.insert(0,'{build_path}')\n+\n+            \"\"\").format(build_path=build_path)\n+            #runlines[1:] removes 'def run(self)' on the first line\n+            subproccode += dedent(''.join(runlines[1:]))\n+\n+            # All \"self.foo\" in the subprocess code needs to be replaced by the\n+            # values taken from the current self in *this* process\n+            subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)\n+            for i in range(1, len(subproccode), 2):\n+                iden = subproccode[i]\n+                subproccode[i] = repr(getattr(self, iden))\n+            subproccode = ''.join(subproccode)\n+\n+            log.debug('Starting subprocess of {0} with python code:\\n{1}\\n'\n+                      '[CODE END])'.format(sys.executable, subproccode))\n \n             proc = Popen([sys.executable], stdin=PIPE)\n             proc.communicate(subproccode)"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "3baeaf2cbcab8f18e61586d342a91d05d4119365",
+      "message": "added cleaning option to build_sphinx",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-04-01T00:14:21+00:00",
+      "author_date": "2012-04-01T00:14:21+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-04-01T00:14:21+00:00",
+      "date": "2012-04-01T00:14:21+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -48,16 +48,48 @@ class AstropyBuildSphinx(BuildDoc):\n         because it has no tracked files.\n         \"\"\"\n \n+        description = 'Build Sphinx documentation for Astropy environment'\n+        user_options = BuildDoc.user_options[:]\n+        user_options.append(('clean-docs', 'l', 'Clean previously-built docs '\n+                                                'before building new ones'))\n+        boolean_options = BuildDoc.boolean_options[:]\n+        boolean_options.append('clean-docs')\n+\n         _self_iden_rex = re.compile(r\"self\\.([^\\d\\W][\\w]+)\", re.UNICODE)\n \n+        def initialize_options(self):\n+            BuildDoc.initialize_options(self)\n+            self.clean_docs = False\n+\n+        def finalize_options(self):\n+            from os.path import isdir\n+            from shutil import rmtree\n+\n+            #Clear out previous sphinx builds, if requested\n+            if self.clean_docs:\n+                dirstorm = ['docs/_generated']\n+                if self.build_dir is None:\n+                    dirstorm.append('docs/_build')\n+                else:\n+                    dirstorm.append(self.build_dir)\n+\n+                for d in dirstorm:\n+                    if isdir(d):\n+                        log.info('Cleaning directory ' + d)\n+                        rmtree(d)\n+                    else:\n+                        log.info('Not cleaning directory ' + d + ' because '\n+                                 'not present or not a directory')\n+\n+            BuildDoc.finalize_options(self)\n+\n         def run(self):\n             from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n             from subprocess import Popen, PIPE\n             from textwrap import dedent\n             from inspect import getsourcelines\n \n-\n             # If possible, create the _static dir\n             if self.build_dir is not None:\n                 # the _static dir should be in the same place as the _build dir\n@@ -77,7 +109,7 @@ def run(self):\n             build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n-            build_path = os.path.abspath(build_cmd.build_lib)\n+            build_cmd_path = os.path.abspath(build_cmd.build_lib)\n \n             #Now generate the source for and spawn a new process that runs the\n             #command.  This is needed to get the correct imports for the built\n@@ -88,9 +120,9 @@ def run(self):\n             from sphinx.setup_command import *\n \n             os.chdir('docs')\n-            sys.path.insert(0,'{build_path}')\n+            sys.path.insert(0,'{build_cmd_path}')\n \n-            \"\"\").format(build_path=build_path)\n+            \"\"\").format(build_cmd_path=build_cmd_path)\n             #runlines[1:] removes 'def run(self)' on the first line\n             subproccode += dedent(''.join(runlines[1:]))\n ",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -48,16 +48,48 @@ class AstropyBuildSphinx(BuildDoc):\n         because it has no tracked files.\n         \"\"\"\n \n+        description = 'Build Sphinx documentation for Astropy environment'\n+        user_options = BuildDoc.user_options[:]\n+        user_options.append(('clean-docs', 'l', 'Clean previously-built docs '\n+                                                'before building new ones'))\n+        boolean_options = BuildDoc.boolean_options[:]\n+        boolean_options.append('clean-docs')\n+\n         _self_iden_rex = re.compile(r\"self\\.([^\\d\\W][\\w]+)\", re.UNICODE)\n \n+        def initialize_options(self):\n+            BuildDoc.initialize_options(self)\n+            self.clean_docs = False\n+\n+        def finalize_options(self):\n+            from os.path import isdir\n+            from shutil import rmtree\n+\n+            #Clear out previous sphinx builds, if requested\n+            if self.clean_docs:\n+                dirstorm = ['docs/_generated']\n+                if self.build_dir is None:\n+                    dirstorm.append('docs/_build')\n+                else:\n+                    dirstorm.append(self.build_dir)\n+\n+                for d in dirstorm:\n+                    if isdir(d):\n+                        log.info('Cleaning directory ' + d)\n+                        rmtree(d)\n+                    else:\n+                        log.info('Not cleaning directory ' + d + ' because '\n+                                 'not present or not a directory')\n+\n+            BuildDoc.finalize_options(self)\n+\n         def run(self):\n             from os.path import split, join\n             from distutils.cmd import DistutilsOptionError\n             from subprocess import Popen, PIPE\n             from textwrap import dedent\n             from inspect import getsourcelines\n \n-\n             # If possible, create the _static dir\n             if self.build_dir is not None:\n                 # the _static dir should be in the same place as the _build dir\n@@ -77,7 +109,7 @@ def run(self):\n             build_cmd.inplace = 0\n             self.run_command('build')\n             build_cmd = self.get_finalized_command('build')\n-            build_path = os.path.abspath(build_cmd.build_lib)\n+            build_cmd_path = os.path.abspath(build_cmd.build_lib)\n \n             #Now generate the source for and spawn a new process that runs the\n             #command.  This is needed to get the correct imports for the built\n@@ -88,9 +120,9 @@ def run(self):\n             from sphinx.setup_command import *\n \n             os.chdir('docs')\n-            sys.path.insert(0,'{build_path}')\n+            sys.path.insert(0,'{build_cmd_path}')\n \n-            \"\"\").format(build_path=build_path)\n+            \"\"\").format(build_cmd_path=build_cmd_path)\n             #runlines[1:] removes 'def run(self)' on the first line\n             subproccode += dedent(''.join(runlines[1:]))\n "
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "93d35c2d9aadd10cc42455f201ce64933e4875f8",
+      "message": "fixed conf.py to not screw up build paths",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-04-01T00:50:34+00:00",
+      "author_date": "2012-04-01T00:50:34+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-04-01T00:50:34+00:00",
+      "date": "2012-04-01T00:50:34+00:00",
+      "diff_text": "docs/conf.py\n@@ -12,16 +12,22 @@\n # All configuration values have a default; values that are commented out\n # serve to show the default.\n \n-import os\n-import sys\n-\n #some of the docs require the autodoc special-members option, in 1.1\n needs_sphinx = '1.1'\n \n # If extensions (or modules to document with autodoc) are in another directory,\n # add these directories to sys.path here. If the directory is relative to the\n # documentation root, use os.path.abspath to make it absolute, like shown here.\n-sys.path.insert(0, os.path.abspath('..'))\n+# sys.path.insert(0, os.path.abspath('..'))\n+# IMPORTANT: the above commented section was generated by sphinx-quickstart, but\n+# is *NOT* appropriate for astropy or Astropy affiliated packages. It is left\n+# commented oout with this explanation to make it clear why this should not be\n+# done. If the sys.path entry above is added, when the astropy.sphinx.conf\n+# import occurs, it will import the *source* version of astropy instead of the\n+# version installed (if invoked as \"make html\" or directly with sphinx), or the\n+# version in the build directory (if \" pythonsetup.py build_sphinx\" is used).\n+# Thus, any C-extensions that are needed to build the documentation will *not*\n+# be accessible, and the documentation will not build correctly.\n \n # Load all of the global Astropy configuration\n from astropy.sphinx.conf import *",
+      "diff": [
+        {
+          "file": "docs/conf.py",
+          "patch": "@@ -12,16 +12,22 @@\n # All configuration values have a default; values that are commented out\n # serve to show the default.\n \n-import os\n-import sys\n-\n #some of the docs require the autodoc special-members option, in 1.1\n needs_sphinx = '1.1'\n \n # If extensions (or modules to document with autodoc) are in another directory,\n # add these directories to sys.path here. If the directory is relative to the\n # documentation root, use os.path.abspath to make it absolute, like shown here.\n-sys.path.insert(0, os.path.abspath('..'))\n+# sys.path.insert(0, os.path.abspath('..'))\n+# IMPORTANT: the above commented section was generated by sphinx-quickstart, but\n+# is *NOT* appropriate for astropy or Astropy affiliated packages. It is left\n+# commented oout with this explanation to make it clear why this should not be\n+# done. If the sys.path entry above is added, when the astropy.sphinx.conf\n+# import occurs, it will import the *source* version of astropy instead of the\n+# version installed (if invoked as \"make html\" or directly with sphinx), or the\n+# version in the build directory (if \" pythonsetup.py build_sphinx\" is used).\n+# Thus, any C-extensions that are needed to build the documentation will *not*\n+# be accessible, and the documentation will not build correctly.\n \n # Load all of the global Astropy configuration\n from astropy.sphinx.conf import *"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "6e135b86ce609b8639b554ee0cebbf0e5f510487",
+      "message": "updated docs to clarify two installation procedures",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-04-01T01:27:37+00:00",
+      "author_date": "2012-04-01T01:27:37+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-04-01T01:27:37+00:00",
+      "date": "2012-04-01T01:27:37+00:00",
+      "diff_text": "docs/install.rst\n@@ -86,18 +86,29 @@ To install Astropy (from the root of the source tree)::\n Building documentation\n ``````````````````````\n \n-Building the documentation requires some additional packages:\n+Building the documentation requires the Astropy source code and some additional\n+packages:\n \n     - `Sphinx <http://sphinx.pocoo.org>`_ (and its dependencies) 1.0 or later\n \n     - `Graphviz <http://www.graphviz.org>`_\n \n-To build the Astropy documentation (from the root of the source tree)::\n+There are two ways to build the Astropy documentation. The most straightforward\n+way is to execute the command (from the astropy source directory)::\n \n     python setup.py build_sphinx\n \n-The documentation tree will be built in the `docs/_build/html`\n-directory.\n+The documentation will be built in the ``docs/_build/html`` directory, and can\n+be read by pointing a web browser to ``docs/_build/html/index.html``.\n+\n+The above method builds the API documentation from the source code.\n+Alternatively, you can do::\n+\n+    cd docs\n+    make html\n+\n+And the documentation will be generated in the same location, but using the\n+*installed* version of Astropy.\n \n Testing Astropy\n ```````````````",
+      "diff": [
+        {
+          "file": "docs/install.rst",
+          "patch": "@@ -86,18 +86,29 @@ To install Astropy (from the root of the source tree)::\n Building documentation\n ``````````````````````\n \n-Building the documentation requires some additional packages:\n+Building the documentation requires the Astropy source code and some additional\n+packages:\n \n     - `Sphinx <http://sphinx.pocoo.org>`_ (and its dependencies) 1.0 or later\n \n     - `Graphviz <http://www.graphviz.org>`_\n \n-To build the Astropy documentation (from the root of the source tree)::\n+There are two ways to build the Astropy documentation. The most straightforward\n+way is to execute the command (from the astropy source directory)::\n \n     python setup.py build_sphinx\n \n-The documentation tree will be built in the `docs/_build/html`\n-directory.\n+The documentation will be built in the ``docs/_build/html`` directory, and can\n+be read by pointing a web browser to ``docs/_build/html/index.html``.\n+\n+The above method builds the API documentation from the source code.\n+Alternatively, you can do::\n+\n+    cd docs\n+    make html\n+\n+And the documentation will be generated in the same location, but using the\n+*installed* version of Astropy.\n \n Testing Astropy\n ```````````````"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "6d24b43afdbefa43d968675d95a0ac8aedb23e74",
+      "message": "typo fixes in conf.py comment",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-04-01T20:36:14+00:00",
+      "author_date": "2012-04-01T20:36:14+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-04-01T20:36:27+00:00",
+      "date": "2012-04-01T20:36:27+00:00",
+      "diff_text": "docs/conf.py\n@@ -21,11 +21,11 @@\n # sys.path.insert(0, os.path.abspath('..'))\n # IMPORTANT: the above commented section was generated by sphinx-quickstart, but\n # is *NOT* appropriate for astropy or Astropy affiliated packages. It is left\n-# commented oout with this explanation to make it clear why this should not be\n+# commented out with this explanation to make it clear why this should not be\n # done. If the sys.path entry above is added, when the astropy.sphinx.conf\n # import occurs, it will import the *source* version of astropy instead of the\n # version installed (if invoked as \"make html\" or directly with sphinx), or the\n-# version in the build directory (if \" pythonsetup.py build_sphinx\" is used).\n+# version in the build directory (if \"python setup.py build_sphinx\" is used).\n # Thus, any C-extensions that are needed to build the documentation will *not*\n # be accessible, and the documentation will not build correctly.\n ",
+      "diff": [
+        {
+          "file": "docs/conf.py",
+          "patch": "@@ -21,11 +21,11 @@\n # sys.path.insert(0, os.path.abspath('..'))\n # IMPORTANT: the above commented section was generated by sphinx-quickstart, but\n # is *NOT* appropriate for astropy or Astropy affiliated packages. It is left\n-# commented oout with this explanation to make it clear why this should not be\n+# commented out with this explanation to make it clear why this should not be\n # done. If the sys.path entry above is added, when the astropy.sphinx.conf\n # import occurs, it will import the *source* version of astropy instead of the\n # version installed (if invoked as \"make html\" or directly with sphinx), or the\n-# version in the build directory (if \" pythonsetup.py build_sphinx\" is used).\n+# version in the build directory (if \"python setup.py build_sphinx\" is used).\n # Thus, any C-extensions that are needed to build the documentation will *not*\n # be accessible, and the documentation will not build correctly.\n "
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "71a2cc42e567ac879d501d09322186a7bc248eaf",
+      "message": "fixed extra 'docs' directory in build_sphinx by using all absolute paths",
+      "author": "Erik Tollerud",
+      "author_email": "erik.tollerud@gmail.com",
+      "author_raw_date": "2012-04-03T08:35:29+00:00",
+      "author_date": "2012-04-03T08:35:29+00:00",
+      "committer": "Erik Tollerud",
+      "committer_email": "erik.tollerud@gmail.com",
+      "raw_date": "2012-04-03T08:35:29+00:00",
+      "date": "2012-04-03T08:35:29+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -100,7 +100,7 @@ def run(self):\n                 staticdir = join(basedir, '_static')\n                 if os.path.isfile(staticdir):\n                     raise DistutilsOptionError(\n-                        'Attempted to build_sphinx such in a location where' +\n+                        'Attempted to build_sphinx in a location where' +\n                         staticdir + 'is a file.  Must be a directory.')\n                 self.mkpath(staticdir)\n \n@@ -119,10 +119,10 @@ def run(self):\n             subproccode = dedent(\"\"\"\n             from sphinx.setup_command import *\n \n-            os.chdir('docs')\n+            os.chdir('{srcdir}')\n             sys.path.insert(0,'{build_cmd_path}')\n \n-            \"\"\").format(build_cmd_path=build_cmd_path)\n+            \"\"\").format(build_cmd_path=build_cmd_path, srcdir=self.source_dir)\n             #runlines[1:] removes 'def run(self)' on the first line\n             subproccode += dedent(''.join(runlines[1:]))\n \n@@ -131,7 +131,13 @@ def run(self):\n             subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)\n             for i in range(1, len(subproccode), 2):\n                 iden = subproccode[i]\n-                subproccode[i] = repr(getattr(self, iden))\n+                val = getattr(self, iden)\n+                if iden.endswith('_dir'):\n+                    #Directories should be absolute, because the `chdir` call\n+                    #in the new process moves to a different directory\n+                    subproccode[i] = repr(os.path.abspath(val))\n+                else:\n+                    subproccode[i] = repr(val)\n             subproccode = ''.join(subproccode)\n \n             log.debug('Starting subprocess of {0} with python code:\\n{1}\\n'",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -100,7 +100,7 @@ def run(self):\n                 staticdir = join(basedir, '_static')\n                 if os.path.isfile(staticdir):\n                     raise DistutilsOptionError(\n-                        'Attempted to build_sphinx such in a location where' +\n+                        'Attempted to build_sphinx in a location where' +\n                         staticdir + 'is a file.  Must be a directory.')\n                 self.mkpath(staticdir)\n \n@@ -119,10 +119,10 @@ def run(self):\n             subproccode = dedent(\"\"\"\n             from sphinx.setup_command import *\n \n-            os.chdir('docs')\n+            os.chdir('{srcdir}')\n             sys.path.insert(0,'{build_cmd_path}')\n \n-            \"\"\").format(build_cmd_path=build_cmd_path)\n+            \"\"\").format(build_cmd_path=build_cmd_path, srcdir=self.source_dir)\n             #runlines[1:] removes 'def run(self)' on the first line\n             subproccode += dedent(''.join(runlines[1:]))\n \n@@ -131,7 +131,13 @@ def run(self):\n             subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)\n             for i in range(1, len(subproccode), 2):\n                 iden = subproccode[i]\n-                subproccode[i] = repr(getattr(self, iden))\n+                val = getattr(self, iden)\n+                if iden.endswith('_dir'):\n+                    #Directories should be absolute, because the `chdir` call\n+                    #in the new process moves to a different directory\n+                    subproccode[i] = repr(os.path.abspath(val))\n+                else:\n+                    subproccode[i] = repr(val)\n             subproccode = ''.join(subproccode)\n \n             log.debug('Starting subprocess of {0} with python code:\\n{1}\\n'"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Environment
+.env
+
+# Results (keep directory but ignore generated files)
+results/*.json
+results/*.jsonl
+!results/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp

@@ -1,0 +1,19 @@
+[
+  {
+    "change_type": "F.2 Logic",
+    "change_introducing": {
+      "code_snippet": "astropy/setup_helpers.py\n@@ -88,9 +120,9 @@ def run(self):\n            from sphinx.setup_command import *\n\n            os.chdir('docs')\n-            sys.path.insert(0,'{build_path}')\n+            sys.path.insert(0,'{build_cmd_path}')\n \n-            \"\").format(build_path=build_path)\n+            \"\").format(build_cmd_path=build_cmd_path)\n            #runlines[1:] removes 'def run(self)' on the first line\n            subproccode += dedent(''.join(runlines[1:]))\n \n@@ -100,7 +132,7 @@ def run(self):\n            subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)\n            for i in range(1, len(subproccode), 2):\n                iden = subproccode[i]\n-                subproccode[i] = repr(getattr(self, iden))\n+                val = getattr(self, iden)\n+                subproccode[i] = repr(val)\n            subproccode = ''.join(subproccode)\n \n            log.debug('Starting subprocess of {0} with python code:\\n{1}\\n'",
+      "commit_sha": "63f073d149fac93d34e280a6b0eafd6b410aa00e"
+    },
+    "change_discussion": {
+      "discussion_summary": "Reviewer `mdboom` reported that the documentation build output was placed in an incorrect nested directory (`docs/docs/_build/html`). Reviewer `embray` confirmed seeing the same behavior. The author (`eteq`) later acknowledged the issue, identified the cause as changing the directory within the subprocess (`os.chdir('docs')`) without properly handling relative paths, and provided a fix.",
+      "first_mention_timestamp": "2012-04-02T14:47:00+00:00",
+      "original_reviewer_comment": "Very welcome change.  For me, `python setup.py build_sphinx` seems to dump the built docs into `docs/docs/_build/html` rather than `docs/_build/html`.  Any idea why?"
+    },
+    "change_resolve_info": {
+      "code_snippet": "astropy/setup_helpers.py\n@@ -119,10 +119,10 @@ def run(self):\n            subproccode = dedent(\"\"\"\n            from sphinx.setup_command import *\n\n-            os.chdir('docs')\n+            os.chdir('{srcdir}')\n            sys.path.insert(0,'{build_cmd_path}')\n\n-            \"\").format(build_cmd_path=build_cmd_path)\n+            \"\").format(build_cmd_path=build_cmd_path, srcdir=self.source_dir)\n            #runlines[1:] removes 'def run(self)' on the first line\n            subproccode += dedent(''.join(runlines[1:]))\n\n@@ -131,7 +131,13 @@ def run(self):\n            subproccode = AstropyBuildSphinx._self_iden_rex.split(subproccode)\n            for i in range(1, len(subproccode), 2):\n                iden = subproccode[i]\n-                subproccode[i] = repr(getattr(self, iden))\n+                val = getattr(self, iden)\n+                if iden.endswith('_dir'):\n+                    #Directories should be absolute, because the `chdir` call\n+                    #in the new process moves to a different directory\n+                    subproccode[i] = repr(os.path.abspath(val))\n+                else:\n+                    subproccode[i] = repr(val)\n            subproccode = ''.join(subproccode)\n\n            log.debug('Starting subprocess of {0} with python code:\\n{1}\\n'",
+      "commit_sha": "71a2cc42e567ac879d501d09322186a7bc248eaf",
+      "resolution_explanation": "The fix addresses the issue by ensuring that all directory paths (`iden` ending with `_dir`) passed into the subprocess code are converted to absolute paths using `os.path.abspath(val)`. This prevents the `os.chdir()` call within the subprocess from causing relative paths (like the build output directory) to be resolved incorrectly, thus ensuring the documentation is built in the intended `docs/_build/html` location instead of `docs/docs/_build/html`."
+    }
+  }
+]

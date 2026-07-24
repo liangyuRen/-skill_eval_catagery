@@ -1,0 +1,196 @@
+{
+  "repo": "astropy/astropy",
+  "instance_id": "astropy__astropy-228",
+  "pr_title": "Should missing .c files from .pyx raise an error?",
+  "pr_statement": "I came across something surprising when setting up a new machine which didn't yet have Cython on it.\n\nIf a `.c` file generated from a `.pyx` file is missing and Cython is not available, it merely logs a warning.  Shouldn't this be an exception, since it means we can't build a working astropy?  (It still works to build astropy from a source tarball -- those users still don't need to have Cython installed -- this is only a problem with a `git` checkout.)\n\n```\n                        log.warn('Could not find c file {0} for {1}; skipping '\n                                 'extension {2}.'.format(cfn, pyxfn, ext.name))\n```\n",
+  "change_introduced": true,
+  "base_commit": "035d15372fc64a28916f87ee647ab732f965b9ca",
+  "created_at": "2012-05-21T19:57:17+00:00",
+  "changes": [
+    {
+      "change_type": "F.2 Logic",
+      "change_introducing": {
+        "code_snippet": "astropy/setup_helpers.py\n@@ -316,10 +316,10 @@ def update_package_files(srcdir, extensions, package_data, packagenames,\n                     if os.path.isfile(cfn):\n                         ext.sources[jdx] = cfn\n                     else:\n-                        log.warn('Could not find c file {0} for {1}; skipping '\n-                                 'extension {2}.'.format(cfn, pyxfn, ext.name))\n-                        del extensions[idx]\n-                        break\n+                        raise IOError(\n+                            'Could not find C file {0} for Cython file {1}; '\n+                            'Cython must be installed to build from a git '\n+                            'checkout'.format(cfn, pyxfn, ext.name))\n \n     # On Microsoft compilers, we need to pass the '/MANIFEST'\n     # commandline argument.  This was the default on MSVC 9.0, but is",
+        "commit_sha": "bf6fd83b22b385599adbb7fb27c46e02c2718e91"
+      },
+      "change_discussion": {
+        "discussion_summary": "Reviewer 'astrofrog' pointed out that the `format` string in the `IOError` message only had two placeholders (`{0}`, `{1}`) but was being passed three arguments (`cfn`, `pyxfn`, `ext.name`). In a subsequent comment, 'astrofrog' suggested how to correct the message to include the third argument. The author 'mdboom' acknowledged this as a \"Good catch\" and confirmed they fixed the message.",
+        "first_mention_timestamp": "2012-05-22T06:20:27+00:00",
+        "original_reviewer_comment": "I haven't tested this, but should `ext.name` be taken out of the list of values? (otherwise 2 formats for 3 values)"
+      },
+      "change_resolve_info": {
+        "code_snippet": "astropy/setup_helpers.py\n@@ -317,7 +317,8 @@ def update_package_files(srcdir, extensions, package_data, packagenames,\n                         ext.sources[jdx] = cfn\n                     else:\n                         raise IOError(\n-                            'Could not find C file {0} for Cython file {1}; '\n+                            'Could not find C file {0} for Cython file {1} '\n+                            'when building extension {2}. '\n                             'Cython must be installed to build from a git '\n                             'checkout'.format(cfn, pyxfn, ext.name))\n \n",
+        "commit_sha": "0b6d11b2be8799fbe3fc7046e6e8a12c38ab241e",
+        "resolution_explanation": "The commit modified the `IOError` message string to include the third placeholder `{2}` and adjusted the wording (\"when building extension {2}\") so that all three provided arguments (`cfn`, `pyxfn`, `ext.name`) are correctly used in the formatted error message, directly addressing the reviewer's comment."
+      }
+    }
+  ],
+  "pr_commits": [
+    {
+      "type": "commit",
+      "sha": "bf6fd83b22b385599adbb7fb27c46e02c2718e91",
+      "message": "Missing .c files from .pyx files raise an exception, not a warning.",
+      "author": "Michael Droettboom",
+      "author_email": "mdboom@gmail.com",
+      "author_raw_date": "2012-05-21T19:55:37+00:00",
+      "author_date": "2012-05-21T19:55:37+00:00",
+      "committer": "Michael Droettboom",
+      "committer_email": "mdboom@gmail.com",
+      "raw_date": "2012-05-21T19:56:58+00:00",
+      "date": "2012-05-21T19:56:58+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -316,10 +316,10 @@ def update_package_files(srcdir, extensions, package_data, packagenames,\n                     if os.path.isfile(cfn):\n                         ext.sources[jdx] = cfn\n                     else:\n-                        log.warn('Could not find c file {0} for {1}; skipping '\n-                                 'extension {2}.'.format(cfn, pyxfn, ext.name))\n-                        del extensions[idx]\n-                        break\n+                        raise IOError(\n+                            'Could not find C file {0} for Cython file {1}; '\n+                            'Cython must be installed to build from a git '\n+                            'checkout'.format(cfn, pyxfn, ext.name))\n \n     # On Microsoft compilers, we need to pass the '/MANIFEST'\n     # commandline argument.  This was the default on MSVC 9.0, but is",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -316,10 +316,10 @@ def update_package_files(srcdir, extensions, package_data, packagenames,\n                     if os.path.isfile(cfn):\n                         ext.sources[jdx] = cfn\n                     else:\n-                        log.warn('Could not find c file {0} for {1}; skipping '\n-                                 'extension {2}.'.format(cfn, pyxfn, ext.name))\n-                        del extensions[idx]\n-                        break\n+                        raise IOError(\n+                            'Could not find C file {0} for Cython file {1}; '\n+                            'Cython must be installed to build from a git '\n+                            'checkout'.format(cfn, pyxfn, ext.name))\n \n     # On Microsoft compilers, we need to pass the '/MANIFEST'\n     # commandline argument.  This was the default on MSVC 9.0, but is"
+        }
+      ]
+    }
+  ],
+  "pr_timeline": [
+    {
+      "type": "comment",
+      "id": 5561906,
+      "user": "embray",
+      "body": "+1.   I think this bit me once too, but I didn't give it much thought at the time.\n",
+      "created_at": "2012-05-07T21:55:46+00:00"
+    },
+    {
+      "type": "comment",
+      "id": 5563156,
+      "user": "astrofrog",
+      "body": "I agree that if Cython is not installed (for a git checkout) then an ImportError should be raised.\n",
+      "created_at": "2012-05-07T23:02:53+00:00"
+    },
+    {
+      "type": "comment",
+      "id": 5565581,
+      "user": "eteq",
+      "body": "+1 it should be an error, at least for now.  \n\nEventually, we want a way to tell it to continue building astropy even if there are C-level build failures (this fits well with the optional dependencies issues), but until we have that, it should actually fail when the build fails.\n",
+      "created_at": "2012-05-08T01:51:21+00:00"
+    },
+    {
+      "type": "commit",
+      "sha": "bf6fd83b22b385599adbb7fb27c46e02c2718e91",
+      "message": "Missing .c files from .pyx files raise an exception, not a warning.",
+      "author": "Michael Droettboom",
+      "author_email": "mdboom@gmail.com",
+      "author_raw_date": "2012-05-21T19:55:37+00:00",
+      "author_date": "2012-05-21T19:55:37+00:00",
+      "committer": "Michael Droettboom",
+      "committer_email": "mdboom@gmail.com",
+      "raw_date": "2012-05-21T19:56:58+00:00",
+      "date": "2012-05-21T19:56:58+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -316,10 +316,10 @@ def update_package_files(srcdir, extensions, package_data, packagenames,\n                     if os.path.isfile(cfn):\n                         ext.sources[jdx] = cfn\n                     else:\n-                        log.warn('Could not find c file {0} for {1}; skipping '\n-                                 'extension {2}.'.format(cfn, pyxfn, ext.name))\n-                        del extensions[idx]\n-                        break\n+                        raise IOError(\n+                            'Could not find C file {0} for Cython file {1}; '\n+                            'Cython must be installed to build from a git '\n+                            'checkout'.format(cfn, pyxfn, ext.name))\n \n     # On Microsoft compilers, we need to pass the '/MANIFEST'\n     # commandline argument.  This was the default on MSVC 9.0, but is",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -316,10 +316,10 @@ def update_package_files(srcdir, extensions, package_data, packagenames,\n                     if os.path.isfile(cfn):\n                         ext.sources[jdx] = cfn\n                     else:\n-                        log.warn('Could not find c file {0} for {1}; skipping '\n-                                 'extension {2}.'.format(cfn, pyxfn, ext.name))\n-                        del extensions[idx]\n-                        break\n+                        raise IOError(\n+                            'Could not find C file {0} for Cython file {1}; '\n+                            'Cython must be installed to build from a git '\n+                            'checkout'.format(cfn, pyxfn, ext.name))\n \n     # On Microsoft compilers, we need to pass the '/MANIFEST'\n     # commandline argument.  This was the default on MSVC 9.0, but is"
+        }
+      ]
+    },
+    {
+      "type": "description",
+      "user": "mdboom",
+      "body": "I came across something surprising when setting up a new machine which didn't yet have Cython on it.\n\nIf a `.c` file generated from a `.pyx` file is missing and Cython is not available, it merely logs a warning.  Shouldn't this be an exception, since it means we can't build a working astropy?  (It still works to build astropy from a source tarball -- those users still don't need to have Cython installed -- this is only a problem with a `git` checkout.)\n\n```\n                        log.warn('Could not find c file {0} for {1}; skipping '\n                                 'extension {2}.'.format(cfn, pyxfn, ext.name))\n```\n",
+      "created_at": "2012-05-21T19:57:17+00:00"
+    },
+    {
+      "type": "comment",
+      "id": 5832114,
+      "user": "mdboom",
+      "body": "Attached PR to fix this.  It's pretty minor... ;)\n",
+      "created_at": "2012-05-21T19:57:35+00:00"
+    },
+    {
+      "type": "comment",
+      "id": 5840318,
+      "user": "astrofrog",
+      "body": "I haven't tested this, but should `ext.name` be taken out of the list of values? (otherwise 2 formats for 3 values)\n",
+      "created_at": "2012-05-22T06:20:27+00:00"
+    },
+    {
+      "type": "comment",
+      "id": 5840325,
+      "user": "astrofrog",
+      "body": "Alternatively, change the first sentence to `Could not find C file {0} for Cython file {1} when compiling extension {2}`?\n",
+      "created_at": "2012-05-22T06:21:12+00:00"
+    },
+    {
+      "type": "commit",
+      "sha": "0b6d11b2be8799fbe3fc7046e6e8a12c38ab241e",
+      "message": "Fix message",
+      "author": "Michael Droettboom",
+      "author_email": "mdboom@gmail.com",
+      "author_raw_date": "2012-05-22T15:59:17+00:00",
+      "author_date": "2012-05-22T15:59:17+00:00",
+      "committer": "Michael Droettboom",
+      "committer_email": "mdboom@gmail.com",
+      "raw_date": "2012-05-22T15:59:17+00:00",
+      "date": "2012-05-22T15:59:17+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -317,7 +317,8 @@ def update_package_files(srcdir, extensions, package_data, packagenames,\n                         ext.sources[jdx] = cfn\n                     else:\n                         raise IOError(\n-                            'Could not find C file {0} for Cython file {1}; '\n+                            'Could not find C file {0} for Cython file {1} '\n+                            'when building extension {2}. '\n                             'Cython must be installed to build from a git '\n                             'checkout'.format(cfn, pyxfn, ext.name))\n ",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -317,7 +317,8 @@ def update_package_files(srcdir, extensions, package_data, packagenames,\n                         ext.sources[jdx] = cfn\n                     else:\n                         raise IOError(\n-                            'Could not find C file {0} for Cython file {1}; '\n+                            'Could not find C file {0} for Cython file {1} '\n+                            'when building extension {2}. '\n                             'Cython must be installed to build from a git '\n                             'checkout'.format(cfn, pyxfn, ext.name))\n "
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "id": 5850919,
+      "user": "mdboom",
+      "body": "Good catch.  I've fixed the message.\n",
+      "created_at": "2012-05-22T15:59:38+00:00"
+    },
+    {
+      "type": "comment",
+      "id": 5851105,
+      "user": "astrofrog",
+      "body": "Ok, looks good - feel free to merge!\n",
+      "created_at": "2012-05-22T16:06:24+00:00"
+    }
+  ],
+  "all_commits": [
+    {
+      "type": "commit",
+      "sha": "bf6fd83b22b385599adbb7fb27c46e02c2718e91",
+      "message": "Missing .c files from .pyx files raise an exception, not a warning.",
+      "author": "Michael Droettboom",
+      "author_email": "mdboom@gmail.com",
+      "author_raw_date": "2012-05-21T19:55:37+00:00",
+      "author_date": "2012-05-21T19:55:37+00:00",
+      "committer": "Michael Droettboom",
+      "committer_email": "mdboom@gmail.com",
+      "raw_date": "2012-05-21T19:56:58+00:00",
+      "date": "2012-05-21T19:56:58+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -316,10 +316,10 @@ def update_package_files(srcdir, extensions, package_data, packagenames,\n                     if os.path.isfile(cfn):\n                         ext.sources[jdx] = cfn\n                     else:\n-                        log.warn('Could not find c file {0} for {1}; skipping '\n-                                 'extension {2}.'.format(cfn, pyxfn, ext.name))\n-                        del extensions[idx]\n-                        break\n+                        raise IOError(\n+                            'Could not find C file {0} for Cython file {1}; '\n+                            'Cython must be installed to build from a git '\n+                            'checkout'.format(cfn, pyxfn, ext.name))\n \n     # On Microsoft compilers, we need to pass the '/MANIFEST'\n     # commandline argument.  This was the default on MSVC 9.0, but is",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -316,10 +316,10 @@ def update_package_files(srcdir, extensions, package_data, packagenames,\n                     if os.path.isfile(cfn):\n                         ext.sources[jdx] = cfn\n                     else:\n-                        log.warn('Could not find c file {0} for {1}; skipping '\n-                                 'extension {2}.'.format(cfn, pyxfn, ext.name))\n-                        del extensions[idx]\n-                        break\n+                        raise IOError(\n+                            'Could not find C file {0} for Cython file {1}; '\n+                            'Cython must be installed to build from a git '\n+                            'checkout'.format(cfn, pyxfn, ext.name))\n \n     # On Microsoft compilers, we need to pass the '/MANIFEST'\n     # commandline argument.  This was the default on MSVC 9.0, but is"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "0b6d11b2be8799fbe3fc7046e6e8a12c38ab241e",
+      "message": "Fix message",
+      "author": "Michael Droettboom",
+      "author_email": "mdboom@gmail.com",
+      "author_raw_date": "2012-05-22T15:59:17+00:00",
+      "author_date": "2012-05-22T15:59:17+00:00",
+      "committer": "Michael Droettboom",
+      "committer_email": "mdboom@gmail.com",
+      "raw_date": "2012-05-22T15:59:17+00:00",
+      "date": "2012-05-22T15:59:17+00:00",
+      "diff_text": "astropy/setup_helpers.py\n@@ -317,7 +317,8 @@ def update_package_files(srcdir, extensions, package_data, packagenames,\n                         ext.sources[jdx] = cfn\n                     else:\n                         raise IOError(\n-                            'Could not find C file {0} for Cython file {1}; '\n+                            'Could not find C file {0} for Cython file {1} '\n+                            'when building extension {2}. '\n                             'Cython must be installed to build from a git '\n                             'checkout'.format(cfn, pyxfn, ext.name))\n ",
+      "diff": [
+        {
+          "file": "astropy/setup_helpers.py",
+          "patch": "@@ -317,7 +317,8 @@ def update_package_files(srcdir, extensions, package_data, packagenames,\n                         ext.sources[jdx] = cfn\n                     else:\n                         raise IOError(\n-                            'Could not find C file {0} for Cython file {1}; '\n+                            'Could not find C file {0} for Cython file {1} '\n+                            'when building extension {2}. '\n                             'Cython must be installed to build from a git '\n                             'checkout'.format(cfn, pyxfn, ext.name))\n "
+        }
+      ]
+    }
+  ]
+}

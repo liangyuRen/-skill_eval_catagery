@@ -1,0 +1,157 @@
+{
+  "repo": "astropy/astropy",
+  "instance_id": "astropy__astropy-112",
+  "pr_title": "Test what will be installed, not the source tree.",
+  "pr_statement": "I know I'm been pushing on this issue for a while -- I think it would be helpful to have a discussion on this topic in one place.\n\nThe current implementation of `python setup.py test` builds C extensions \"in place\" in the source tree and then tests in the source tree.  On python3, since 2to3 needs to be run over the source tree, it builds and then tests under the `build` directory.\n\nThis has a number of problems that I encounter on a regular basis:\n\n1) Fundamentally, we're not testing what's being delivered.  If a data file was inadvertently not added to `package_data`, a test will still pass even though the file is not being installed and the feature will break for real users.  This means running `python setup.py test` and then building a tarball from that directory does not ensure that the tarball will also pass the tests.\n\n2) Anything that relies on code generation doesn't work.  `2to3` is one example, but we also code-generate the compatibility shims for `pywcs` and `vo.table`.  There is currently no way to test these using `python setup.py test`.\n\n3) Forcing a rebuild of C extensions requires doing something like `git clean -fd`, which may delete things other than just build products and is therefore potentially dangerous.  `rm -rf build` is much safer.\n\n4) python2 and 3 are being tested in a different way.  This means that tests that pass under 2 may fail under 3, for reasons that have nothing to do with the differences between the languages.  (See the missing data file example).\n\nSo what are the advantages of testing in-place?  Besides shaving a few seconds off of copying files, I can't see any.  (And that's made moot by the present implementation which actually first builds under `build` and then inplace anyway.)  Is there anything others are relying on that would be missed by making this change?\n",
+  "change_introduced": false,
+  "base_commit": "ec2d96773598260f26b303b8d34eccfd90919aa7",
+  "created_at": "2011-12-13T14:56:36+00:00",
+  "changes": [],
+  "pr_commits": [
+    {
+      "type": "commit",
+      "sha": "a22ae11964002b96e4a601f852174e2ce339ebc7",
+      "message": "Test what will be installed, not the source tree.",
+      "author": "Michael Droettboom",
+      "author_email": "mdboom@gmail.com",
+      "author_raw_date": "2011-12-13T14:39:45+00:00",
+      "author_date": "2011-12-13T14:39:45+00:00",
+      "committer": "Michael Droettboom",
+      "committer_email": "mdboom@gmail.com",
+      "raw_date": "2011-12-13T14:39:45+00:00",
+      "date": "2011-12-13T14:39:45+00:00",
+      "diff_text": "astropy/tests/helper.py\n@@ -192,11 +192,8 @@ def finalize_options(self):\n     def run(self):\n         self.reinitialize_command('build_py', inplace=False)\n         self.run_command('build_py')\n-        if sys.version_info[0] >= 3:\n-            build_py_cmd = self.get_finalized_command('build_py')\n-            new_path = os.path.abspath(build_py_cmd.build_lib)\n-        else:\n-            new_path = os.getcwd()\n+        build_py_cmd = self.get_finalized_command('build_py')\n+        new_path = os.path.abspath(build_py_cmd.build_lib)\n \n         self.reinitialize_command('build_ext', inplace=True)\n         self.run_command('build_ext')",
+      "diff": [
+        {
+          "file": "astropy/tests/helper.py",
+          "patch": "@@ -192,11 +192,8 @@ def finalize_options(self):\n     def run(self):\n         self.reinitialize_command('build_py', inplace=False)\n         self.run_command('build_py')\n-        if sys.version_info[0] >= 3:\n-            build_py_cmd = self.get_finalized_command('build_py')\n-            new_path = os.path.abspath(build_py_cmd.build_lib)\n-        else:\n-            new_path = os.getcwd()\n+        build_py_cmd = self.get_finalized_command('build_py')\n+        new_path = os.path.abspath(build_py_cmd.build_lib)\n \n         self.reinitialize_command('build_ext', inplace=True)\n         self.run_command('build_ext')"
+        }
+      ]
+    }
+  ],
+  "pr_timeline": [
+    {
+      "type": "commit",
+      "sha": "a22ae11964002b96e4a601f852174e2ce339ebc7",
+      "message": "Test what will be installed, not the source tree.",
+      "author": "Michael Droettboom",
+      "author_email": "mdboom@gmail.com",
+      "author_raw_date": "2011-12-13T14:39:45+00:00",
+      "author_date": "2011-12-13T14:39:45+00:00",
+      "committer": "Michael Droettboom",
+      "committer_email": "mdboom@gmail.com",
+      "raw_date": "2011-12-13T14:39:45+00:00",
+      "date": "2011-12-13T14:39:45+00:00",
+      "diff_text": "astropy/tests/helper.py\n@@ -192,11 +192,8 @@ def finalize_options(self):\n     def run(self):\n         self.reinitialize_command('build_py', inplace=False)\n         self.run_command('build_py')\n-        if sys.version_info[0] >= 3:\n-            build_py_cmd = self.get_finalized_command('build_py')\n-            new_path = os.path.abspath(build_py_cmd.build_lib)\n-        else:\n-            new_path = os.getcwd()\n+        build_py_cmd = self.get_finalized_command('build_py')\n+        new_path = os.path.abspath(build_py_cmd.build_lib)\n \n         self.reinitialize_command('build_ext', inplace=True)\n         self.run_command('build_ext')",
+      "diff": [
+        {
+          "file": "astropy/tests/helper.py",
+          "patch": "@@ -192,11 +192,8 @@ def finalize_options(self):\n     def run(self):\n         self.reinitialize_command('build_py', inplace=False)\n         self.run_command('build_py')\n-        if sys.version_info[0] >= 3:\n-            build_py_cmd = self.get_finalized_command('build_py')\n-            new_path = os.path.abspath(build_py_cmd.build_lib)\n-        else:\n-            new_path = os.getcwd()\n+        build_py_cmd = self.get_finalized_command('build_py')\n+        new_path = os.path.abspath(build_py_cmd.build_lib)\n \n         self.reinitialize_command('build_ext', inplace=True)\n         self.run_command('build_ext')"
+        }
+      ]
+    },
+    {
+      "type": "description",
+      "user": "mdboom",
+      "body": "I know I'm been pushing on this issue for a while -- I think it would be helpful to have a discussion on this topic in one place.\n\nThe current implementation of `python setup.py test` builds C extensions \"in place\" in the source tree and then tests in the source tree.  On python3, since 2to3 needs to be run over the source tree, it builds and then tests under the `build` directory.\n\nThis has a number of problems that I encounter on a regular basis:\n\n1) Fundamentally, we're not testing what's being delivered.  If a data file was inadvertently not added to `package_data`, a test will still pass even though the file is not being installed and the feature will break for real users.  This means running `python setup.py test` and then building a tarball from that directory does not ensure that the tarball will also pass the tests.\n\n2) Anything that relies on code generation doesn't work.  `2to3` is one example, but we also code-generate the compatibility shims for `pywcs` and `vo.table`.  There is currently no way to test these using `python setup.py test`.\n\n3) Forcing a rebuild of C extensions requires doing something like `git clean -fd`, which may delete things other than just build products and is therefore potentially dangerous.  `rm -rf build` is much safer.\n\n4) python2 and 3 are being tested in a different way.  This means that tests that pass under 2 may fail under 3, for reasons that have nothing to do with the differences between the languages.  (See the missing data file example).\n\nSo what are the advantages of testing in-place?  Besides shaving a few seconds off of copying files, I can't see any.  (And that's made moot by the present implementation which actually first builds under `build` and then inplace anyway.)  Is there anything others are relying on that would be missed by making this change?\n",
+      "created_at": "2011-12-13T14:56:36+00:00"
+    },
+    {
+      "type": "comment",
+      "id": 3123964,
+      "user": "astrofrog",
+      "body": "This seems reasonable to me!\n",
+      "created_at": "2011-12-13T15:02:54+00:00"
+    },
+    {
+      "type": "comment",
+      "id": 3134213,
+      "user": "eteq",
+      "body": "I think the reason for in-place is that it meshes well with the `setup.py develop` scheme.  That is, if you're in development mode, it doesn't need to re-compile separately for both tests and the develop-installed version.  Similarly, direct py.test invocation like `py.test astropy/wcs` works if the compiled binaries are in the source tree, but it fails if they're all built in `build` (although of course if you're in develop mode, they do work based on the `develop` generated binaries).  \n\nWhile I work in develop mode and hence I find the current system a bit more convenient, I see your points, also, so I don't really have a strong opinion. But @iguananaut or @jiffyclub may have more insight...\n",
+      "created_at": "2011-12-14T01:56:50+00:00"
+    },
+    {
+      "type": "comment",
+      "id": 3151029,
+      "user": "embray",
+      "body": "I haven't tried this out, but as long as `./setup.py test` still does the copy to `build/` automatically (and I believe, from looking at it, that it would) I'm fine with this.\n",
+      "created_at": "2011-12-14T21:47:53+00:00"
+    },
+    {
+      "type": "comment",
+      "id": 3155476,
+      "user": "mdboom",
+      "body": "@eteq: This doesn't preclude using `./setup.py develop`.  In some ways, I think that's another argument for this change, since if you regularly work in develop mode, you'll want a convenient way to test that everything works in normal \"built\" or \"installed\" mode as well, otherwise you may not notice when data files aren't added to `setup.py` etc.\n\n@iguananaut: Yes, `./setup.py test` still runs the equivalent of `./setup.py build` first, so there are no additional steps required.\n",
+      "created_at": "2011-12-15T01:42:24+00:00"
+    },
+    {
+      "type": "commit",
+      "sha": "7f48c76c64c98683a1540dc8844b26338f09e031",
+      "message": "Even simpler and more bullet-proof solution -- just run build out-of-place.  That's all we need.",
+      "author": "Michael Droettboom",
+      "author_email": "mdboom@gmail.com",
+      "author_raw_date": "2011-12-15T01:52:41+00:00",
+      "author_date": "2011-12-15T01:52:41+00:00",
+      "committer": "Michael Droettboom",
+      "committer_email": "mdboom@gmail.com",
+      "raw_date": "2011-12-15T01:52:41+00:00",
+      "date": "2011-12-15T01:52:41+00:00",
+      "diff_text": "astropy/tests/helper.py\n@@ -190,13 +190,10 @@ def finalize_options(self):\n         pass\n \n     def run(self):\n-        self.reinitialize_command('build_py', inplace=False)\n-        self.run_command('build_py')\n-        build_py_cmd = self.get_finalized_command('build_py')\n-        new_path = os.path.abspath(build_py_cmd.build_lib)\n-\n-        self.reinitialize_command('build_ext', inplace=True)\n-        self.run_command('build_ext')\n+        self.reinitialize_command('build', inplace=False)\n+        self.run_command('build')\n+        build_cmd = self.get_finalized_command('build')\n+        new_path = os.path.abspath(build_cmd.build_lib)\n \n         # Run the tests in a subprocess--this is necessary since new extension\n         # modules may have appeared, and this is the easiest way to set up a",
+      "diff": [
+        {
+          "file": "astropy/tests/helper.py",
+          "patch": "@@ -190,13 +190,10 @@ def finalize_options(self):\n         pass\n \n     def run(self):\n-        self.reinitialize_command('build_py', inplace=False)\n-        self.run_command('build_py')\n-        build_py_cmd = self.get_finalized_command('build_py')\n-        new_path = os.path.abspath(build_py_cmd.build_lib)\n-\n-        self.reinitialize_command('build_ext', inplace=True)\n-        self.run_command('build_ext')\n+        self.reinitialize_command('build', inplace=False)\n+        self.run_command('build')\n+        build_cmd = self.get_finalized_command('build')\n+        new_path = os.path.abspath(build_cmd.build_lib)\n \n         # Run the tests in a subprocess--this is necessary since new extension\n         # modules may have appeared, and this is the easiest way to set up a"
+        }
+      ]
+    },
+    {
+      "type": "comment",
+      "id": 3165565,
+      "user": "embray",
+      "body": "Works for me.\n",
+      "created_at": "2011-12-15T17:14:59+00:00"
+    }
+  ],
+  "all_commits": [
+    {
+      "type": "commit",
+      "sha": "a22ae11964002b96e4a601f852174e2ce339ebc7",
+      "message": "Test what will be installed, not the source tree.",
+      "author": "Michael Droettboom",
+      "author_email": "mdboom@gmail.com",
+      "author_raw_date": "2011-12-13T14:39:45+00:00",
+      "author_date": "2011-12-13T14:39:45+00:00",
+      "committer": "Michael Droettboom",
+      "committer_email": "mdboom@gmail.com",
+      "raw_date": "2011-12-13T14:39:45+00:00",
+      "date": "2011-12-13T14:39:45+00:00",
+      "diff_text": "astropy/tests/helper.py\n@@ -192,11 +192,8 @@ def finalize_options(self):\n     def run(self):\n         self.reinitialize_command('build_py', inplace=False)\n         self.run_command('build_py')\n-        if sys.version_info[0] >= 3:\n-            build_py_cmd = self.get_finalized_command('build_py')\n-            new_path = os.path.abspath(build_py_cmd.build_lib)\n-        else:\n-            new_path = os.getcwd()\n+        build_py_cmd = self.get_finalized_command('build_py')\n+        new_path = os.path.abspath(build_py_cmd.build_lib)\n \n         self.reinitialize_command('build_ext', inplace=True)\n         self.run_command('build_ext')",
+      "diff": [
+        {
+          "file": "astropy/tests/helper.py",
+          "patch": "@@ -192,11 +192,8 @@ def finalize_options(self):\n     def run(self):\n         self.reinitialize_command('build_py', inplace=False)\n         self.run_command('build_py')\n-        if sys.version_info[0] >= 3:\n-            build_py_cmd = self.get_finalized_command('build_py')\n-            new_path = os.path.abspath(build_py_cmd.build_lib)\n-        else:\n-            new_path = os.getcwd()\n+        build_py_cmd = self.get_finalized_command('build_py')\n+        new_path = os.path.abspath(build_py_cmd.build_lib)\n \n         self.reinitialize_command('build_ext', inplace=True)\n         self.run_command('build_ext')"
+        }
+      ]
+    },
+    {
+      "type": "commit",
+      "sha": "7f48c76c64c98683a1540dc8844b26338f09e031",
+      "message": "Even simpler and more bullet-proof solution -- just run build out-of-place.  That's all we need.",
+      "author": "Michael Droettboom",
+      "author_email": "mdboom@gmail.com",
+      "author_raw_date": "2011-12-15T01:52:41+00:00",
+      "author_date": "2011-12-15T01:52:41+00:00",
+      "committer": "Michael Droettboom",
+      "committer_email": "mdboom@gmail.com",
+      "raw_date": "2011-12-15T01:52:41+00:00",
+      "date": "2011-12-15T01:52:41+00:00",
+      "diff_text": "astropy/tests/helper.py\n@@ -190,13 +190,10 @@ def finalize_options(self):\n         pass\n \n     def run(self):\n-        self.reinitialize_command('build_py', inplace=False)\n-        self.run_command('build_py')\n-        build_py_cmd = self.get_finalized_command('build_py')\n-        new_path = os.path.abspath(build_py_cmd.build_lib)\n-\n-        self.reinitialize_command('build_ext', inplace=True)\n-        self.run_command('build_ext')\n+        self.reinitialize_command('build', inplace=False)\n+        self.run_command('build')\n+        build_cmd = self.get_finalized_command('build')\n+        new_path = os.path.abspath(build_cmd.build_lib)\n \n         # Run the tests in a subprocess--this is necessary since new extension\n         # modules may have appeared, and this is the easiest way to set up a",
+      "diff": [
+        {
+          "file": "astropy/tests/helper.py",
+          "patch": "@@ -190,13 +190,10 @@ def finalize_options(self):\n         pass\n \n     def run(self):\n-        self.reinitialize_command('build_py', inplace=False)\n-        self.run_command('build_py')\n-        build_py_cmd = self.get_finalized_command('build_py')\n-        new_path = os.path.abspath(build_py_cmd.build_lib)\n-\n-        self.reinitialize_command('build_ext', inplace=True)\n-        self.run_command('build_ext')\n+        self.reinitialize_command('build', inplace=False)\n+        self.run_command('build')\n+        build_cmd = self.get_finalized_command('build')\n+        new_path = os.path.abspath(build_cmd.build_lib)\n \n         # Run the tests in a subprocess--this is necessary since new extension\n         # modules may have appeared, and this is the easiest way to set up a"
+        }
+      ]
+    }
+  ]
+}
