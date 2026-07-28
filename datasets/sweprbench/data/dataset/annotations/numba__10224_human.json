@@ -1,0 +1,83 @@
+{
+  "task_id": "numba__10224",
+  "pr_number": 10224,
+  "repo": "numba/numba",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 4,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 2,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\nFix scalar handling in ``np.any``\n---------------------------------\n```",
+      "file": "docs/upcoming_changes/10224.bug_fix.rst",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,6 @@\n+Fix scalar handling in np.any\n+-----------------------------",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "esc",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "```suggestion\nFix scalar handling in ``np.any`` function. Previously, this function would\n```",
+      "file": "docs/upcoming_changes/10224.bug_fix.rst",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,6 @@\n+Fix scalar handling in np.any\n+-----------------------------\n+\n+Fix scalar handling in np.any function. Previously, this function would",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "esc",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\nFix scalar handling in ``np.any``\n---------------------------------\n```",
+      "file": "docs/upcoming_changes/10224.bug_fix.rst",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,6 @@\n+Fix scalar handling in np.any\n+-----------------------------",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "esc",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "```suggestion\nFix scalar handling in ``np.any`` function. Previously, this function would\n```",
+      "file": "docs/upcoming_changes/10224.bug_fix.rst",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,6 @@\n+Fix scalar handling in np.any\n+-----------------------------\n+\n+Fix scalar handling in np.any function. Previously, this function would",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "esc",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

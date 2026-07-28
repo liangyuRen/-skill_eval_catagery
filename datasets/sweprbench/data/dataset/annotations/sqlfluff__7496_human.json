@@ -1,0 +1,33 @@
+{
+  "task_id": "sqlfluff__7496",
+  "pr_number": 7496,
+  "repo": "sqlfluff/sqlfluff",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": true,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I'd suggest to use `ColonDelimiterSegment`, otherwise some linting rules (LT01) would try to add a space after the colon.",
+      "file": "src/sqlfluff/dialects/dialect_oracle.py",
+      "line": null,
+      "diff_hunk": "@@ -1695,6 +1698,30 @@ class PivotSegment(BaseSegment):\n     )\n \n \n+class TriggerCorrelationNameSegment(BaseSegment):\n+    \"\"\"A correlation name like OLD, NEW, or PARENT.\"\"\"\n+\n+    type = \"trigger_correlation_name\"\n+    match_grammar = OneOf(\"OLD\", \"NEW\", \"PARENT\")\n+\n+\n+class TriggerCorrelationReferenceSegment(BaseSegment):\n+    \"\"\"A segment to represent pseudorecords like :NEW, :OLD, and :PARENT.\"\"\"\n+\n+    type = \"bind_variable\"\n+\n+    match_grammar = Sequence(\n+        Ref(\"ColonSegment\"),",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "peterbud",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

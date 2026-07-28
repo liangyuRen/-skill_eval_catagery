@@ -1,0 +1,33 @@
+{
+  "task_id": "sqlfluff__7294",
+  "pr_number": 7294,
+  "repo": "sqlfluff/sqlfluff",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 6,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "wha'ts the reasoning behind passing this as an extra argument if it'll always be set as include_meta in the cli input?",
+      "file": "src/sqlfluff/core/parser/segments/base.py",
+      "line": 880,
+      "diff_hunk": "@@ -824,39 +853,55 @@ def to_tuple(\n         code_only: bool = False,\n         show_raw: bool = False,\n         include_meta: bool = False,\n+        include_position: bool = False,\n     ) -> TupleSerialisedSegment:\n         \"\"\"Return a tuple structure from this segment.\"\"\"\n         # works for both base and raw\n \n+        # Build the base tuple (2 elements)\n+        base_tuple: Union[\n+            tuple[str, str],\n+            tuple[str, tuple[TupleSerialisedSegment, ...]],\n+        ]\n         if show_raw and not self.segments:\n-            return (self.get_type(), self.raw)\n+            base_tuple = (self.get_type(), self.raw)\n         elif code_only:\n-            return (\n+            base_tuple = (\n                 self.get_type(),\n                 tuple(\n                     seg.to_tuple(\n                         code_only=code_only,\n                         show_raw=show_raw,\n                         include_meta=include_meta,\n+                        include_position=include_position,",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "WittierDinosaur",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

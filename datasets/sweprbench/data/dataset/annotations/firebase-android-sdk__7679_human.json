@@ -1,0 +1,101 @@
+{
+  "task_id": "firebase-android-sdk__7679",
+  "pr_number": 7679,
+  "repo": "firebase/firebase-android-sdk",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 7,
+  "substantive_comment_count": 4,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3",
+    "c_4"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_3",
+      "body": "should these be lowercased for consistency?",
+      "file": "firebase-ai/src/main/kotlin/com/google/firebase/ai/common/APIController.kt",
+      "line": 278,
+      "diff_hunk": "@@ -268,6 +275,8 @@ internal constructor(\n     contentType(ContentType.Application.Json)\n     header(\"x-goog-api-key\", key)\n     header(\"x-goog-api-client\", apiClient)\n+    header(\"X-Android-Package\", appPackageName)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "davidmotson",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nThe `@OptIn(ExperimentalStdlibApi::class)` annotation indicates the use of an experimental API (`HexFormat.UpperCase`). While this is an internal function, using experimental APIs in a production library can introduce instability if the API changes in future Kotlin versions. Consider if there's a stable alternative or if the risk is acceptable for this specific use case.",
+      "file": "firebase-ai/src/main/kotlin/com/google/firebase/ai/common/APIController.kt",
+      "line": 357,
+      "diff_hunk": "@@ -345,6 +353,54 @@ internal constructor(\n     }\n   }\n \n+  @OptIn(ExperimentalStdlibApi::class)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "![low](https://www.gstatic.com/codereviewagent/low-priority.svg)\n\nThe import `kotlin.collections.isEmpty` is likely redundant. The `isEmpty()` extension function is available directly on `Collection` types without needing a specific import from `kotlin.collections`.\n\n```suggestion\nimport kotlin.math.max\n```",
+      "file": "firebase-ai/src/main/kotlin/com/google/firebase/ai/common/APIController.kt",
+      "line": null,
+      "diff_hunk": "@@ -65,6 +68,9 @@ import io.ktor.http.contentType\n import io.ktor.http.withCharset\n import io.ktor.serialization.kotlinx.json.json\n import io.ktor.utils.io.charsets.Charset\n+import java.security.MessageDigest\n+import java.security.NoSuchAlgorithmException\n+import kotlin.collections.isEmpty",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "should these be lowercased for consistency?",
+      "file": "firebase-ai/src/main/kotlin/com/google/firebase/ai/common/APIController.kt",
+      "line": 278,
+      "diff_hunk": "@@ -268,6 +275,8 @@ internal constructor(\n     contentType(ContentType.Application.Json)\n     header(\"x-goog-api-key\", key)\n     header(\"x-goog-api-client\", apiClient)\n+    header(\"X-Android-Package\", appPackageName)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "davidmotson",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_4",
+      "body": "None of these tests seem to test the code path of either fetching or encoding the certificate's signature. \n\nIs there any validation or sanity check we can do with that?",
+      "file": "firebase-ai/src/test/java/com/google/firebase/ai/GenerativeModelTesting.kt",
+      "line": 67,
+      "diff_hunk": "@@ -50,12 +56,15 @@ import io.ktor.http.HttpStatusCode\n import io.ktor.http.content.TextContent\n import io.ktor.http.headersOf\n import kotlin.time.Duration.Companion.seconds\n+import kotlinx.coroutines.flow.collect\n import kotlinx.coroutines.withTimeout\n import kotlinx.serialization.encodeToString\n import org.junit.Before\n import org.junit.Test\n+import org.junit.runner.RunWith\n import org.mockito.Mockito\n \n+@RunWith(AndroidJUnit4::class)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "davidmotson",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

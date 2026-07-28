@@ -1,0 +1,10 @@
+{
+  "pr_number": 9064,
+  "repo": "stylelint/stylelint",
+  "task_id": "stylelint__9064",
+  "config_name": "config_A",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 303,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `lib/rules/declaration-property-value-no-unknown/index.mjs`: 375 changed lines, 3 function/branch hunks, logic markers=50.\n- `package.json`: 4 changed lines, 0 function/branch hunks, logic markers=0.\n- `lib/rules/declaration-property-value-no-unknown/__tests__/index.mjs`: 164 changed lines, 0 function/branch hunks, logic markers=2.\n- PR profile: type=bug_fix, difficulty=Type2_Contextual, language=JavaScript, files_changed=7.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### package.json\n```diff\ndiff --git a/package.json b/package.json\nindex 0046d5dd19..95b59adef8 100644\n--- a/package.json\n+++ b/package.json\n@@ -125,7 +125,7 @@\n     ]\n   },\n   \"dependencies\": {\n-    \"@csstools/css-calc\": \"^3.0.0\",\n+    \"@csstools/css-calc\": \"^3.1.0\",\n     \"@csstools/css-parser-algorithms\": \"^4.0.0\",\n     \"@csstools/css-syntax-patches-for-csstree\": \"^1.0.26\",\n     \"@csstools/css-tokenizer\": \"^4.0.0\",\n\n```\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: JavaScript\n- Files changed: 7\n- PR type: bug_fix"
+}

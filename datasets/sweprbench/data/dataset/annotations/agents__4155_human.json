@@ -1,0 +1,84 @@
+{
+  "task_id": "agents__4155",
+  "pr_number": 4155,
+  "repo": "livekit/agents",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 8,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_3",
+      "body": "Do we support it on the gateway? Should we have aligned_transcript=None instead ?",
+      "file": "livekit-agents/livekit/agents/inference/stt.py",
+      "line": null,
+      "diff_hunk": "@@ -184,7 +184,9 @@ def __init__(\n             extra_kwargs (dict, optional): Extra kwargs to pass to the STT model.\n         \"\"\"\n         super().__init__(\n-            capabilities=stt.STTCapabilities(streaming=True, interim_results=True),\n+            capabilities=stt.STTCapabilities(\n+                streaming=True, interim_results=True, aligned_transcript=\"chunk\"\n+            ),",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "theomonnom",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "nit: any reason to move this? ",
+      "file": "livekit-agents/livekit/agents/voice/io.py",
+      "line": 61,
+      "diff_hunk": "@@ -43,22 +43,6 @@\n ]\n \n \n-class TimedString(str):\n-    start_time: NotGivenOr[float]\n-    end_time: NotGivenOr[float]\n-\n-    def __new__(\n-        cls,\n-        text: str,\n-        start_time: NotGivenOr[float] = NOT_GIVEN,\n-        end_time: NotGivenOr[float] = NOT_GIVEN,\n-    ) -> TimedString:\n-        obj = super().__new__(cls, text)\n-        obj.start_time = start_time\n-        obj.end_time = end_time\n-        return obj\n-\n-",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "theomonnom",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "What does chunk means? Like a sentence for e.g?\r\n\r\nor it can be smaller than a word, e.g vowels? ",
+      "file": "livekit-agents/livekit/agents/stt/stt.py",
+      "line": 82,
+      "diff_hunk": "@@ -72,6 +79,7 @@ class STTCapabilities:\n     streaming: bool\n     interim_results: bool\n     diarization: bool = False\n+    aligned_transcript: Literal[\"word\", \"chunk\", False] = False",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "theomonnom",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Do we support it on the gateway? Should we have aligned_transcript=None instead ?",
+      "file": "livekit-agents/livekit/agents/inference/stt.py",
+      "line": null,
+      "diff_hunk": "@@ -184,7 +184,9 @@ def __init__(\n             extra_kwargs (dict, optional): Extra kwargs to pass to the STT model.\n         \"\"\"\n         super().__init__(\n-            capabilities=stt.STTCapabilities(streaming=True, interim_results=True),\n+            capabilities=stt.STTCapabilities(\n+                streaming=True, interim_results=True, aligned_transcript=\"chunk\"\n+            ),",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "theomonnom",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

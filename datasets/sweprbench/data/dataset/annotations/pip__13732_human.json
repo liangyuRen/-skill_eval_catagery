@@ -1,0 +1,50 @@
+{
+  "task_id": "pip__13732",
+  "pr_number": 13732,
+  "repo": "pypa/pip",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 7,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "The reason why I'm using `re.sub` instead of a split is to preserve `#subdirectory=dir` fragments. \r\n\r\n```\r\npip install -e \"pip @ file:///home/ichard26/dev/oss#subdirectory=pip\"\r\n```",
+      "file": "src/pip/_internal/exceptions.py",
+      "line": null,
+      "diff_hunk": "@@ -896,3 +897,28 @@ def __init__(self, failed: list[InstallRequirement]) -> None:\n             context=\", \".join(r.name for r in failed),  # type: ignore\n             hint_stmt=None,\n         )\n+\n+\n+class InvalidEggFragment(DiagnosticPipError):\n+    reference = \"invalid-egg-fragment\"\n+\n+    def __init__(self, link: Link, fragment: str) -> None:\n+        if \">\" in fragment or \"=\" in fragment or \"<\" in fragment:\n+            hint = (\n+                \"Version specifiers are silently ignored for URL references. \"\n+                \"Remove them.\"\n+            )\n+        elif fragment.endswith(\"]\"):\n+            stripped = re.sub(r\"[#&]egg=([^&]*)\", \"\", str(link))\n+            hint = (\n+                \"Try using the Direct URL requirement syntax: \"\n+                f\"'{fragment} @ {stripped}'\"\n+            )",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ichard26",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Normally, editable requirements are rejected during the resolution step. This error check is too late for editable URL constraints that also happen to have a non-bare egg fragment, since the fragment check is performed during command startup. As the main issue is that you can't even have an editable constraint, we now check and raise early in requirement construction. ",
+      "file": "src/pip/_internal/req/constructors.py",
+      "line": 262,
+      "diff_hunk": "@@ -258,8 +258,10 @@ def install_req_from_editable(\n     permit_editable_wheels: bool = False,\n     config_settings: dict[str, str | list[str]] | None = None,\n ) -> InstallRequirement:\n-    parts = parse_req_from_editable(editable_req)\n+    if constraint:\n+        raise InstallationError(\"Editable requirements are not allowed as constraints\")",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ichard26",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "pr_number": 4253,
+  "repo": "coreos/coreos-assembler",
+  "task_id": "coreos-assembler__4253",
+  "config_name": "config_C",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 321,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `src/cmd-diff`: 260 changed lines, 9 function/branch hunks, logic markers=26.\n- `src/cosalib/builds.py`: 7 changed lines, 1 function/branch hunks, logic markers=1.\n- PR profile: type=feature, difficulty=Type2_Contextual, language=Go, files_changed=3.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### src/cosalib/builds.py\n```diff\ndiff --git a/src/cosalib/builds.py b/src/cosalib/builds.py\nindex f87776257c..2fd1cbdab1 100644\n--- a/src/cosalib/builds.py\n+++ b/src/cosalib/builds.py\n@@ -94,6 +94,11 @@ def get_build_meta(self, build_id, basearch=None):\n         with open(os.path.join(d, 'meta.json')) as f:\n             return json.load(f)\n \n+    def get_build_commitmeta(self, build_id, basearch=None):\n+        d = self.get_build_dir(build_id, basearch)\n+        with open(os.path.join(d, 'commitmeta.json')) as f:\n+            return json.load(f)\n+\n     def get_tags(self):\n         return self._data.get('tags', [])\n \n```\n\n---\n\n## Layer 3 - Execution Context\n\n---\n\n## Layer 4 - Behavior Mapping\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Go\n- Files changed: 3\n- PR type: feature"
+}

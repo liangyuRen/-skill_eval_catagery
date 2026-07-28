@@ -1,0 +1,67 @@
+{
+  "task_id": "chia-blockchain__20326",
+  "pr_number": 20326,
+  "repo": "Chia-Network/chia-blockchain",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 11,
+  "substantive_comment_count": 3,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "it's not obvious that it's safe to start these block tools *after* we try to find available local listen ports. They may try to open listen sockets themselves. I think it would be safer to move these up to create them in the original order",
+      "file": "chia/_tests/util/setup_nodes.py",
+      "line": 399,
+      "diff_hunk": "@@ -370,21 +383,26 @@ async def setup_full_system_inner(\n     shared_b_tools: BlockTools,\n ) -> AsyncIterator[FullSystem]:\n     config_overrides = {\"full_node.max_sync_wait\": 0, \"full_node.log_coins\": True}\n-    if b_tools is None:\n-        b_tools = await create_block_tools_async(\n-            constants=consensus_constants, keychain=keychain1, config_overrides=config_overrides\n-        )\n-    if b_tools_1 is None:\n-        b_tools_1 = await create_block_tools_async(\n-            constants=consensus_constants, keychain=keychain2, config_overrides=config_overrides\n-        )\n \n     self_hostname = shared_b_tools.config[\"self_hostname\"]\n \n     async with AsyncExitStack() as async_exit_stack:\n         vdf1_port = uint16(find_available_listen_port(\"vdf1\"))\n         vdf2_port = uint16(find_available_listen_port(\"vdf2\"))\n \n+        if b_tools is None:\n+            b_tools = await async_exit_stack.enter_async_context(\n+                create_block_tools_async(\n+                    constants=consensus_constants, keychain=keychain1, config_overrides=config_overrides\n+                )\n+            )\n+        if b_tools_1 is None:\n+            b_tools_1 = await async_exit_stack.enter_async_context(\n+                create_block_tools_async(\n+                    constants=consensus_constants, keychain=keychain2, config_overrides=config_overrides\n+                )\n+            )",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "arvidn",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "ideally we would keep the type annotation for the return value",
+      "file": "chia/_tests/conftest.py",
+      "line": null,
+      "diff_hunk": "@@ -231,12 +231,12 @@ def blockchain_constants(consensus_mode: ConsensusMode) -> ConsensusConstants:\n \n \n @pytest.fixture(scope=\"session\", name=\"bt\")\n-async def block_tools_fixture(get_keychain, blockchain_constants, anyio_backend, testrun_uid: str) -> BlockTools:\n+async def block_tools_fixture(get_keychain, blockchain_constants, anyio_backend, testrun_uid: str):",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "arvidn",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "wait, aren't you making this an *async* context manager? Then you need `__aenter__()` and `__aexit__()`, don't you?",
+      "file": "chia/simulator/block_tools.py",
+      "line": 382,
+      "diff_hunk": "@@ -375,6 +378,18 @@ def test_callback(event: PlotRefreshEvents, update_result: PlotRefreshResult) ->\n             match_str=str(self.plot_dir.relative_to(DEFAULT_ROOT_PATH.parent)) if not automated_testing else None,\n         )\n \n+    def __enter__(self) -> Self:\n+        return self",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "arvidn",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "task_id": "altair__3936",
+  "pr_number": 3936,
+  "repo": "vega/altair",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Ref https://github.com/vega/altair/pull/3936#issuecomment-3765042428",
+      "file": "altair/vegalite/v6/api.py",
+      "line": 5315,
+      "diff_hunk": "@@ -5311,7 +5312,7 @@ def remove_prop(subchart: ChartType, prop: str) -> ChartType:\n             # or it must be Undefined or identical to proceed.\n             output_dict[prop] = chart[prop]\n         else:\n-            msg = f\"There are inconsistent values {values} for {prop}\"  # pyright: ignore[reportPossiblyUnboundVariable]\n+            msg = f\"There are inconsistent values for {prop}\"",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "mattijn",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "task_id": "datasette__2539",
+  "pr_number": 2539,
+  "repo": "simonw/datasette",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I don't think we ever call this `add_row()` function with `allow` not set to 1, do we? If not then rename it to `add_allowed(parent, child, reason)`.",
+      "file": "datasette/default_permissions.py",
+      "line": 364,
+      "diff_hunk": "@@ -231,6 +243,122 @@ def add_row_allow_block(parent, child, allow_block, scope):\n     return [PermissionSQL(source=\"config_permissions\", sql=sql, params=params)]\n \n \n+async def _restriction_permission_rules(\n+    datasette, actor, action\n+) -> list[PermissionSQL]:\n+    \"\"\"\n+    Generate PermissionSQL rules from actor restrictions (_r key).\n+\n+    Actor restrictions define an allowlist. We implement this via:\n+    1. Global DENY rule for the action (blocks everything by default)\n+    2. Specific ALLOW rules for each allowlisted resource\n+\n+    The cascading logic (child \u2192 parent \u2192 global) ensures that:\n+    - Allowlisted resources at child/parent level override global deny\n+    - Non-allowlisted resources are blocked by global deny\n+\n+    This creates a gating filter that runs BEFORE normal permission checks.\n+    Restrictions cannot be overridden by config - they gate what gets checked.\n+    \"\"\"\n+    if not actor or \"_r\" not in actor:\n+        return []\n+\n+    restrictions = actor[\"_r\"]\n+\n+    # Check if this action appears in restrictions (with abbreviations)\n+    action_obj = datasette.actions.get(action)\n+    action_checks = {action}\n+    if action_obj and action_obj.abbr:\n+        action_checks.add(action_obj.abbr)\n+\n+    # Check if this action is in the allowlist anywhere in restrictions\n+    is_in_allowlist = False\n+    global_actions = restrictions.get(\"a\", [])\n+    if action_checks.intersection(global_actions):\n+        is_in_allowlist = True\n+\n+    if not is_in_allowlist:\n+        for db_actions in restrictions.get(\"d\", {}).values():\n+            if action_checks.intersection(db_actions):\n+                is_in_allowlist = True\n+                break\n+\n+    if not is_in_allowlist:\n+        for tables in restrictions.get(\"r\", {}).values():\n+            for table_actions in tables.values():\n+                if action_checks.intersection(table_actions):\n+                    is_in_allowlist = True\n+                    break\n+            if is_in_allowlist:\n+                break\n+\n+    # If action not in allowlist at all, add global deny and return\n+    if not is_in_allowlist:\n+        sql = \"SELECT NULL AS parent, NULL AS child, 0 AS allow, :deny_reason AS reason\"\n+        return [\n+            PermissionSQL(\n+                source=\"actor_restrictions\",\n+                sql=sql,\n+                params={\n+                    \"deny_reason\": f\"actor restrictions: {action} not in allowlist\"\n+                },\n+            )\n+        ]\n+\n+    # Action IS in allowlist - build deny + specific allows\n+    selects = []\n+    params = {}\n+    param_counter = 0\n+\n+    def add_row(parent, child, allow, reason):\n+        \"\"\"Helper to add a parameterized SELECT statement\"\"\"\n+        nonlocal param_counter\n+        prefix = f\"restr_{param_counter}\"\n+        param_counter += 1\n+\n+        selects.append(\n+            f\"SELECT :{prefix}_parent AS parent, :{prefix}_child AS child, \"\n+            f\":{prefix}_allow AS allow, :{prefix}_reason AS reason\"\n+        )\n+        params[f\"{prefix}_parent\"] = parent\n+        params[f\"{prefix}_child\"] = child\n+        params[f\"{prefix}_allow\"] = 1 if allow else 0",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "simonw",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "task_id": "stylelint__8973",
+  "pr_number": 8973,
+  "repo": "stylelint/stylelint",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 5,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\nFixed: resolution of configs, plugins, processors, and custom syntaxes in Yarn PnP environments\n```",
+      "file": ".changeset/eleven-regions-enjoy.md",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,5 @@\n+---\n+\"stylelint\": patch\n+---\n+\n+Fixed resolution of configs, plugins, processors, and custom syntaxes in Yarn PnP environments.",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jeddy3",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "[suggestion] Instead of switching the implementation, does it make sense to always use the polyfill? Because:\n\n- Checking the flag seems unstable and hacky\n- Ensure the same behavior, regardless of whether flagged or not",
+      "file": "lib/utils/resolveSilent.mjs",
+      "line": 46,
+      "diff_hunk": "@@ -1,12 +1,49 @@\n import fs from 'node:fs';\n import path from 'node:path';\n+import process from 'node:process';\n+\n+import { createRequire } from 'node:module';\n \n import { fileURLToPath, pathToFileURL } from 'node:url';\n \n-// TODO: refactor to use `import.meta.resolve()` when the `parent` argument\n+// TODO: refactor to only use `import.meta.resolve()` when the `parent` argument\n // is available without the --experimental-import-meta-resolve flag\n // @see https://github.com/stylelint/stylelint/pull/8886\n-import { resolve } from 'import-meta-resolve';\n+import { resolve as resolvePolyfill } from 'import-meta-resolve';\n+\n+/**\n+ * Checks if the --experimental-import-meta-resolve flag is enabled. This flag\n+ * enables the parentURL parameter for import.meta.resolve(). The flag can be\n+ * passed directly to Node.js or via NODE_OPTIONS.\n+ *\n+ * @see https://nodejs.org/docs/latest-v20.x/api/esm.html#importmetaresolvespecifier\n+ * @returns {boolean}\n+ */\n+function hasExperimentalImportMetaResolve() {\n+\tconst flag = '--experimental-import-meta-resolve';\n+\n+\treturn process.execArgv.includes(flag) || (process.env.NODE_OPTIONS?.includes(flag) ?? false);\n+}\n+\n+/**\n+ * Resolves a module specifier using either native import.meta.resolve when\n+ * --experimental-import-meta-resolve is enabled, or the import-meta-resolve\n+ * polyfill.\n+ *\n+ * Native import.meta.resolve properly integrates with Yarn PnP and other\n+ * loaders.\n+ *\n+ * @see https://github.com/stylelint/stylelint/issues/8971\n+ * @param {string} specifier\n+ * @param {string} parent\n+ * @returns {string}\n+ */\n+const resolve = hasExperimentalImportMetaResolve()\n+\t? /* istanbul ignore next -- requires --experimental-import-meta-resolve flag */ (\n+\t\t\t/** @type {string} */ specifier,\n+\t\t\t/** @type {string | import(\"url\").URL | undefined} */ parent,\n+\t\t) => import.meta.resolve(specifier, parent)\n+\t: resolvePolyfill;",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ybiquitous",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "[question] Is the fallback to `require.resolve()` necessary?\n\nThe system test on #8989 passes without the fallback.",
+      "file": "lib/utils/resolveSilent.mjs",
+      "line": 119,
+      "diff_hunk": "@@ -59,14 +97,30 @@ export default function resolveSilent(parent, lookup) {\n \t}\n \n \t/**\n-\t * Yarn P'n'P does not support pure ESM well by default, this is only a workaround for it\n-\t * @see https://github.com/wooorm/import-meta-resolve/issues/23\n+\t * The import-meta-resolve polyfill does not respect loaders or environment\n+\t * variables during resolution, which can lead to failed resolutions when\n+\t * using Yarn PnP.\n+\t *\n+\t * To work around this, we fall back to CommonJS resolution via\n+\t * createRequire. Only bare specifiers, such as 'stylelint-config-standard',\n+\t * are resolved this way. Relative paths, e.g. './config.js', are excluded\n+\t * because they work correctly with ESM resolution and allowing CommonJS\n+\t * fallback for them could resolve from unintended locations.\n \t *\n-\t * TODO: remove workaround after native `import.meta.resolve()` replacement\n+\t * @see https://github.com/wooorm/import-meta-resolve/issues/23\n+\t * @see https://github.com/stylelint/stylelint/issues/8971\n \t */\n-\ttry {\n-\t\treturn resolve(lookup, parent);\n-\t} catch {\n-\t\treturn undefined;\n+\tconst isBareSpecifier = !lookup.startsWith('./') && !lookup.startsWith('../');\n+\n+\tif (isBareSpecifier) {\n+\t\ttry {\n+\t\t\tconst require = createRequire(pathToFileURL(path.resolve(parent, 'noop.js')));\n+\n+\t\t\treturn require.resolve(lookup);",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ybiquitous",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

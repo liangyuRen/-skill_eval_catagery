@@ -1,0 +1,10 @@
+{
+  "pr_number": 2376,
+  "repo": "vibrantlabsai/ragas",
+  "task_id": "ragas__2376",
+  "config_name": "config_C",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 409,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `src/ragas/metrics/collections/_summary_score.py`: 205 changed lines, 0 function/branch hunks, logic markers=28.\n- `src/ragas/prompt/metrics/summary_score.py`: 157 changed lines, 0 function/branch hunks, logic markers=6.\n- `src/ragas/metrics/collections/__init__.py`: 4 changed lines, 0 function/branch hunks, logic markers=0.\n- `tests/e2e/metrics_migration/test_summary_score_migration.py`: 186 changed lines, 0 function/branch hunks, logic markers=13.\n- PR profile: type=feature, difficulty=Type1_Direct, language=Python, files_changed=4.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### src/ragas/metrics/collections/__init__.py\n```diff\ndiff --git a/src/ragas/metrics/collections/__init__.py b/src/ragas/metrics/collections/__init__.py\nindex 29a9ae64de..e82fca60b3 100644\n--- a/src/ragas/metrics/collections/__init__.py\n+++ b/src/ragas/metrics/collections/__init__.py\n@@ -22,6 +22,7 @@\n     NonLLMStringSimilarity,\n     StringPresence,\n )\n+from ragas.metrics.collections._summary_score import SummaryScore\n from ragas.metrics.collections.base import BaseMetric\n \n __all__ = [\n@@ -39,6 +40,7 @@\n     \"SemanticSimilarity\",\n     \"SimpleCriteria\",\n     \"StringPresence\",\n+    \"SummaryScore\",\n     # AspectCritic helper functions\n     \"coherence\",\n     \"conciseness\",\n```\n\n---\n\n## Layer 3 - Execution Context\n\n---\n\n## Layer 4 - Behavior Mapping\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 4\n- PR type: feature"
+}

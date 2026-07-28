@@ -1,0 +1,10 @@
+{
+  "pr_number": 3470,
+  "repo": "kornia/kornia",
+  "task_id": "kornia__3470",
+  "config_name": "config_B",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 178,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `kornia/contrib/distance_transform.py`: 148 changed lines, 1 function/branch hunks, logic markers=8.\n- `tests/contrib/test_conv_distance_transformer.py`: 153 changed lines, 2 function/branch hunks, logic markers=9.\n- PR profile: type=feature, difficulty=Type1_Direct, language=Python, files_changed=2.\n\n---\n\n## Layer 2 - Diff (Core)\n\n---\n\n## Layer 3 - Execution Context\n\n---\n\n## Layer 4 - Behavior Mapping\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 2\n- PR type: feature"
+}

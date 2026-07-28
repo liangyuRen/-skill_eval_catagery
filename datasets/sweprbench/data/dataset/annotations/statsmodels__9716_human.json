@@ -1,0 +1,50 @@
+{
+  "task_id": "statsmodels__9716",
+  "pr_number": 9716,
+  "repo": "statsmodels/statsmodels",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 5,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Didn't seem to run any tests in the CI run.",
+      "file": "tools/ci/azure/azure_template_posix.yml",
+      "line": 201,
+      "diff_hunk": "@@ -188,7 +192,14 @@ jobs:\n       echo pytest -m \"${PYTEST_PATTERN}\" --skip-examples --junitxml=junit/test-results.xml -n auto --dist loadscope --durations=25 ${COVERAGE_OPTS} statsmodels\n       pytest -m \"${PYTEST_PATTERN}\" --skip-examples --junitxml=junit/test-results.xml -n auto --dist loadscope --durations=25 ${COVERAGE_OPTS} statsmodels\n     displayName: 'Run tests (editable)'\n-    condition: and(ne(variables['test.install'], 'true'), ne(variables['pip.pre'], 'true'))\n+    condition: and(ne(variables['test.install'], 'true'), ne(variables['pip.pre'], 'true'), ne(variables['parallel'], 'true'))\n+\n+  - script:\n+      echo \"Testing in parallel mode\"\n+      export PYTHON_GIL=0\n+      pytest statsmodels/nonparametric/tests/ --parallel-threads 4 --junitxml=junit/test-results.xml",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "bashtage",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Could we just use a RandomState instance here?",
+      "file": "statsmodels/nonparametric/tests/test_kernel_regression.py",
+      "line": 268,
+      "diff_hunk": "@@ -264,7 +265,7 @@ def test_continuous_lc_aic(self):\n         bw_expected = [0.3987821, 0.50933458]\n         npt.assert_allclose(model.bw, bw_expected, rtol=1e-3)\n \n-    @pytest.mark.slow\n+    @pytest.mark.thread_unsafe('relies on global random state')",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "bashtage",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

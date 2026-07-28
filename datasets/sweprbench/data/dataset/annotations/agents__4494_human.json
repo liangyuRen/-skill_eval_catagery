@@ -1,0 +1,84 @@
+{
+  "task_id": "agents__4494",
+  "pr_number": 4494,
+  "repo": "livekit/agents",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 6,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_3",
+      "body": "do we really need to directly forward the events? Use the `_run` method will make the implementation simpler\n```python\nclass ChunkedStreamFromStreaming(ChunkedStream):\n    _tts_request_span_name: ClassVar[str] = \"tts_synthesize_from_streaming\"\n\n    def __init__(self, *, tts: TTS, input_text: str, conn_options: APIConnectOptions) -> None:\n        super().__init__(tts=tts, input_text=input_text, conn_options=conn_options)\n        if not self._tts.capabilities.streaming:\n            raise ValueError(\"TTS does not support streaming\")\n\n    async def _run(self, output_emitter: AudioEmitter) -> None:\n        output_emitter.initialize(\n            request_id=shortuuid(),\n            sample_rate=self._tts.sample_rate,\n            num_channels=self._tts.num_channels,\n            mime_type=\"audio/pcm\",\n            stream=False\n        )\n        async with self._tts.stream(\n            conn_options=APIConnectOptions(max_retry=0, timeout=self._conn_options.timeout)\n        ) as stream:\n            stream.push_text(self._input_text)\n            stream.end_input()\n            async for ev in stream:\n                output_emitter.push(ev.frame.data.tobytes())\n                if timed_transcripts := ev.frame.userdata.get(USERDATA_TIMED_TRANSCRIPT):\n                    output_emitter.push_timed_transcript(timed_transcripts)\n\n        output_emitter.flush()\n```",
+      "file": "livekit-agents/livekit/agents/tts/tts.py",
+      "line": null,
+      "diff_hunk": "@@ -343,6 +358,103 @@ async def __aexit__(\n         await self.aclose()\n \n \n+class _ChunkedStreamFromStream(ChunkedStream):\n+    \"\"\"Implementation of ChunkedStream that wraps a SynthesizeStream.\n+\n+    Used by TTS providers that only support streaming inference to implement\n+    the synthesize() method.\n+    \"\"\"\n+\n+    def __init__(\n+        self,\n+        *,\n+        tts: TTS,\n+        input_text: str,\n+        conn_options: APIConnectOptions,\n+    ) -> None:\n+        # Don't call super().__init__ yet - we'll handle initialization differently\n+        self._input_text = input_text\n+        self._tts = tts\n+        self._conn_options = conn_options\n+        self._event_ch = aio.Chan[SynthesizedAudio]()\n+        self._tee = aio.itertools.tee(self._event_ch, 2)\n+        self._event_aiter, monitor_aiter = self._tee\n+        self._current_attempt_has_error = False\n+        self._metrics_task = asyncio.create_task(\n+            self._metrics_monitor_task(monitor_aiter), name=\"TTS._metrics_task\"\n+        )\n+        self._stream: SynthesizeStream | None = None\n+\n+        async def _traceable_main_task() -> None:\n+            with tracer.start_as_current_span(self._tts_request_span_name, end_on_exit=False):\n+                await self._main_task()\n+\n+        self._synthesize_task = asyncio.create_task(\n+            _traceable_main_task(), name=\"TTS._synthesize_task\"\n+        )\n+        self._synthesize_task.add_done_callback(lambda _: self._event_ch.close())\n+        self._tts_request_span: trace.Span | None = None\n+\n+    async def _main_task(self) -> None:\n+        \"\"\"Override main task to directly forward SynthesizedAudio events from stream\"\"\"",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "longcw",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "do we prefer `inference.LLM(\"openai/gpt-4.1-mini\")` than `\"openai/gpt-4.1-mini\"`?",
+      "file": "examples/voice_agents/basic_agent.py",
+      "line": 90,
+      "diff_hunk": "@@ -83,13 +84,13 @@ async def entrypoint(ctx: JobContext):\n     session = AgentSession(\n         # Speech-to-text (STT) is your agent's ears, turning the user's speech into text that the LLM can understand\n         # See all available models at https://docs.livekit.io/agents/models/stt/\n-        stt=\"deepgram/nova-3\",\n+        stt=inference.STT(\"deepgram/nova-3\", language=\"multi\"),\n         # A Large Language Model (LLM) is your agent's brain, processing user input and generating a response\n         # See all available models at https://docs.livekit.io/agents/models/llm/\n-        llm=\"openai/gpt-4.1-mini\",\n+        llm=inference.LLM(\"openai/gpt-4.1-mini\"),",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "longcw",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "why it needs a custom `__init__` method?",
+      "file": "livekit-agents/livekit/agents/tts/tts.py",
+      "line": null,
+      "diff_hunk": "@@ -343,6 +358,103 @@ async def __aexit__(\n         await self.aclose()\n \n \n+class _ChunkedStreamFromStream(ChunkedStream):\n+    \"\"\"Implementation of ChunkedStream that wraps a SynthesizeStream.\n+\n+    Used by TTS providers that only support streaming inference to implement\n+    the synthesize() method.\n+    \"\"\"\n+\n+    def __init__(\n+        self,\n+        *,\n+        tts: TTS,\n+        input_text: str,\n+        conn_options: APIConnectOptions,\n+    ) -> None:\n+        # Don't call super().__init__ yet - we'll handle initialization differently",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "longcw",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "do we really need to directly forward the events? Use the `_run` method will make the implementation simpler\n```python\nclass ChunkedStreamFromStreaming(ChunkedStream):\n    _tts_request_span_name: ClassVar[str] = \"tts_synthesize_from_streaming\"\n\n    def __init__(self, *, tts: TTS, input_text: str, conn_options: APIConnectOptions) -> None:\n        super().__init__(tts=tts, input_text=input_text, conn_options=conn_options)\n        if not self._tts.capabilities.streaming:\n            raise ValueError(\"TTS does not support streaming\")\n\n    async def _run(self, output_emitter: AudioEmitter) -> None:\n        output_emitter.initialize(\n            request_id=shortuuid(),\n            sample_rate=self._tts.sample_rate,\n            num_channels=self._tts.num_channels,\n            mime_type=\"audio/pcm\",\n            stream=False\n        )\n        async with self._tts.stream(\n            conn_options=APIConnectOptions(max_retry=0, timeout=self._conn_options.timeout)\n        ) as stream:\n            stream.push_text(self._input_text)\n            stream.end_input()\n            async for ev in stream:\n                output_emitter.push(ev.frame.data.tobytes())\n                if timed_transcripts := ev.frame.userdata.get(USERDATA_TIMED_TRANSCRIPT):\n                    output_emitter.push_timed_transcript(timed_transcripts)\n\n        output_emitter.flush()\n```",
+      "file": "livekit-agents/livekit/agents/tts/tts.py",
+      "line": null,
+      "diff_hunk": "@@ -343,6 +358,103 @@ async def __aexit__(\n         await self.aclose()\n \n \n+class _ChunkedStreamFromStream(ChunkedStream):\n+    \"\"\"Implementation of ChunkedStream that wraps a SynthesizeStream.\n+\n+    Used by TTS providers that only support streaming inference to implement\n+    the synthesize() method.\n+    \"\"\"\n+\n+    def __init__(\n+        self,\n+        *,\n+        tts: TTS,\n+        input_text: str,\n+        conn_options: APIConnectOptions,\n+    ) -> None:\n+        # Don't call super().__init__ yet - we'll handle initialization differently\n+        self._input_text = input_text\n+        self._tts = tts\n+        self._conn_options = conn_options\n+        self._event_ch = aio.Chan[SynthesizedAudio]()\n+        self._tee = aio.itertools.tee(self._event_ch, 2)\n+        self._event_aiter, monitor_aiter = self._tee\n+        self._current_attempt_has_error = False\n+        self._metrics_task = asyncio.create_task(\n+            self._metrics_monitor_task(monitor_aiter), name=\"TTS._metrics_task\"\n+        )\n+        self._stream: SynthesizeStream | None = None\n+\n+        async def _traceable_main_task() -> None:\n+            with tracer.start_as_current_span(self._tts_request_span_name, end_on_exit=False):\n+                await self._main_task()\n+\n+        self._synthesize_task = asyncio.create_task(\n+            _traceable_main_task(), name=\"TTS._synthesize_task\"\n+        )\n+        self._synthesize_task.add_done_callback(lambda _: self._event_ch.close())\n+        self._tts_request_span: trace.Span | None = None\n+\n+    async def _main_task(self) -> None:\n+        \"\"\"Override main task to directly forward SynthesizedAudio events from stream\"\"\"",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "longcw",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

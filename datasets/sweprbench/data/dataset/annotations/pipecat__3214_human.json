@@ -1,0 +1,67 @@
+{
+  "task_id": "pipecat__3214",
+  "pr_number": 3214,
+  "repo": "pipecat-ai/pipecat",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 7,
+  "substantive_comment_count": 3,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Since this PR was opened, we have new params:\n- \"thinking\"\n- \"betas\"",
+      "file": "src/pipecat/services/anthropic/llm.py",
+      "line": 285,
+      "diff_hunk": "@@ -238,26 +238,38 @@ async def run_inference(self, context: LLMContext | OpenAILLMContext) -> Optiona\n         \"\"\"\n         messages = []\n         system = NOT_GIVEN\n+        tools = []\n         if isinstance(context, LLMContext):\n             adapter: AnthropicLLMAdapter = self.get_llm_adapter()\n-            params = adapter.get_llm_invocation_params(\n+            invocation_params = adapter.get_llm_invocation_params(\n                 context, enable_prompt_caching=self._settings[\"enable_prompt_caching\"]\n             )\n-            messages = params[\"messages\"]\n-            system = params[\"system\"]\n+            messages = invocation_params[\"messages\"]\n+            system = invocation_params[\"system\"]\n+            tools = invocation_params[\"tools\"]\n         else:\n             context = AnthropicLLMContext.upgrade_to_anthropic(context)\n             messages = context.messages\n             system = getattr(context, \"system\", NOT_GIVEN)\n+            tools = context.tools or []\n+\n+        # Build params using the same method as streaming completions",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "kompfner",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Since this PR was opened, we have a new \"thinking\" param.",
+      "file": "src/pipecat/services/google/llm.py",
+      "line": 853,
+      "diff_hunk": "@@ -779,6 +787,42 @@ async def run_inference(self, context: LLMContext | OpenAILLMContext) -> Optiona\n \n         return None\n \n+    def _build_generation_params(\n+        self,\n+        system_instruction: Optional[str] = None,\n+        tools: Optional[List] = None,\n+        tool_config: Optional[Dict[str, Any]] = None,\n+    ) -> Dict[str, Any]:\n+        \"\"\"Build generation parameters for Google AI API.\n+\n+        Args:\n+            system_instruction: Optional system instruction to use.\n+            tools: Optional list of tools to include.\n+            tool_config: Optional tool configuration.\n+\n+        Returns:\n+            Dictionary of generation parameters with None values filtered out.\n+        \"\"\"\n+        # Filter out None values\n+        generation_params = {",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "kompfner",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "When extended thinking is enabled, `content[0]` doesn't necessarily contain `text`. It may be the thinking block.",
+      "file": "src/pipecat/services/anthropic/llm.py",
+      "line": 306,
+      "diff_hunk": "@@ -303,7 +303,7 @@ async def run_inference(self, context: LLMContext | OpenAILLMContext) -> Optiona\n         # LLM completion\n         response = await self._client.beta.messages.create(**params)\n \n-        return response.content[0].text\n+        return next((block.text for block in response.content if hasattr(block, \"text\")), None)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "kompfner",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

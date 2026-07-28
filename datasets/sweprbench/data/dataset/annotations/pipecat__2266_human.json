@@ -1,0 +1,67 @@
+{
+  "task_id": "pipecat__2266",
+  "pr_number": 2266,
+  "repo": "pipecat-ai/pipecat",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "We need to move this file to it's own directory now: `pipecat.transports.heygen.transport`",
+      "file": "src/pipecat/transports/heygen/transport.py",
+      "line": 1,
+      "diff_hunk": "@@ -0,0 +1,385 @@\n+#",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "aconchillo",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "We need to move this file to it's own directory now: `pipecat.transports.heygen.transport`",
+      "file": "src/pipecat/transports/heygen/transport.py",
+      "line": 1,
+      "diff_hunk": "@@ -0,0 +1,385 @@\n+#",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "aconchillo",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Update to `InterruptionFrame`",
+      "file": "src/pipecat/transports/heygen/transport.py",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,381 @@\n+#\n+# Copyright (c) 2024\u20132025, Daily\n+#\n+# SPDX-License-Identifier: BSD 2-Clause License\n+#\n+\n+\"\"\"HeyGen implementation for Pipecat.\n+\n+This module provides integration with the HeyGen platform for creating conversational\n+AI applications with avatars. It manages conversation sessions and provides real-time\n+audio/video streaming capabilities through the HeyGen API.\n+\n+The module consists of three main components:\n+- HeyGenInputTransport: Handles incoming audio and events from HeyGen conversations\n+- HeyGenOutputTransport: Manages outgoing audio and events to HeyGen conversations\n+- HeyGenTransport: Main transport implementation that coordinates input/output transports\n+\"\"\"\n+\n+from typing import Any, Optional\n+\n+import aiohttp\n+from loguru import logger\n+\n+from pipecat.frames.frames import (\n+    AudioRawFrame,\n+    BotStartedSpeakingFrame,\n+    BotStoppedSpeakingFrame,\n+    CancelFrame,\n+    EndFrame,\n+    Frame,\n+    InputAudioRawFrame,\n+    OutputAudioRawFrame,\n+    StartFrame,\n+    StartInterruptionFrame,\n+    UserStartedSpeakingFrame,\n+    UserStoppedSpeakingFrame,\n+)\n+from pipecat.processors.frame_processor import FrameDirection, FrameProcessor, FrameProcessorSetup\n+from pipecat.services.heygen.api import NewSessionRequest\n+from pipecat.services.heygen.client import HeyGenCallbacks, HeyGenClient\n+from pipecat.transports.base_input import BaseInputTransport\n+from pipecat.transports.base_output import BaseOutputTransport\n+from pipecat.transports.base_transport import BaseTransport, TransportParams\n+\n+\n+class HeyGenInputTransport(BaseInputTransport):\n+    \"\"\"Input transport for receiving audio and events from HeyGen conversations.\n+\n+    Handles incoming audio streams from participants and manages audio capture\n+    from the Daily room connected to the HeyGen conversation.\n+    \"\"\"\n+\n+    def __init__(\n+        self,\n+        client: HeyGenClient,\n+        params: TransportParams,\n+        **kwargs,\n+    ):\n+        \"\"\"Initialize the HeyGen input transport.\n+\n+        Args:\n+            client: The HeyGen transport client instance.\n+            params: Transport configuration parameters.\n+            **kwargs: Additional arguments passed to parent class.\n+        \"\"\"\n+        super().__init__(params, **kwargs)\n+        self._client = client\n+        self._params = params\n+        # Whether we have seen a StartFrame already.\n+        self._initialized = False\n+\n+    async def setup(self, setup: FrameProcessorSetup):\n+        \"\"\"Setup the input transport.\n+\n+        Args:\n+            setup: The frame processor setup configuration.\n+        \"\"\"\n+        await super().setup(setup)\n+        await self._client.setup(setup)\n+\n+    async def cleanup(self):\n+        \"\"\"Cleanup input transport resources.\"\"\"\n+        await super().cleanup()\n+        await self._client.cleanup()\n+\n+    async def start(self, frame: StartFrame):\n+        \"\"\"Start the input transport.\n+\n+        Args:\n+            frame: The start frame containing initialization parameters.\n+        \"\"\"\n+        await super().start(frame)\n+\n+        if self._initialized:\n+            return\n+\n+        self._initialized = True\n+\n+        await self.set_transport_ready(frame)\n+\n+    async def stop(self, frame: EndFrame):\n+        \"\"\"Stop the input transport.\n+\n+        Args:\n+            frame: The end frame signaling transport shutdown.\n+        \"\"\"\n+        await super().stop(frame)\n+        await self._client.stop()\n+\n+    async def cancel(self, frame: CancelFrame):\n+        \"\"\"Cancel the input transport.\n+\n+        Args:\n+            frame: The cancel frame signaling immediate cancellation.\n+        \"\"\"\n+        await super().cancel(frame)\n+        await self._client.stop()\n+\n+    async def start_capturing_audio(self, participant_id: str):\n+        \"\"\"Start capturing audio from a participant.\n+\n+        Args:\n+            participant_id: The participant to capture audio from.\n+        \"\"\"\n+        if self._params.audio_in_enabled:\n+            logger.info(f\"HeyGenTransport start capturing audio for participant {participant_id}\")\n+            await self._client.capture_participant_audio(\n+                participant_id, self._on_participant_audio_data\n+            )\n+\n+    async def _on_participant_audio_data(self, audio_frame: AudioRawFrame):\n+        \"\"\"Handle received participant audio data.\"\"\"\n+        frame = InputAudioRawFrame(\n+            audio=audio_frame.audio,\n+            sample_rate=audio_frame.sample_rate,\n+            num_channels=audio_frame.num_channels,\n+        )\n+        await self.push_audio_frame(frame)\n+\n+\n+class HeyGenOutputTransport(BaseOutputTransport):\n+    \"\"\"Output transport for sending audio and events to HeyGen conversations.\n+\n+    Handles outgoing audio streams to participants and manages the custom\n+    audio track expected by the HeyGen platform.\n+    \"\"\"\n+\n+    def __init__(\n+        self,\n+        client: HeyGenClient,\n+        params: TransportParams,\n+        **kwargs,\n+    ):\n+        \"\"\"Initialize the HeyGen output transport.\n+\n+        Args:\n+            client: The HeyGen transport client instance.\n+            params: Transport configuration parameters.\n+            **kwargs: Additional arguments passed to parent class.\n+        \"\"\"\n+        super().__init__(params, **kwargs)\n+        self._client = client\n+        self._params = params\n+\n+        # Whether we have seen a StartFrame already.\n+        self._initialized = False\n+        self._event_id = None\n+\n+    async def setup(self, setup: FrameProcessorSetup):\n+        \"\"\"Setup the output transport.\n+\n+        Args:\n+            setup: The frame processor setup configuration.\n+        \"\"\"\n+        await super().setup(setup)\n+        await self._client.setup(setup)\n+\n+    async def cleanup(self):\n+        \"\"\"Cleanup output transport resources.\"\"\"\n+        await super().cleanup()\n+        await self._client.cleanup()\n+\n+    async def start(self, frame: StartFrame):\n+        \"\"\"Start the output transport.\n+\n+        Args:\n+            frame: The start frame containing initialization parameters.\n+        \"\"\"\n+        await super().start(frame)\n+\n+        if self._initialized:\n+            return\n+\n+        self._initialized = True\n+        await self._client.start(frame, self.audio_chunk_size)\n+        await self.set_transport_ready(frame)\n+        self._client.transport_ready()\n+\n+    async def stop(self, frame: EndFrame):\n+        \"\"\"Stop the output transport.\n+\n+        Args:\n+            frame: The end frame signaling transport shutdown.\n+        \"\"\"\n+        await super().stop(frame)\n+        await self._client.stop()\n+\n+    async def cancel(self, frame: CancelFrame):\n+        \"\"\"Cancel the output transport.\n+\n+        Args:\n+            frame: The cancel frame signaling immediate cancellation.\n+        \"\"\"\n+        await super().cancel(frame)\n+        await self._client.stop()\n+\n+    async def push_frame(self, frame: Frame, direction: FrameDirection = FrameDirection.DOWNSTREAM):\n+        \"\"\"Push a frame to the next processor in the pipeline.\n+\n+        Args:\n+            frame: The frame to push.\n+            direction: The direction to push the frame.\n+        \"\"\"\n+        # The BotStartedSpeakingFrame and BotStoppedSpeakingFrame are created inside BaseOutputTransport\n+        # This is a workaround, so we can more reliably be aware when the bot has started or stopped speaking\n+        if direction == FrameDirection.DOWNSTREAM:\n+            if isinstance(frame, BotStartedSpeakingFrame):\n+                if self._event_id is not None:\n+                    logger.warning(\"self._event_id is already defined!\")\n+                self._event_id = str(frame.id)\n+            elif isinstance(frame, BotStoppedSpeakingFrame):\n+                await self._client.agent_speak_end(self._event_id)\n+                self._event_id = None\n+        await super().push_frame(frame, direction)\n+\n+    async def process_frame(self, frame: Frame, direction: FrameDirection):\n+        \"\"\"Process frames and handle interruptions.\n+\n+        Handles various types of frames including interruption events and user speaking states.\n+        Updates the HeyGen client state based on the received frames.\n+\n+        Args:\n+            frame: The frame to process\n+            direction: The direction of frame flow in the pipeline\n+\n+        Note:\n+            Special handling is implemented for:\n+            - StartInterruptionFrame: Triggers interruption of current speech\n+            - UserStartedSpeakingFrame: Initiates agent listening mode\n+            - UserStoppedSpeakingFrame: Stops agent listening mode\n+        \"\"\"\n+        await super().process_frame(frame, direction)\n+        if isinstance(frame, StartInterruptionFrame):",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "kompfner",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

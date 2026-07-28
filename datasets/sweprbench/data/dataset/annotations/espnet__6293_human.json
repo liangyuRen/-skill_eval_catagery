@@ -1,0 +1,50 @@
+{
+  "task_id": "espnet__6293",
+  "pr_number": 6293,
+  "repo": "espnet/espnet",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "![high](https://www.gstatic.com/codereviewagent/high-priority.svg)\n\nThe `for dir in data/*` loop is not robust. If the `data/` directory is empty, the glob `data/*` will be treated as a literal string, causing the commands within the loop to fail as they expect a directory path. \n\nAdditionally, variables containing file paths like `$dir` should be quoted to handle names with spaces or special characters correctly. This is a general shell scripting best practice.\n\nI recommend adding a check to ensure that `$dir` is a directory before processing it and quoting its usage. This will make the script more robust.\n\nHere is a suggested implementation:\n```bash\nfor dir in data/*; do\n    if [ -d \"$dir\" ]; then\n        utils/fix_data_dir.sh --utt_extra_files \"orthography\" \"$dir\"\n        utils/validate_data_dir.sh --non-print --no-feats \"$dir\" || exit 1\n        # make empty files for not-yet generated extra texts\n        touch \"$dir/text.prev\" \"$dir/text.ctc\"\n    fi\ndone\n```",
+      "file": "egs2/powsm/s2t1/local/data.sh",
+      "line": 67,
+      "diff_hunk": "@@ -66,6 +56,16 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then\n     cut -d',' -f1 ipa_all.csv > local/panphon_ipas\n     sed -i '1d' local/panphon_ipas\n     rm ipa_all.csv\n+\n+    python local/data_prep.py --source_dir ${IPAPACK_PLUS} --target_dir data --min_wav_length ${min_wav_duration}\n+\n+    for dir in data/*; do\n+        utils/fix_data_dir.sh --utt_extra_files \"orthography\" $dir\n+        utils/validate_data_dir.sh --non-print --no-feats $dir || exit 1\n+        # make empty files for not-yet generated extra texts\n+        touch $dir/text.prev $dir/text.ctc\n+    done",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "![high](https://www.gstatic.com/codereviewagent/high-priority.svg)\n\nThe `for dir in data/*` loop is not robust. If the `data/` directory is empty, the glob `data/*` will be treated as a literal string, causing the commands within the loop to fail as they expect a directory path. \n\nAdditionally, variables containing file paths like `$dir` should be quoted to handle names with spaces or special characters correctly. This is a general shell scripting best practice.\n\nI recommend adding a check to ensure that `$dir` is a directory before processing it and quoting its usage. This will make the script more robust.\n\nHere is a suggested implementation:\n```bash\nfor dir in data/*; do\n    if [ -d \"$dir\" ]; then\n        utils/fix_data_dir.sh --utt_extra_files \"orthography\" \"$dir\"\n        utils/validate_data_dir.sh --non-print --no-feats \"$dir\" || exit 1\n        # make empty files for not-yet generated extra texts\n        touch \"$dir/text.prev\" \"$dir/text.ctc\"\n    fi\ndone\n```",
+      "file": "egs2/powsm/s2t1/local/data.sh",
+      "line": 67,
+      "diff_hunk": "@@ -66,6 +56,16 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then\n     cut -d',' -f1 ipa_all.csv > local/panphon_ipas\n     sed -i '1d' local/panphon_ipas\n     rm ipa_all.csv\n+\n+    python local/data_prep.py --source_dir ${IPAPACK_PLUS} --target_dir data --min_wav_length ${min_wav_duration}\n+\n+    for dir in data/*; do\n+        utils/fix_data_dir.sh --utt_extra_files \"orthography\" $dir\n+        utils/validate_data_dir.sh --non-print --no-feats $dir || exit 1\n+        # make empty files for not-yet generated extra texts\n+        touch $dir/text.prev $dir/text.ctc\n+    done",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

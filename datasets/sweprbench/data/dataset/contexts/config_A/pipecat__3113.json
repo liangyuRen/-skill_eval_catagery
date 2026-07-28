@@ -1,0 +1,10 @@
+{
+  "pr_number": 3113,
+  "repo": "pipecat-ai/pipecat",
+  "task_id": "pipecat__3113",
+  "config_name": "config_A",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 446,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `src/pipecat/services/aws/agent_core.py`: 260 changed lines, 0 function/branch hunks, logic markers=46.\n- `uv.lock`: 34 changed lines, 0 function/branch hunks, logic markers=0.\n- `pyproject.toml`: 4 changed lines, 0 function/branch hunks, logic markers=0.\n- PR profile: type=feature, difficulty=Type2_Contextual, language=Python, files_changed=4.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### pyproject.toml\n```diff\ndiff --git a/pyproject.toml b/pyproject.toml\nindex cf83e53ee1..f5ade679bc 100644\n--- a/pyproject.toml\n+++ b/pyproject.toml\n@@ -49,7 +49,7 @@ aic = [ \"aic-sdk~=1.1.0\" ]\n anthropic = [ \"anthropic~=0.49.0\" ]\n assemblyai = [ \"pipecat-ai[websockets-base]\" ]\n asyncai = [ \"pipecat-ai[websockets-base]\" ]\n-aws = [ \"aioboto3~=15.0.0\", \"pipecat-ai[websockets-base]\" ]\n+aws = [ \"aioboto3~=15.5.0\", \"pipecat-ai[websockets-base]\" ]\n aws-nova-sonic = [ \"aws_sdk_bedrock_runtime~=0.2.0; python_version>='3.12'\" ]\n azure = [ \"azure-cognitiveservices-speech~=1.42.0\"]\n cartesia = [ \"cartesia~=2.0.3\", \"pipecat-ai[websockets-base]\" ]\n```\n\n### src/pipecat/services/aws/__init__.py\n```diff\ndiff --git a/src/pipecat/services/aws/__init__.py b/src/pipecat/services/aws/__init__.py\nindex 6f6903f750..88725f9656 100644\n--- a/src/pipecat/services/aws/__init__.py\n+++ b/src/pipecat/services/aws/__init__.py\n@@ -8,6 +8,7 @@\n \n from pipecat.services import DeprecatedModuleProxy\n \n+from .agent_core import *\n from .llm import *\n from .nova_sonic import *\n from .sagemaker import *\n```\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 4\n- PR type: feature"
+}

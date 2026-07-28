@@ -1,0 +1,67 @@
+{
+  "task_id": "mycli__1436",
+  "pr_number": 1436,
+  "repo": "dbcli/mycli",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 5,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "Can we reduce the changelog entry to a single line, please?  If documentation is needed there is a `doc` directory.\n\nSomething like: \"Improve password startup performance and clarify password option hierarchy.\"",
+      "file": "changelog.md",
+      "line": null,
+      "diff_hunk": "@@ -1,3 +1,20 @@\n+Upcoming (TBD)\n+==============\n+\n+Features\n+--------\n+* Update password handling functionality (#341):",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "rolandwalker",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I am still not sure about this, and predict we will get some issues filed.  But we can try it.",
+      "file": "mycli/main.py",
+      "line": 1587,
+      "diff_hunk": "@@ -1603,6 +1573,20 @@ def cli(\n       - mycli mysql://my_user@my_host.com:3306/my_database\n \n     \"\"\"\n+    # if user passes the --p* flag, ask for the password right away\n+    # to reduce lag as much as possible\n+    if password == \"MYCLI_ASK_PASSWORD\":\n+        password = click.prompt(\"Enter password\", hide_input=True, show_default=False, default='', type=str, err=True)\n+    # if the password value looks like a DSN, treat it as such and\n+    # prompt for password\n+    elif database is None and password is not None and password.startswith(\"mysql://\"):",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "rolandwalker",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Can we reduce the changelog entry to a single line, please?  If documentation is needed there is a `doc` directory.\n\nSomething like: \"Improve password startup performance and clarify password option hierarchy.\"",
+      "file": "changelog.md",
+      "line": null,
+      "diff_hunk": "@@ -1,3 +1,20 @@\n+Upcoming (TBD)\n+==============\n+\n+Features\n+--------\n+* Update password handling functionality (#341):",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "rolandwalker",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

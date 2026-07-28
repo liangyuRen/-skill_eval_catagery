@@ -1,0 +1,10 @@
+{
+  "pr_number": 3000,
+  "repo": "unit8co/darts",
+  "task_id": "darts__3000",
+  "config_name": "config_C",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 348,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `darts/timeseries.py`: 180 changed lines, 10 function/branch hunks, logic markers=34.\n- `darts/__init__.py`: 10 changed lines, 0 function/branch hunks, logic markers=0.\n- `darts/tests/test_timeseries_static_covariates.py`: 320 changed lines, 2 function/branch hunks, logic markers=9.\n- PR profile: type=feature, difficulty=Type2_Contextual, language=Python, files_changed=4.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### darts/__init__.py\n```diff\ndiff --git a/darts/__init__.py b/darts/__init__.py\nindex 6b6001a3e9..c1c93e99fe 100644\n--- a/darts/__init__.py\n+++ b/darts/__init__.py\n@@ -12,7 +12,12 @@\n     reset_option,\n     set_option,\n )\n-from darts.timeseries import TimeSeries, concatenate, slice_intersect\n+from darts.timeseries import (\n+    TimeSeries,\n+    concatenate,\n+    slice_intersect,\n+    to_group_dataframe,\n+)\n \n __version__ = \"0.40.0\"\n \n@@ -20,6 +25,7 @@\n     \"TimeSeries\",\n     \"concatenate\",\n     \"slice_intersect\",\n+    \"to_group_dataframe\",\n     \"get_option\",\n     \"set_option\",\n     \"reset_option\",\n```\n\n---\n\n## Layer 3 - Execution Context\n\n---\n\n## Layer 4 - Behavior Mapping\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 4\n- PR type: feature"
+}

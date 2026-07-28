@@ -1,0 +1,67 @@
+{
+  "task_id": "cupy__9507",
+  "pr_number": 9507,
+  "repo": "cupy/cupy",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 5,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "I think this diff will likely trigger a full rebuild of the kernel caches, because `carray.cuh` is included in virtually all kernels in CuPy. However, I don't see any alternative... Let's wait for the CI to confirm if I could be wrong.",
+      "file": "cupy/_core/include/cupy/carray.cuh",
+      "line": 622,
+      "diff_hunk": "@@ -619,6 +619,7 @@ private:\n \n public:\n   static const int ndim = 0;\n+  typedef typename cupy::type_traits::conditional<_use_32bit_indexing, int, ptrdiff_t>::type index_t;",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "leofang",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "typo?",
+      "file": "cupy/_core/_routines_indexing.pyx",
+      "line": null,
+      "diff_hunk": "@@ -552,34 +558,44 @@ out = a[out_i];\n \n \n _take_kernel = ElementwiseKernel(\n-    'raw T a, S indices, uint32 ldim, uint32 cdim, uint32 rdim, '\n-    'int64 index_range',\n+    'raw T a, S indices, int64 ldim_, int64 cdim_, int64 rdim_, '\n+    'int64 index_range_',\n     'T out', _take_kernel_core, 'cupy_take')\n \n \n _take_kernel_scalar = ElementwiseKernel(\n-    'raw T a, int64 indices, uint32 ldim, uint32 cdim, uint32 rdim, '\n-    'int64 index_range',\n+    'raw T a, int64 indices, int64 ldim_, int64 cdim_, int64 rdim_, '\n+    'int64 index_range_',\n     'T out', _take_kernel_core, 'cupy_take_scalar')\n \n \n _choose_kernel = ElementwiseKernel(\n-    'S a, raw T choices, int32 n_channel',\n+    'S a, raw T choices, int64 n_channel',\n     'T y',\n-    'y = choices[i + n_channel * a]',\n+    '''\n+      using idx_t = decltype(choices)::index_t;\n+      y = choices[i + static_cast<idx_t>(n_channel) * static_cast<idx_t>(a)];\n+    ''',\n     'cupy_choose')\n \n \n _choose_clip_kernel = ElementwiseKernel(\n-    'S a, raw T choices, int32 n_channel, int32 n',\n+    'S a, raw T choices, int64 n_channel_, int64 n_',\n     'T y',\n     '''\n-      S x = a;\n+      using idx_t = decltype(choices)::index_t;\n+      idx_t n_channel = static_cast<idx_t>n_channel_;\n+      idx_t n = static_cast<indx_t>n_;",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "leofang",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "I think this diff will likely trigger a full rebuild of the kernel caches, because `carray.cuh` is included in virtually all kernels in CuPy. However, I don't see any alternative... Let's wait for the CI to confirm if I could be wrong.",
+      "file": "cupy/_core/include/cupy/carray.cuh",
+      "line": 622,
+      "diff_hunk": "@@ -619,6 +619,7 @@ private:\n \n public:\n   static const int ndim = 0;\n+  typedef typename cupy::type_traits::conditional<_use_32bit_indexing, int, ptrdiff_t>::type index_t;",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "leofang",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

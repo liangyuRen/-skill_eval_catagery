@@ -1,0 +1,33 @@
+{
+  "task_id": "sktime__9042",
+  "pr_number": 9042,
+  "repo": "sktime/sktime",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 8,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Lines 65 to 78 hardcode\r\n- number of hidden layers in the network,\r\n- number of neurons in each hidden layer,\r\n- presence of dropout and dropout rate in hidden layers,\r\n- presence of dropout and dropout rate in the output layer.\r\n\r\nUsually, all of these are exposed to end users via parameters.\r\nI haven't seen such enforcement in any other network so far. Is there a specific reason for this? @fkiraly ",
+      "file": "sktime/networks/mlp/_mlp_tf.py",
+      "line": 87,
+      "diff_hunk": "@@ -65,6 +65,7 @@ def build_network(self, input_shape, **kwargs):\n         input_layer = keras.layers.Input(input_shape)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "RecreationalMath",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

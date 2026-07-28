@@ -1,0 +1,67 @@
+{
+  "task_id": "prowler__9774",
+  "pr_number": 9774,
+  "repo": "prowler-cloud/prowler",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 5,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I'm getting a 500. Self comment to review later.",
+      "file": "prowler/providers/gcp/services/compute/compute_snapshot_not_outdated/compute_snapshot_not_outdated.metadata.json",
+      "line": 17,
+      "diff_hunk": "@@ -0,0 +1,38 @@\n+{\n+  \"Provider\": \"gcp\",\n+  \"CheckID\": \"compute_snapshot_not_outdated\",\n+  \"CheckTitle\": \"Compute Engine disk snapshot is not outdated\",\n+  \"CheckType\": [],\n+  \"ServiceName\": \"compute\",\n+  \"SubServiceName\": \"\",\n+  \"ResourceIdTemplate\": \"\",\n+  \"Severity\": \"low\",\n+  \"ResourceType\": \"compute.googleapis.com/Snapshot\",\n+  \"ResourceGroup\": \"storage\",\n+  \"Description\": \"Compute Engine **disk snapshots** are evaluated against a configurable age threshold (default `90` days) to identify snapshots exceeding the organization's retention policy.\",\n+  \"Risk\": \"Outdated snapshots containing **sensitive data** expand the **attack surface** and risk data exposure if compromised.\\n\\nStale snapshots may violate compliance requirements, complicate disaster recovery efforts, and introduce configuration drift that affects system **integrity**.\",\n+  \"RelatedUrl\": \"\",\n+  \"AdditionalURLs\": [\n+    \"https://www.trendmicro.com/cloudoneconformity/knowledge-base/gcp/ComputeEngine/remove-old-disk-snapshots.html\",\n+    \"https://cloud.google.com/compute/docs/disks/create-snapshots\",",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "HugoPBrito",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "They always have. If they don't, is because we couldn't retrieve it.\n\n```suggestion\n                report.status_extended = (\n                    f\"Disk snapshot {snapshot.name} timestamp could not be retrieved\"\n                    \"and cannot be evaluated for age.\"\n                )\n```",
+      "file": "prowler/providers/gcp/services/compute/compute_snapshot_not_outdated/compute_snapshot_not_outdated.py",
+      "line": 39,
+      "diff_hunk": "@@ -0,0 +1,60 @@\n+from datetime import datetime, timezone\n+\n+from prowler.lib.check.models import Check, Check_Report_GCP\n+from prowler.providers.gcp.services.compute.compute_client import compute_client\n+\n+\n+class compute_snapshot_not_outdated(Check):\n+    \"\"\"Check that Compute Engine disk snapshots are not outdated.\n+\n+    This check ensures Compute Engine disk snapshots are within the configured\n+    age threshold (default 90 days) to help control storage costs and limit\n+    exposure from stale data.\n+\n+    - PASS: Snapshot is not outdated (within the acceptable age threshold).\n+    - FAIL: Snapshot is outdated (exceeds the configured age threshold).\n+    \"\"\"\n+\n+    def execute(self) -> list[Check_Report_GCP]:\n+        findings = []\n+\n+        max_snapshot_age_days = compute_client.audit_config.get(\n+            \"max_snapshot_age_days\", 90\n+        )\n+\n+        current_time = datetime.now(timezone.utc)\n+\n+        for snapshot in compute_client.snapshots:\n+            report = Check_Report_GCP(\n+                metadata=self.metadata(),\n+                resource=snapshot,\n+                location=\"global\",\n+            )\n+\n+            if snapshot.creation_timestamp is None:\n+                report.status = \"FAIL\"\n+                report.status_extended = (\n+                    f\"Disk snapshot {snapshot.name} has no creation timestamp \"\n+                    \"and cannot be evaluated for age.\"\n+                )",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "HugoPBrito",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "```suggestion\n                                logger.error(\n```",
+      "file": "prowler/providers/gcp/services/compute/compute_service.py",
+      "line": null,
+      "diff_hunk": "@@ -602,6 +605,57 @@ def _get_images(self) -> None:\n                     f\"{project_id} -- {error.__class__.__name__}[{error.__traceback__.tb_lineno}]: {error}\"\n                 )\n \n+    def _get_snapshots(self) -> None:\n+        for project_id in self.project_ids:\n+            try:\n+                request = self.client.snapshots().list(project=project_id)\n+                while request is not None:\n+                    response = request.execute(num_retries=DEFAULT_RETRY_ATTEMPTS)\n+                    for snapshot in response.get(\"items\", []):\n+                        # Parse creation timestamp to datetime\n+                        creation_timestamp_str = snapshot.get(\"creationTimestamp\", \"\")\n+                        creation_timestamp = None\n+                        if creation_timestamp_str:\n+                            try:\n+                                # GCP timestamps are in RFC 3339 format\n+                                creation_timestamp = datetime.fromisoformat(\n+                                    creation_timestamp_str.replace(\"Z\", \"+00:00\")\n+                                )\n+                            except ValueError:\n+                                logger.warning(",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "HugoPBrito",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

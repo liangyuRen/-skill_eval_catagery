@@ -1,0 +1,33 @@
+{
+  "task_id": "pipecat__3692",
+  "pr_number": 3692,
+  "repo": "pipecat-ai/pipecat",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Good catch. I guess this will allow requesting metadata for switchers down the pipeline.",
+      "file": "src/pipecat/pipeline/service_switcher.py",
+      "line": 234,
+      "diff_hunk": "@@ -220,16 +220,19 @@ async def filter(_: Frame) -> bool:\n     async def push_frame(self, frame: Frame, direction: FrameDirection = FrameDirection.DOWNSTREAM):\n         \"\"\"Push a frame out of the service switcher.\n \n-        Suppresses `RequestMetadataFrame` (internal to the switcher) and\n-        `ServiceMetadataFrame` from inactive services so only the active\n-        service's metadata reaches downstream processors. One case this happens\n-        is with `StartFrame` since all the filters let it pass, and `StartFrame`\n-        causes the service to generate `ServiceMetadataFrame`.\n+        Suppresses `ServiceSwitcherRequestMetadataFrame` targeting the active\n+        service (since it has already been handled) and `ServiceMetadataFrame`\n+        from inactive services so only the active service's metadata reaches\n+        downstream processors. One case this happens is with `StartFrame` since\n+        all the filters let it pass, and `StartFrame` causes the service to\n+        generate `ServiceMetadataFrame`.\n \n         \"\"\"\n-        # Don't let RequestMetadataFrame out.\n-        if isinstance(frame, RequestMetadataFrame):\n-            return\n+        # Consume ServiceSwitcherRequestMetadataFrame once the targeted service\n+        # has handled it (i.e. the active service).\n+        if isinstance(frame, ServiceSwitcherRequestMetadataFrame):\n+            if frame.service == self.strategy.active_service:",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "aconchillo",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "task_id": "protocompile__630",
+  "pr_number": 630,
+  "repo": "bufbuild/protocompile",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 1,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Column is always positive, so this branch is redundant. Replace with `offset += column`.",
+      "file": "experimental/source/file.go",
+      "line": null,
+      "diff_hunk": "@@ -221,6 +224,9 @@ func inverseLocation(f *File, line, column int, units length.Unit) int {\n \t\t\t\tbreak\n \t\t\t}\n \t\t}\n+\t\tif column > 0 {\n+\t\t\toffset += column\n+\t\t}",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "mcy",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

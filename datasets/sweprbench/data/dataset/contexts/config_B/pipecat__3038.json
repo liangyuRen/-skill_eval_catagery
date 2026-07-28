@@ -1,0 +1,10 @@
+{
+  "pr_number": 3038,
+  "repo": "pipecat-ai/pipecat",
+  "task_id": "pipecat__3038",
+  "config_name": "config_B",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 416,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `src/pipecat/services/deepgram/flux/stt.py`: 118 changed lines, 13 function/branch hunks, logic markers=22.\n- `src/pipecat/services/websocket_service.py`: 76 changed lines, 4 function/branch hunks, logic markers=23.\n- `examples/foundational/07c-interruptible-deepgram-flux.py`: 7 changed lines, 0 function/branch hunks, logic markers=1.\n- PR profile: type=feature, difficulty=Type1_Direct, language=Python, files_changed=4.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### examples/foundational/07c-interruptible-deepgram-flux.py\n```diff\ndiff --git a/examples/foundational/07c-interruptible-deepgram-flux.py b/examples/foundational/07c-interruptible-deepgram-flux.py\nindex f5b246acd2..62579c2c5e 100644\n--- a/examples/foundational/07c-interruptible-deepgram-flux.py\n+++ b/examples/foundational/07c-interruptible-deepgram-flux.py\n@@ -52,7 +52,10 @@\n async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):\n     logger.info(f\"Starting bot\")\n \n-    stt = DeepgramFluxSTTService(api_key=os.getenv(\"DEEPGRAM_API_KEY\"))\n+    stt = DeepgramFluxSTTService(\n+        api_key=os.getenv(\"DEEPGRAM_API_KEY\"),\n+        params=DeepgramFluxSTTService.InputParams(min_confidence=0.3),\n+    )\n \n     tts = DeepgramTTSService(api_key=os.getenv(\"DEEPGRAM_API_KEY\"), voice=\"aura-2-andromeda-en\")\n \n```\n\n---\n\n## Layer 3 - Execution Context\n\n---\n\n## Layer 4 - Behavior Mapping\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 4\n- PR type: feature"
+}

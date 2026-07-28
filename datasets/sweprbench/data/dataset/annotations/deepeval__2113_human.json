@@ -1,0 +1,50 @@
+{
+  "task_id": "deepeval__2113",
+  "pr_number": 2113,
+  "repo": "confident-ai/deepeval",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I think we need this more strictly typed `: MetricData`",
+      "file": "deepeval/evaluate/utils.py",
+      "line": null,
+      "diff_hunk": "@@ -34,6 +35,30 @@\n )\n \n \n+def _is_metric_successful(metric_data) -> bool:",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "penguine-ip",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "^doesn't match implementation",
+      "file": "deepeval/evaluate/utils.py",
+      "line": null,
+      "diff_hunk": "@@ -34,6 +35,30 @@\n )\n \n \n+def _is_metric_successful(metric_data) -> bool:\n+    \"\"\"\n+    Robustly determine success for a metric row.\n+\n+    Rationale:\n+    - If the metric recorded an error, treat as failure.\n+    - Try/except guards against custom metrics that may omit or mistyped `success`.",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "penguine-ip",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

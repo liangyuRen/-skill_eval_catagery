@@ -1,0 +1,33 @@
+{
+  "task_id": "chia-blockchain__20213",
+  "pr_number": 20213,
+  "repo": "Chia-Network/chia-blockchain",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "This is a real change.  The new `X | Y` syntax results in a different type upon inspection.",
+      "file": "chia/util/streamable.py",
+      "line": 124,
+      "diff_hunk": "@@ -120,7 +121,7 @@ def is_type_SpecificOptional(f_type: object) -> bool:\n     \"\"\"\n     Returns true for types such as Optional[T], but not Optional, or T.\n     \"\"\"\n-    return get_origin(f_type) == Union and get_args(f_type)[1]() is None\n+    return get_origin(f_type) in {Union, UnionType} and get_args(f_type)[1]() is None",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "Quexington",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

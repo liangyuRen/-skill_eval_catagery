@@ -1,0 +1,33 @@
+{
+  "task_id": "openbao__2301",
+  "pr_number": 2301,
+  "repo": "openbao/openbao",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I'd prefer a `//nolint:nilnil` instead (or disabling the rule alltogether). We're never using the result of any of these operations.",
+      "file": "builtin/logical/kubernetes/integrationtest/wal_rollback_test.go",
+      "line": 210,
+      "diff_hunk": "@@ -207,29 +207,29 @@ func checkObjects(t *testing.T, roleConfig map[string]interface{}, isClusterBind\n \t}\n \n \t// Check the k8s objects that should have been created (all but the ServiceAccount)\n-\toperation := func() (any, error) {\n+\toperation := func() (none struct{}, err error) {",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "phyrog",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

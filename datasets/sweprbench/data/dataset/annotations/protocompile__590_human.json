@@ -1,0 +1,67 @@
+{
+  "task_id": "protocompile__590",
+  "pr_number": 590,
+  "repo": "bufbuild/protocompile",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 7,
+  "substantive_comment_count": 3,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "panic'ed -> panicked",
+      "file": "experimental/incremental/task.go",
+      "line": null,
+      "diff_hunk": "@@ -412,47 +441,23 @@ func (t *task) run(caller *Task, q *AnyQuery, async bool) (output *result) {\n \t\tif closed(output.done) {\n \t\t\treturn output\n \t\t}\n-\n-\t\t// Check for a potential cycle. This is only possible if output is\n-\t\t// pending; if it isn't, it can't be in our history path.\n-\t\tvar cycle *ErrCycle\n-\t\tfor node := range caller.path.Walk() {\n-\t\t\tif node.Query.Key() != q.Key() {\n-\t\t\t\tcontinue\n-\t\t\t}\n-\n-\t\t\tcycle = new(ErrCycle)\n-\n-\t\t\t// Re-walk the list to collect the cycle itself.\n-\t\t\tfor node2 := range caller.path.Walk() {\n-\t\t\t\tcycle.Cycle = append(cycle.Cycle, node2.Query)\n-\t\t\t\tif node2 == node {\n-\t\t\t\t\tbreak\n-\t\t\t\t}\n-\t\t\t}\n-\n-\t\t\t// Reverse the list so that dependency arrows point to the\n-\t\t\t// right (i.e., Cycle[n] depends on Cycle[n+1]).\n-\t\t\tslices.Reverse(cycle.Cycle)\n-\n-\t\t\t// Insert a copy of the current query to complete the cycle.\n-\t\t\tcycle.Cycle = append(cycle.Cycle, AsAny(q))\n-\t\t\tbreak\n-\t\t}\n-\t\tif cycle != nil {\n-\t\t\toutput.Fatal = cycle\n+\t\tif err := t.checkCycle(caller, q); err != nil {\n+\t\t\toutput.Fatal = err\n \t\t\treturn output\n \t\t}\n-\n-\t\treturn t.waitUntilDone(caller, async)\n+\t\treturn t.waitUntilDone(caller, output, async)\n \t}\n \n \t// Try to become the leader (the task responsible for computing the result).\n \toutput = &result{done: make(chan struct{})}\n \tif !t.result.CompareAndSwap(nil, output) {\n \t\t// We failed to become the executor, so we're gonna go to sleep\n \t\t// until it's done.\n-\t\treturn t.waitUntilDone(caller, async)\n+\t\toutput := t.result.Load()\n+\t\tif output == nil {\n+\t\t\treturn nil // Leader panic'ed but we did see a result.",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "mcy",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Doesn't it make more sense to put the nil check here...?",
+      "file": "experimental/incremental/task.go",
+      "line": 545,
+      "diff_hunk": "@@ -542,7 +547,7 @@ func (t *task) waitUntilDone(caller *Task, async bool) *result {\n \t}\n \n \tselect {\n-\tcase <-t.result.Load().done:",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "mcy",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "No nil check here?",
+      "file": "experimental/incremental/task.go",
+      "line": 448,
+      "diff_hunk": "@@ -412,47 +441,23 @@ func (t *task) run(caller *Task, q *AnyQuery, async bool) (output *result) {\n \t\tif closed(output.done) {\n \t\t\treturn output\n \t\t}\n-\n-\t\t// Check for a potential cycle. This is only possible if output is\n-\t\t// pending; if it isn't, it can't be in our history path.\n-\t\tvar cycle *ErrCycle\n-\t\tfor node := range caller.path.Walk() {\n-\t\t\tif node.Query.Key() != q.Key() {\n-\t\t\t\tcontinue\n-\t\t\t}\n-\n-\t\t\tcycle = new(ErrCycle)\n-\n-\t\t\t// Re-walk the list to collect the cycle itself.\n-\t\t\tfor node2 := range caller.path.Walk() {\n-\t\t\t\tcycle.Cycle = append(cycle.Cycle, node2.Query)\n-\t\t\t\tif node2 == node {\n-\t\t\t\t\tbreak\n-\t\t\t\t}\n-\t\t\t}\n-\n-\t\t\t// Reverse the list so that dependency arrows point to the\n-\t\t\t// right (i.e., Cycle[n] depends on Cycle[n+1]).\n-\t\t\tslices.Reverse(cycle.Cycle)\n-\n-\t\t\t// Insert a copy of the current query to complete the cycle.\n-\t\t\tcycle.Cycle = append(cycle.Cycle, AsAny(q))\n-\t\t\tbreak\n-\t\t}\n-\t\tif cycle != nil {\n-\t\t\toutput.Fatal = cycle\n+\t\tif err := t.checkCycle(caller, q); err != nil {\n+\t\t\toutput.Fatal = err\n \t\t\treturn output\n \t\t}\n-\n-\t\treturn t.waitUntilDone(caller, async)\n+\t\treturn t.waitUntilDone(caller, output, async)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "mcy",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

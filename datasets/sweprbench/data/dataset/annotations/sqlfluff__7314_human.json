@@ -1,0 +1,50 @@
+{
+  "task_id": "sqlfluff__7314",
+  "pr_number": 7314,
+  "repo": "sqlfluff/sqlfluff",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "should we not just get rid of the ObjectReferenceSegment entirely?",
+      "file": "src/sqlfluff/dialects/dialect_postgres.py",
+      "line": null,
+      "diff_hunk": "@@ -6135,7 +6135,7 @@ class CreateTypeStatementSegment(BaseSegment):\n     match_grammar: Matchable = Sequence(\n         \"CREATE\",\n         \"TYPE\",\n-        Ref(\"ObjectReferenceSegment\"),\n+        OneOf(Ref(\"DatatypeIdentifierSegment\"), Ref(\"ObjectReferenceSegment\")),",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "WittierDinosaur",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "should we not just get rid of the ObjectReferenceSegment entirely?",
+      "file": "src/sqlfluff/dialects/dialect_postgres.py",
+      "line": null,
+      "diff_hunk": "@@ -6135,7 +6135,7 @@ class CreateTypeStatementSegment(BaseSegment):\n     match_grammar: Matchable = Sequence(\n         \"CREATE\",\n         \"TYPE\",\n-        Ref(\"ObjectReferenceSegment\"),\n+        OneOf(Ref(\"DatatypeIdentifierSegment\"), Ref(\"ObjectReferenceSegment\")),",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "WittierDinosaur",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

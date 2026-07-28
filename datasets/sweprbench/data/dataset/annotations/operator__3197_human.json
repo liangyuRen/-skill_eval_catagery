@@ -1,0 +1,67 @@
+{
+  "task_id": "operator__3197",
+  "pr_number": 3197,
+  "repo": "tektoncd/operator",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 7,
+  "substantive_comment_count": 3,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "nit: Can we use a more descriptive function name that clearly explains what this function does?",
+      "file": "pkg/reconciler/shared/tektonconfig/result/result.go",
+      "line": null,
+      "diff_hunk": "@@ -174,7 +186,30 @@ func GetTektonResultCR(config *v1alpha1.TektonConfig, operatorVersion string) *v\n \t\t\tCommonSpec: v1alpha1.CommonSpec{\n \t\t\t\tTargetNamespace: config.Spec.TargetNamespace,\n \t\t\t},\n-\t\t\tResult: config.Spec.Result,\n+\t\t\tResult: result,\n \t\t},\n \t}\n }\n+\n+// injectHubClusterOptions modifies the Result options to set replicas to 0\n+// for watcher and retention-policy-agent deployments on Hub clusters\n+func injectHubClusterOptions(result v1alpha1.Result) v1alpha1.Result {",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "pratap0007",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Add debug log\n\nlog.Debug(\"Disabling watcher and retention-policy-agent for Hub cluster\")",
+      "file": "pkg/reconciler/shared/tektonconfig/result/result.go",
+      "line": 208,
+      "diff_hunk": "@@ -174,7 +186,30 @@ func GetTektonResultCR(config *v1alpha1.TektonConfig, operatorVersion string) *v\n \t\t\tCommonSpec: v1alpha1.CommonSpec{\n \t\t\t\tTargetNamespace: config.Spec.TargetNamespace,\n \t\t\t},\n-\t\t\tResult: config.Spec.Result,\n+\t\t\tResult: result,\n \t\t},\n \t}\n }\n+\n+// disableWatcherAndRetentionAgentOnHubCluster modifies the Result options to set replicas to 0\n+// for watcher and retention-policy-agent deployments on Hub clusters\n+func disableWatcherAndRetentionAgentOnHubCluster(result v1alpha1.Result) v1alpha1.Result {\n+\t// Initialize the Deployments map if nil",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jkhelil",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Add comment how the function uses override, it is not obvious\n// This function injects deployment overrides into Options.Deployments. These overrides are applied\n// during reconciliation and will force the specified deployments to use 0 replicas, regardless of\n// the default values from the release manifests.\n//\n// Note: Even if the Deployments map is empty or nil, we create new entries with zero-value Deployment\n// structs that only have Spec.Replicas set. This is intentional - accessing a non-existent map key\n// returns a zero-value struct, which we then modify and insert as an override.\n",
+      "file": "pkg/reconciler/shared/tektonconfig/result/result.go",
+      "line": null,
+      "diff_hunk": "@@ -174,7 +186,30 @@ func GetTektonResultCR(config *v1alpha1.TektonConfig, operatorVersion string) *v\n \t\t\tCommonSpec: v1alpha1.CommonSpec{\n \t\t\t\tTargetNamespace: config.Spec.TargetNamespace,\n \t\t\t},\n-\t\t\tResult: config.Spec.Result,\n+\t\t\tResult: result,\n \t\t},\n \t}\n }\n+\n+// disableWatcherAndRetentionAgentOnHubCluster modifies the Result options to set replicas to 0\n+// for watcher and retention-policy-agent deployments on Hub clusters",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jkhelil",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

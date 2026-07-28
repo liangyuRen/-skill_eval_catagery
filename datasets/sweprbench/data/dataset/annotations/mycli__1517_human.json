@@ -1,0 +1,33 @@
+{
+  "task_id": "mycli__1517",
+  "pr_number": 1517,
+  "repo": "dbcli/mycli",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "This results in it basically ignoring the old `[main]` option since it will always either be the new `default_ssl_mode` if it exists or `None`. So will need a little extra logic if you want to still accept the old value (either a try/except without using `.get` or split it up so you get the new var, check if it's `None`, and then check the old var if so).",
+      "file": "mycli/main.py",
+      "line": null,
+      "diff_hunk": "@@ -171,7 +171,7 @@ def __init__(\n         self.binary_display = c['main'].get('binary_display')\n \n         # set ssl_mode if a valid option is provided in a config file, otherwise None\n-        ssl_mode = c[\"main\"].get(\"ssl_mode\", None)\n+        ssl_mode = c[\"connection\"].get(\"default_ssl_mode\", None) or c[\"main\"].get(\"ssl_mode\", None)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "scottnemes",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

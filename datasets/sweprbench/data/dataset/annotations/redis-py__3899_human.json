@@ -1,0 +1,33 @@
+{
+  "task_id": "redis-py__3899",
+  "pr_number": 3899,
+  "repo": "redis/redis-py",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "@barshaul Shouldn't you embrace this in an if-else block and just skip the rest of the handling in case we have same address? \nWhen you directly return you don't reset the  `self._moved_exception` property.",
+      "file": "redis/asyncio/cluster.py",
+      "line": null,
+      "diff_hunk": "@@ -1457,6 +1457,9 @@ def _update_moved_slots(self) -> None:\n             )\n             self.set_nodes(self.nodes_cache, {redirected_node.name: redirected_node})\n         if redirected_node in self.slots_cache[e.slot_id]:\n+            if redirected_node == self.slots_cache[e.slot_id][0]:",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "petyaslavova",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "task_id": "kornia__3302",
+  "pr_number": 3302,
+  "repo": "kornia/kornia",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 5,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 2,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "can you verify here that uv will pull automatically this ?",
+      "file": "requirements/requirements-dev.txt",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "edgarriba",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "as a followup task we should double which of those a still used. We want by the end of the year to make a major release with some considerable cleanup to simplify the lib maintaince",
+      "file": "justfile",
+      "line": 52,
+      "diff_hunk": "@@ -0,0 +1,148 @@\n+# Run `just` to see all available commands\n+\n+# Default recipe - show help when running just without arguments\n+default:\n+    @just --list\n+\n+# Variables\n+benchmark_source := \"benchmarks/\"\n+benchmark_backends := \"inductor,eager\"\n+benchmark_opts := \"\"\n+\n+# Ensure virtual environment is available and set up\n+# Note: This recipe doesn't actually activate the venv for subsequent commands\n+# because each line in a just recipe runs in a separate shell.\n+# Each command must explicitly use the venv paths.\n+_ensure-venv:\n+    #!/usr/bin/env bash\n+    if [[ ! -f \"venv/bin/activate\" ]]; then\n+        echo \"\ud83d\udd27 Setting up virtual environment...\"\n+        ./setup_dev_env.sh\n+    else\n+        echo \"Virtual environment found!\"\n+    fi\n+\n+# Run all tests with coverage\n+test-all: _ensure-venv\n+    ./venv/bin/pytest -v --device all --dtype all --cov=kornia tests/\n+\n+# Run CPU-only tests\n+test-cpu: _ensure-venv\n+    ./venv/bin/pytest -v --device cpu --dtype all --cov=kornia tests/\n+\n+test-cpu-f32: _ensure-venv\n+    ./venv/bin/pytest -v --device cpu --dtype float32 --cov=kornia tests/\n+\n+# Run CUDA tests\n+test-cuda: _ensure-venv\n+    ./venv/bin/pytest -v --device cuda --dtype all --cov=kornia tests/\n+\n+test-cuda-f32: _ensure-venv\n+    ./venv/bin/pytest -v --device cuda --dtype float32 --cov=kornia tests/\n+\n+# Run MPS tests (Apple Silicon)\n+test-mps: _ensure-venv\n+    ./venv/bin/pytest -v --device mps --dtype float32 -k \"not (grad or exception or jit or dynamo)\" tests/\n+\n+# Run tests for a specific module (usage: just test-module tests/test_color.py)\n+test-module module: _ensure-venv\n+    ./venv/bin/pytest -v --device all --dtype all tests/{{module}}\n+\n+# Run JIT compilation tests\n+test-jit: _ensure-venv",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "edgarriba",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "maybe use this https://github.com/marketplace/actions/setup-just",
+      "file": ".github/actions/env/action.yml",
+      "line": 40,
+      "diff_hunk": "@@ -37,6 +37,19 @@ runs:\n       shell: bash\n       run: pip install uv\n \n+    - name: Install just",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "edgarriba",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "can you verify here that uv will pull automatically this ?",
+      "file": "requirements/requirements-dev.txt",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "edgarriba",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "as a followup task we should double which of those a still used. We want by the end of the year to make a major release with some considerable cleanup to simplify the lib maintaince",
+      "file": "justfile",
+      "line": 52,
+      "diff_hunk": "@@ -0,0 +1,148 @@\n+# Run `just` to see all available commands\n+\n+# Default recipe - show help when running just without arguments\n+default:\n+    @just --list\n+\n+# Variables\n+benchmark_source := \"benchmarks/\"\n+benchmark_backends := \"inductor,eager\"\n+benchmark_opts := \"\"\n+\n+# Ensure virtual environment is available and set up\n+# Note: This recipe doesn't actually activate the venv for subsequent commands\n+# because each line in a just recipe runs in a separate shell.\n+# Each command must explicitly use the venv paths.\n+_ensure-venv:\n+    #!/usr/bin/env bash\n+    if [[ ! -f \"venv/bin/activate\" ]]; then\n+        echo \"\ud83d\udd27 Setting up virtual environment...\"\n+        ./setup_dev_env.sh\n+    else\n+        echo \"Virtual environment found!\"\n+    fi\n+\n+# Run all tests with coverage\n+test-all: _ensure-venv\n+    ./venv/bin/pytest -v --device all --dtype all --cov=kornia tests/\n+\n+# Run CPU-only tests\n+test-cpu: _ensure-venv\n+    ./venv/bin/pytest -v --device cpu --dtype all --cov=kornia tests/\n+\n+test-cpu-f32: _ensure-venv\n+    ./venv/bin/pytest -v --device cpu --dtype float32 --cov=kornia tests/\n+\n+# Run CUDA tests\n+test-cuda: _ensure-venv\n+    ./venv/bin/pytest -v --device cuda --dtype all --cov=kornia tests/\n+\n+test-cuda-f32: _ensure-venv\n+    ./venv/bin/pytest -v --device cuda --dtype float32 --cov=kornia tests/\n+\n+# Run MPS tests (Apple Silicon)\n+test-mps: _ensure-venv\n+    ./venv/bin/pytest -v --device mps --dtype float32 -k \"not (grad or exception or jit or dynamo)\" tests/\n+\n+# Run tests for a specific module (usage: just test-module tests/test_color.py)\n+test-module module: _ensure-venv\n+    ./venv/bin/pytest -v --device all --dtype all tests/{{module}}\n+\n+# Run JIT compilation tests\n+test-jit: _ensure-venv",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "edgarriba",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

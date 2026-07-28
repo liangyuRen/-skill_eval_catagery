@@ -1,0 +1,83 @@
+{
+  "task_id": "ragas__2526",
+  "pr_number": 2526,
+  "repo": "vibrantlabsai/ragas",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 4,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 2,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "Please use real LLM providers in docs.\n\n```py\n...\nfrom ragas.llms import llm_factory\nfrom ragas.embeddings import OpenAIEmbeddings\n...\n```",
+      "file": "docs/howtos/customizations/testgenerator/prechunked_data.md",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,65 @@\n+# Testset Validation with Pre-chunked Data\n+\n+Ragas allows you to use your own chunks for testset generation, bypassing the internal splitting mechanism. This is useful when you already have a chunking strategy in place and want to evaluate using those specific chunks.\n+\n+## Using Pre-chunked Data\n+\n+You can use the `generate_with_chunks` method of `TestsetGenerator` to provide your own documents or strings as chunks. These will be treated directly as `NodeType.CHUNK` and will not be split further.\n+\n+### Example with Documents\n+\n+You can pass a list of LangChain `Document` objects. This preserves the metadata of your chunks.\n+\n+```python\n+from langchain_core.documents import Document\n+from ragas.testset.synthesizers.generate import TestsetGenerator\n+from ragas.llms import MockLLM",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "anistark",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Please make it a working example, like all other examples in docs. \n\nFor example `llm_factory` needs `model`, `OpenAIEmbeddings` needs `client` and so on.",
+      "file": "docs/howtos/customizations/testgenerator/prechunked_data.md",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,65 @@\n+# Testset Validation with Pre-chunked Data\n+\n+Ragas allows you to use your own chunks for testset generation, bypassing the internal splitting mechanism. This is useful when you already have a chunking strategy in place and want to evaluate using those specific chunks.\n+\n+## Using Pre-chunked Data\n+\n+You can use the `generate_with_chunks` method of `TestsetGenerator` to provide your own documents or strings as chunks. These will be treated directly as `NodeType.CHUNK` and will not be split further.\n+\n+### Example with Documents\n+\n+You can pass a list of LangChain `Document` objects. This preserves the metadata of your chunks.\n+\n+```python\n+from langchain_core.documents import Document\n+from ragas.testset.synthesizers.generate import TestsetGenerator\n+from ragas.llms import llm_factory\n+from ragas.embeddings import OpenAIEmbeddings\n+\n+# Initialize generator\n+generator = TestsetGenerator(\n+    llm=llm_factory(), ",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "anistark",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Please use real LLM providers in docs.\n\n```py\n...\nfrom ragas.llms import llm_factory\nfrom ragas.embeddings import OpenAIEmbeddings\n...\n```",
+      "file": "docs/howtos/customizations/testgenerator/prechunked_data.md",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,65 @@\n+# Testset Validation with Pre-chunked Data\n+\n+Ragas allows you to use your own chunks for testset generation, bypassing the internal splitting mechanism. This is useful when you already have a chunking strategy in place and want to evaluate using those specific chunks.\n+\n+## Using Pre-chunked Data\n+\n+You can use the `generate_with_chunks` method of `TestsetGenerator` to provide your own documents or strings as chunks. These will be treated directly as `NodeType.CHUNK` and will not be split further.\n+\n+### Example with Documents\n+\n+You can pass a list of LangChain `Document` objects. This preserves the metadata of your chunks.\n+\n+```python\n+from langchain_core.documents import Document\n+from ragas.testset.synthesizers.generate import TestsetGenerator\n+from ragas.llms import MockLLM",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "anistark",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Please make it a working example, like all other examples in docs. \n\nFor example `llm_factory` needs `model`, `OpenAIEmbeddings` needs `client` and so on.",
+      "file": "docs/howtos/customizations/testgenerator/prechunked_data.md",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,65 @@\n+# Testset Validation with Pre-chunked Data\n+\n+Ragas allows you to use your own chunks for testset generation, bypassing the internal splitting mechanism. This is useful when you already have a chunking strategy in place and want to evaluate using those specific chunks.\n+\n+## Using Pre-chunked Data\n+\n+You can use the `generate_with_chunks` method of `TestsetGenerator` to provide your own documents or strings as chunks. These will be treated directly as `NodeType.CHUNK` and will not be split further.\n+\n+### Example with Documents\n+\n+You can pass a list of LangChain `Document` objects. This preserves the metadata of your chunks.\n+\n+```python\n+from langchain_core.documents import Document\n+from ragas.testset.synthesizers.generate import TestsetGenerator\n+from ragas.llms import llm_factory\n+from ragas.embeddings import OpenAIEmbeddings\n+\n+# Initialize generator\n+generator = TestsetGenerator(\n+    llm=llm_factory(), ",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "anistark",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

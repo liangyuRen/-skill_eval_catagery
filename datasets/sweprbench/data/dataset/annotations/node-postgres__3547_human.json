@@ -1,0 +1,101 @@
+{
+  "task_id": "node-postgres__3547",
+  "pr_number": 3547,
+  "repo": "brianc/node-postgres",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 7,
+  "substantive_comment_count": 4,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3",
+    "c_4"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "Or `require('./native')` failed. The `try` should only cover the `process.env` access (if we actually want to do it this way at all).",
+      "file": "packages/pg/lib/index.js",
+      "line": 44,
+      "diff_hunk": "@@ -34,31 +34,37 @@ const PG = function (clientConstructor) {\n   this.utils = utils\n }\n \n-if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {\n-  module.exports = new PG(require('./native'))\n-} else {\n-  module.exports = new PG(Client)\n+let clientConstructor = Client\n \n-  // lazy require native module...the native module may not have installed\n-  Object.defineProperty(module.exports, 'native', {\n-    configurable: true,\n-    enumerable: false,\n-    get() {\n-      let native = null\n-      try {\n-        native = new PG(require('./native'))\n-      } catch (err) {\n-        if (err.code !== 'MODULE_NOT_FOUND') {\n-          throw err\n-        }\n+try {\n+  if (process.env.NODE_PG_FORCE_NATIVE) {\n+    clientConstructor = require('./native')\n+  }\n+} catch {\n+  // ignore, e.g., Deno without --allow-env",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "charmander",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Original expression used truthiness:\n\n```suggestion\n  if (config[key]) {\n```",
+      "file": "packages/pg/lib/connection-parameters.js",
+      "line": 10,
+      "diff_hunk": "@@ -7,6 +7,10 @@ const defaults = require('./defaults')\n const parse = require('pg-connection-string').parse // parses a connection string\n \n const val = function (key, config, envVar) {\n+  if (config[key] !== undefined) {",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "charmander",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Or `require('./native')` failed. The `try` should only cover the `process.env` access (if we actually want to do it this way at all).",
+      "file": "packages/pg/lib/index.js",
+      "line": 44,
+      "diff_hunk": "@@ -34,31 +34,37 @@ const PG = function (clientConstructor) {\n   this.utils = utils\n }\n \n-if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {\n-  module.exports = new PG(require('./native'))\n-} else {\n-  module.exports = new PG(Client)\n+let clientConstructor = Client\n \n-  // lazy require native module...the native module may not have installed\n-  Object.defineProperty(module.exports, 'native', {\n-    configurable: true,\n-    enumerable: false,\n-    get() {\n-      let native = null\n-      try {\n-        native = new PG(require('./native'))\n-      } catch (err) {\n-        if (err.code !== 'MODULE_NOT_FOUND') {\n-          throw err\n-        }\n+try {\n+  if (process.env.NODE_PG_FORCE_NATIVE) {\n+    clientConstructor = require('./native')\n+  }\n+} catch {\n+  // ignore, e.g., Deno without --allow-env",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "charmander",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "If I am reading this right, if you are in a deno environment with no --allow-env, then the above will always error, and forceNative will always remain in its default of false, and so it will be impossible to use the native driver. I'm not sure how much of a dealbreaker this actually is (eg does the native driver actually run in deno???).",
+      "file": "packages/pg/lib/index.js",
+      "line": 46,
+      "diff_hunk": "@@ -34,31 +34,40 @@ const PG = function (clientConstructor) {\n   this.utils = utils\n }\n \n-if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {\n-  module.exports = new PG(require('./native'))\n-} else {\n-  module.exports = new PG(Client)\n+let clientConstructor = Client\n \n-  // lazy require native module...the native module may not have installed\n-  Object.defineProperty(module.exports, 'native', {\n-    configurable: true,\n-    enumerable: false,\n-    get() {\n-      let native = null\n-      try {\n-        native = new PG(require('./native'))\n-      } catch (err) {\n-        if (err.code !== 'MODULE_NOT_FOUND') {\n-          throw err\n-        }\n+let forceNative = false\n+try {\n+  forceNative = !!process.env.NODE_PG_FORCE_NATIVE\n+} catch {\n+  // ignore, e.g., Deno without --allow-env\n+}\n+\n+if (forceNative) {",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "NickCrews",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_4",
+      "body": "maybe say explicitly `let user = undefined`? I know they behave the same, but semantically this bare `let user` (incorrectly) implies to me that we expect to always set it to a value.",
+      "file": "packages/pg/lib/defaults.js",
+      "line": 3,
+      "diff_hunk": "@@ -1,11 +1,18 @@\n 'use strict'\n \n+let user",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "NickCrews",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

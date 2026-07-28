@@ -1,0 +1,33 @@
+{
+  "task_id": "accelerate__3890",
+  "pr_number": 3890,
+  "repo": "huggingface/accelerate",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "It's not really recommended to initialize `Accelerator` when we are not training. maybe we can keep this example by adding a device variable. device = \"cuda\" # or \"xpu\" and so on",
+      "file": "src/accelerate/big_modeling.py",
+      "line": null,
+      "diff_hunk": "@@ -108,10 +108,12 @@ def init_on_device(device: torch.device, include_buffers: Optional[bool] = None)\n \n     ```python\n     import torch.nn as nn\n-    from accelerate import init_on_device\n+    from accelerate import Accelerator, init_on_device\n \n-    with init_on_device(device=torch.device(\"cuda\")):\n-        tst = nn.Linear(100, 100)  # on `cuda` device\n+    accelerator = Accelerator()\n+\n+    with init_on_device(device=torch.device(accelerator.device)):\n+        tst = nn.Linear(100, 100)  # on specified device",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "SunMarc",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

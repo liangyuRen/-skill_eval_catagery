@@ -1,0 +1,50 @@
+{
+  "task_id": "vitest__9665",
+  "pr_number": 9665,
+  "repo": "vitest-dev/vitest",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "All of these are actually defined already in a `ChaiMockAssertion` type on L776\n\nhttps://github.com/vitest-dev/vitest/blob/4ec6cb3054ac0fa0218837f96847632470346358/packages/expect/src/chai-style-assertions.ts#L63",
+      "file": "packages/expect/src/types.ts",
+      "line": 505,
+      "diff_hunk": "@@ -494,16 +497,6 @@ export interface JestAssertion<T = any> extends jest.Matchers<void, T>, CustomMa\n    */\n   toHaveBeenNthCalledWith: <E extends any[]>(n: number, ...args: E) => void\n \n-  /**\n-   * Ensure that a mock function is called with specific arguments on an Nth call.\n-   *\n-   * Alias for `expect.toHaveBeenNthCalledWith`.\n-   *\n-   * @example\n-   * expect(mockFunc).nthCalledWith(2, 'secondArg');\n-   */\n-  nthCalledWith: <E extends any[]>(nthCall: number, ...args: E) => void",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "sheremet-va",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Are these removed because they are already defined by chai and these are kept working?",
+      "file": "packages/expect/src/jest-expect.ts",
+      "line": 636,
+      "diff_hunk": "@@ -633,7 +633,7 @@ export const JestChaiExpect: ChaiPlugin = (chai, utils) => {\n     }\n   })\n   def(\n-    ['toHaveBeenNthCalledWith', 'nthCalledWith'],\n+    'toHaveBeenNthCalledWith',",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "hi-ogawa",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

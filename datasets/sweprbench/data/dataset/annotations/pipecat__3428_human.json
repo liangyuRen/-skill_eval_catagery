@@ -1,0 +1,33 @@
+{
+  "task_id": "pipecat__3428",
+  "pr_number": 3428,
+  "repo": "pipecat-ai/pipecat",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Shouldn't we also check for this ?\r\n`or params.get(\"model\")`",
+      "file": "src/pipecat/utils/tracing/service_decorators.py",
+      "line": 588,
+      "diff_hunk": "@@ -585,8 +585,10 @@ async def wrapper(self, *args, **kwargs):\n                 ) as current_span:\n                     try:\n                         # Base service attributes\n-                        model_name = getattr(\n-                            self, \"model_name\", getattr(self, \"_model_name\", \"unknown\")\n+                        model_name = (",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "filipi87",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "task_id": "espnet__6272",
+  "pr_number": 6272,
+  "repo": "espnet/espnet",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 6,
+  "substantive_comment_count": 3,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "![high](https://www.gstatic.com/codereviewagent/high-priority.svg)\n\nThe pattern for handling CUDA version fallbacks is repeated in many places in this script. This code duplication makes the script harder to maintain and increases the risk of introducing bugs. For example, it's easy to have a mismatch between the logged fallback version and the one that is actually set.\n\nTo improve maintainability and make the script more robust, I recommend refactoring this logic into a helper function.\n\nYou could add a function like this near the top of the script:\n\n```bash\n_set_cuda_fallback() {\n    local fallback_version=$1\n    log \"[INFO] Fallback: cuda_version=${cuda_version} -> cuda_version=${fallback_version}\"\n    cuda_version=\"${fallback_version}\"\n    cuda_version_without_dot=\"${cuda_version/./}\"\n}\n```\n\nThen, you can simplify this block and all similar ones by calling this function.\n\n```suggestion\n    if ! check_cuda_version 12.6 12.8 13.0; then\n        _set_cuda_fallback \"12.8\"\n    fi\n```",
+      "file": "tools/installers/install_torch.sh",
+      "line": 168,
+      "diff_hunk": "@@ -155,10 +155,19 @@ if ! python -c \"import packaging.version\" &> /dev/null; then\n     python3 -m pip install packaging\n fi\n \n-if $(pytorch_plus 2.8.1); then\n+if $(pytorch_plus 2.9.1); then\n     log \"[ERROR] This script doesn't support pytorch=${torch_version}\"\n     exit 1\n \n+elif $(pytorch_plus 2.9.0); then\n+    check_python_version 3.13  # Error if python>=<number>\n+    if ! check_cuda_version 12.6 12.8 13.0; then\n+        log \"[INFO] Fallback: cuda_version=${cuda_version} -> cuda_version=12.8\"\n+        cuda_version=12.8\n+        cuda_version_without_dot=\"${cuda_version/\\./}\"\n+    fi",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "why 2.5.1?",
+      "file": ".github/workflows/publish_doc.yml",
+      "line": 54,
+      "diff_hunk": "@@ -51,7 +51,7 @@ jobs:\n       - name: install espnet\n         env:\n           ESPNET_PYTHON_VERSION: 3.10\n-          TH_VERSION: 2.1.2\n+          TH_VERSION: 2.5.1",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "sw005320",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "why 2.5.1 instead of 2.6.0?",
+      "file": "README.md",
+      "line": 5,
+      "diff_hunk": "@@ -2,7 +2,7 @@\n \n # ESPnet: end-to-end speech processing toolkit\n \n-|system/pytorch ver.|2.5.1|2.6.0|2.7.1|2.8.0|\n+|system/pytorch ver.|2.5.1|2.7.1|2.8.0|2.9.0|",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "sw005320",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "task_id": "coreos-assembler__4394",
+  "pr_number": 4394,
+  "repo": "coreos/coreos-assembler",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "do we need to remove the comment about the patch here?",
+      "file": "build.sh",
+      "line": 205,
+      "diff_hunk": "@@ -205,7 +205,6 @@ patch_osbuild() {\n     # Now all the software is under the /usr/lib/osbuild dir and we can patch",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "aaradhak",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nSince only one patch file is being applied now, you can simplify this by using input redirection instead of `cat` and a pipe. This is more efficient as it avoids spawning an extra `cat` process.\n\n```suggestion\n    patch -d /usr/lib/osbuild -p1 < /usr/lib/coreos-assembler/0002-stages-extend-to-find-EFI-under-usr-lib-efi.patch\n```",
+      "file": "build.sh",
+      "line": 209,
+      "diff_hunk": "@@ -205,7 +205,6 @@ patch_osbuild() {\n     # Now all the software is under the /usr/lib/osbuild dir and we can patch\n     # shellcheck disable=SC2002\n     cat \\\n-        /usr/lib/coreos-assembler/0001-stages-mkfs.xfs-support-setting-agcount.patch \\\n         /usr/lib/coreos-assembler/0002-stages-extend-to-find-EFI-under-usr-lib-efi.patch \\\n             | patch -d /usr/lib/osbuild -p1",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "do we need to remove the comment about the patch here?",
+      "file": "build.sh",
+      "line": 205,
+      "diff_hunk": "@@ -205,7 +205,6 @@ patch_osbuild() {\n     # Now all the software is under the /usr/lib/osbuild dir and we can patch",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "aaradhak",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

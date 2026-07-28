@@ -1,0 +1,83 @@
+{
+  "task_id": "espnet__6356",
+  "pr_number": 6356,
+  "repo": "espnet/espnet",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 2,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "![high](https://www.gstatic.com/codereviewagent/high-priority.svg)\n\nThe current logic rebuilds the list of special tokens by concatenating existing `extra_special_tokens` with new `timestamps` and `sc` tokens, and then passes this entire list to `add_special_tokens`. While this works because `add_special_tokens` is idempotent, it's inefficient and not idiomatic. The method is designed to *add* new tokens, not reset the list.\n\nA clearer, more efficient, and more robust approach is to only add the new tokens. This avoids unnecessary processing and makes the intent of the code explicit.\n\n```suggestion\n        self.tokenizer.tokenizer.add_special_tokens(\n            dict(extra_special_tokens=timestamps + sc)\n        )\n```",
+      "file": "espnet2/text/whisper_token_id_converter.py",
+      "line": null,
+      "diff_hunk": "@@ -64,11 +64,9 @@ def __init__(\n         self.tokenizer = copy.deepcopy(self.tokenizer)\n         timestamps = [f\"<|{i * 30 / 1500:.2f}|>\" for i in range(0, 1501)]\n         sc = [speaker_change_symbol] if sot else []\n-        special_tokens = (\n-            self.tokenizer.tokenizer.additional_special_tokens + timestamps + sc\n-        )\n+        special_tokens = self.tokenizer.tokenizer.extra_special_tokens + timestamps + sc\n         self.tokenizer.tokenizer.add_special_tokens(\n-            dict(additional_special_tokens=special_tokens)\n+            dict(extra_special_tokens=special_tokens)\n         )\n         self.model_type = model_type\n ",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "![high](https://www.gstatic.com/codereviewagent/high-priority.svg)\n\nThe current logic rebuilds the list of special tokens by concatenating existing `extra_special_tokens` with new `timestamps` and `sc` tokens, and then passes this entire list to `add_special_tokens`. While this works because `add_special_tokens` is idempotent, it's inefficient and not idiomatic. The method is designed to *add* new tokens, not reset the list.\n\nA clearer, more efficient, and more robust approach is to only add the new tokens. This avoids unnecessary processing and makes the intent of the code explicit.\n\n```suggestion\n        self.tokenizer.tokenizer.add_special_tokens(\n            dict(extra_special_tokens=timestamps + sc)\n        )\n```",
+      "file": "espnet2/text/whisper_tokenizer.py",
+      "line": null,
+      "diff_hunk": "@@ -86,11 +86,9 @@ def __init__(\n         # Whisper uses discrete tokens (20ms) to encode timestamp\n         timestamps = [f\"<|{i * 0.02:.2f}|>\" for i in range(0, 1501)]\n         sc = [speaker_change_symbol] if sot else []\n-        special_tokens = (\n-            self.tokenizer.tokenizer.additional_special_tokens + timestamps + sc\n-        )\n+        special_tokens = self.tokenizer.tokenizer.extra_special_tokens + timestamps + sc\n         self.tokenizer.tokenizer.add_special_tokens(\n-            dict(additional_special_tokens=special_tokens)\n+            dict(extra_special_tokens=special_tokens)\n         )\n \n     def __repr__(self):",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "![high](https://www.gstatic.com/codereviewagent/high-priority.svg)\n\nThe current logic rebuilds the list of special tokens by concatenating existing `extra_special_tokens` with new `timestamps` and `sc` tokens, and then passes this entire list to `add_special_tokens`. While this works because `add_special_tokens` is idempotent, it's inefficient and not idiomatic. The method is designed to *add* new tokens, not reset the list.\n\nA clearer, more efficient, and more robust approach is to only add the new tokens. This avoids unnecessary processing and makes the intent of the code explicit.\n\n```suggestion\n        self.tokenizer.tokenizer.add_special_tokens(\n            dict(extra_special_tokens=timestamps + sc)\n        )\n```",
+      "file": "espnet2/text/whisper_token_id_converter.py",
+      "line": null,
+      "diff_hunk": "@@ -64,11 +64,9 @@ def __init__(\n         self.tokenizer = copy.deepcopy(self.tokenizer)\n         timestamps = [f\"<|{i * 30 / 1500:.2f}|>\" for i in range(0, 1501)]\n         sc = [speaker_change_symbol] if sot else []\n-        special_tokens = (\n-            self.tokenizer.tokenizer.additional_special_tokens + timestamps + sc\n-        )\n+        special_tokens = self.tokenizer.tokenizer.extra_special_tokens + timestamps + sc\n         self.tokenizer.tokenizer.add_special_tokens(\n-            dict(additional_special_tokens=special_tokens)\n+            dict(extra_special_tokens=special_tokens)\n         )\n         self.model_type = model_type\n ",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "![high](https://www.gstatic.com/codereviewagent/high-priority.svg)\n\nThe current logic rebuilds the list of special tokens by concatenating existing `extra_special_tokens` with new `timestamps` and `sc` tokens, and then passes this entire list to `add_special_tokens`. While this works because `add_special_tokens` is idempotent, it's inefficient and not idiomatic. The method is designed to *add* new tokens, not reset the list.\n\nA clearer, more efficient, and more robust approach is to only add the new tokens. This avoids unnecessary processing and makes the intent of the code explicit.\n\n```suggestion\n        self.tokenizer.tokenizer.add_special_tokens(\n            dict(extra_special_tokens=timestamps + sc)\n        )\n```",
+      "file": "espnet2/text/whisper_tokenizer.py",
+      "line": null,
+      "diff_hunk": "@@ -86,11 +86,9 @@ def __init__(\n         # Whisper uses discrete tokens (20ms) to encode timestamp\n         timestamps = [f\"<|{i * 0.02:.2f}|>\" for i in range(0, 1501)]\n         sc = [speaker_change_symbol] if sot else []\n-        special_tokens = (\n-            self.tokenizer.tokenizer.additional_special_tokens + timestamps + sc\n-        )\n+        special_tokens = self.tokenizer.tokenizer.extra_special_tokens + timestamps + sc\n         self.tokenizer.tokenizer.add_special_tokens(\n-            dict(additional_special_tokens=special_tokens)\n+            dict(extra_special_tokens=special_tokens)\n         )\n \n     def __repr__(self):",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

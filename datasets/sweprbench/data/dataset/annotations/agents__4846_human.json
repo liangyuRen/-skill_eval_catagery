@@ -1,0 +1,84 @@
+{
+  "task_id": "agents__4846",
+  "pr_number": 4846,
+  "repo": "livekit/agents",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 6,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_3",
+      "body": "Do we need this early log buffer only because `init_recording` is called too late? (can crash before).\n\nCan you add a comment for that \ud83d\ude4f",
+      "file": "livekit-agents/livekit/agents/job.py",
+      "line": 664,
+      "diff_hunk": "@@ -604,6 +669,7 @@ def init_recording(self, options: RecordingOptions) -> None:\n                 enable_traces=options[\"traces\"],\n                 enable_logs=options[\"logs\"],\n             )\n+            self._flush_early_log_buffer(replay=True)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "theomonnom",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Uh, this was very confusing to read. Would be better if it was otel_logger.LoggingHandler",
+      "file": "livekit-agents/livekit/agents/telemetry/traces.py",
+      "line": 521,
+      "diff_hunk": "@@ -503,7 +503,12 @@ def _shutdown_telemetry() -> None:\n         tracer_provider.shutdown()\n \n     if isinstance(logger_provider := get_logger_provider(), LoggerProvider):\n-        # force_flush will cause deadlock when new logs from OTLPLogExporter are emitted\n-        # logger_provider.force_flush()\n-        logger.debug(\"shutting down telemetry logger provider\")\n+        # remove the OTLP LoggingHandler before flushing to avoid deadlock \u2014\n+        # force_flush triggers log export which emits new logs back through the handler\n+        root = logging.getLogger()\n+        for h in root.handlers[:]:\n+            if isinstance(h, LoggingHandler):",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "theomonnom",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "would be better if this logic lives inside traces.py\n\nwhere everything otel related happens",
+      "file": "livekit-agents/livekit/agents/job.py",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "theomonnom",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Do we need this early log buffer only because `init_recording` is called too late? (can crash before).\n\nCan you add a comment for that \ud83d\ude4f",
+      "file": "livekit-agents/livekit/agents/job.py",
+      "line": 664,
+      "diff_hunk": "@@ -604,6 +669,7 @@ def init_recording(self, options: RecordingOptions) -> None:\n                 enable_traces=options[\"traces\"],\n                 enable_logs=options[\"logs\"],\n             )\n+            self._flush_early_log_buffer(replay=True)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "theomonnom",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

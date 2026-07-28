@@ -1,0 +1,50 @@
+{
+  "task_id": "agents__4310",
+  "pr_number": 4310,
+  "repo": "livekit/agents",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\n```\nthis will remove the function calls from the chat context?",
+      "file": "livekit-plugins/livekit-plugins-openai/livekit/plugins/openai/realtime/realtime_model.py",
+      "line": null,
+      "diff_hunk": "@@ -1340,7 +1342,10 @@ def truncate(\n             )\n         elif utils.is_given(audio_transcript):\n             # sync the forwarded text to the remote chat ctx\n-            chat_ctx = self.chat_ctx.copy()\n+            chat_ctx = self.chat_ctx.copy(\n+                exclude_function_call=True,",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "longcw",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "```suggestion\n```",
+      "file": "livekit-plugins/livekit-plugins-openai/livekit/plugins/openai/realtime/realtime_model_beta.py",
+      "line": null,
+      "diff_hunk": "@@ -1170,7 +1171,10 @@ def truncate(\n             )\n         elif utils.is_given(audio_transcript):\n             # sync the forwarded text to the remote chat ctx\n-            chat_ctx = self.chat_ctx.copy()\n+            chat_ctx = self.chat_ctx.copy(\n+                exclude_function_call=True,",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "longcw",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

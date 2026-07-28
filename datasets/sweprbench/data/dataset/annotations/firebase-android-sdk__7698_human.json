@@ -1,0 +1,84 @@
+{
+  "task_id": "firebase-android-sdk__7698",
+  "pr_number": 7698,
+  "repo": "firebase/firebase-android-sdk",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 5,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "Triple quote strings in Kotlin do not have escaping, letting you represent a regex like `\"\\\\[foo\\\\]\"` as `\"\"\"\\[foo\\]\"\"\"`, which is easier to read and edit, previous regex should also be modified.",
+      "file": "plugins/src/main/java/com/google/firebase/gradle/plugins/MakeReleaseNotesTask.kt",
+      "line": null,
+      "diff_hunk": "@@ -194,5 +224,19 @@ abstract class MakeReleaseNotesTask : DefaultTask() {\n         \"(?:GitHub )?(?:\\\\[|\\\\()#(\\\\d+)(?:\\\\]|\\\\))(?:\\\\(.+?\\\\))?(?:\\\\{:\\\\s*\\\\.external\\\\})?\",\n         RegexOption.MULTILINE,\n       )\n+\n+    /**\n+     * Regex for product references in change messages.\n+     *\n+     * Matches single bracketed product names, for example: `[app-check]`\n+     *\n+     * The assumption here is that any string between brackets, and not followed by an open\n+     * parenthesis, is a product name.\n+     *\n+     * Groups:\n+     * 1. The product name (e.g., `app-check`)\n+     * 2. The character following the closing bracket (or an empty string if at the end of the line)\n+     */\n+    private val PRODUCT_REF_REGEX = Regex(\"\\\\[([\\\\w-]+)\\\\]([^(]|$)\", RegexOption.MULTILINE)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "emilypgoogle",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "![low](https://www.gstatic.com/codereviewagent/low-priority.svg)\n\nThe comment for group 2 is slightly imprecise. The regex `([^(]|$)` can match the end of the string, in which case there is no following character. It would be more accurate to clarify that this group can be empty.\n\n```suggestion\n     * 2. The character following the closing bracket (or an empty string if at the end of the line)\n```",
+      "file": "plugins/src/main/java/com/google/firebase/gradle/plugins/MakeReleaseNotesTask.kt",
+      "line": null,
+      "diff_hunk": "@@ -194,5 +224,19 @@ abstract class MakeReleaseNotesTask : DefaultTask() {\n         \"(?:GitHub )?(?:\\\\[|\\\\()#(\\\\d+)(?:\\\\]|\\\\))(?:\\\\(.+?\\\\))?(?:\\\\{:\\\\s*\\\\.external\\\\})?\",\n         RegexOption.MULTILINE,\n       )\n+\n+    /**\n+     * Regex for product references in change messages.\n+     *\n+     * Matches single bracketed product names, for example: `[app-check]`\n+     *\n+     * The assumption here is that any string between brackets, and not followed by an open\n+     * parenthesis, is a product name.\n+     *\n+     * Groups:\n+     * 1. The product name (e.g., `app-check`)\n+     * 2. The character following the closing bracket",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Triple quote strings in Kotlin do not have escaping, letting you represent a regex like `\"\\\\[foo\\\\]\"` as `\"\"\"\\[foo\\]\"\"\"`, which is easier to read and edit, previous regex should also be modified.",
+      "file": "plugins/src/main/java/com/google/firebase/gradle/plugins/MakeReleaseNotesTask.kt",
+      "line": null,
+      "diff_hunk": "@@ -194,5 +224,19 @@ abstract class MakeReleaseNotesTask : DefaultTask() {\n         \"(?:GitHub )?(?:\\\\[|\\\\()#(\\\\d+)(?:\\\\]|\\\\))(?:\\\\(.+?\\\\))?(?:\\\\{:\\\\s*\\\\.external\\\\})?\",\n         RegexOption.MULTILINE,\n       )\n+\n+    /**\n+     * Regex for product references in change messages.\n+     *\n+     * Matches single bracketed product names, for example: `[app-check]`\n+     *\n+     * The assumption here is that any string between brackets, and not followed by an open\n+     * parenthesis, is a product name.\n+     *\n+     * Groups:\n+     * 1. The product name (e.g., `app-check`)\n+     * 2. The character following the closing bracket (or an empty string if at the end of the line)\n+     */\n+    private val PRODUCT_REF_REGEX = Regex(\"\\\\[([\\\\w-]+)\\\\]([^(]|$)\", RegexOption.MULTILINE)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "emilypgoogle",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "This regex captures both `[foo_bar]` and `foo-bar]`, do we want to coerce into a standardized formatting? I'm not familiar with the proper format for certain libraries and if it differs.",
+      "file": "plugins/src/main/java/com/google/firebase/gradle/plugins/MakeReleaseNotesTask.kt",
+      "line": 173,
+      "diff_hunk": "@@ -136,22 +136,52 @@ abstract class MakeReleaseNotesTask : DefaultTask() {\n   /**\n    * Converts a [Change] to a [String] to be used in a release note.\n    *\n+   * It applies the [CONTENT_FORMATTERS] functions to the content in order to transform it.\n+   *\n    * @see [MakeReleaseNotesTask]\n    * @see [LINK_REGEX]\n    */\n   private fun Change.toReleaseNote(): String {\n     if (message.isBlank()) throw RuntimeException(\"A changelog entry message can not be blank.\")\n+    val fixedMessage = CONTENT_FORMATTERS.fold(message) { acc, formatter -> formatter(acc) }\n+    return \"* {{${type.name.lowercase()}}} $fixedMessage\"\n+  }\n \n-    val fixedMessage =\n+  private companion object {\n+\n+    /**\n+     * Formats github issues link.\n+     *\n+     * Using the regex [LINK_REGEX], this function formats references to github issues or PRs into\n+     * actual links.\n+     */\n+    private fun githubIssueLinkFormatter(message: String): String =\n       LINK_REGEX.replace(message) {\n         val id = it.firstCapturedValue\n         \"GitHub [#$id](//github.com/firebase/firebase-android-sdk/issues/$id){: .external}\"\n       }\n \n-    return \"* {{${type.name.lowercase()}}} $fixedMessage\"\n-  }\n+    /**\n+     * Formats product name references.\n+     *\n+     * Using the regex [PRODUCT_REF_REGEX], this function formats product names as variables, i.e. a\n+     * string between 2 set of brackets.\n+     *\n+     * See the regex to know more about the assumptions made about the content.\n+     */\n+    private fun productNameFormatter(message: String): String =\n+      PRODUCT_REF_REGEX.replace(message) { \"{{${it.firstCapturedValue}}}${it.groupValues[2]}\" }",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "emilypgoogle",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

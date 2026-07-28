@@ -1,0 +1,67 @@
+{
+  "task_id": "operator__3078",
+  "pr_number": 3078,
+  "repo": "tektoncd/operator",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "@pramodbindal this deep copy in its current form is doing a shallow copy. Now that Globalconfig (https://github.com/tektoncd/operator/pull/3078/changes#diff-d6a7ec5137494ce440af1a8dbbc1e38ae53631b24983df6274663f2ff7cc5e1cR45) is a pointer, this issue seems to be evident. Below snippet worked while testing. we could review this further. Thankyou:\n```\n// DeepCopyInto is a manual deepcopy function to properly handle the GlobalConfig pointer.\n// This manual implementation is required because GlobalConfig is an external type from\n// vendor/github.com/tektoncd/pruner/pkg/config that does not have its own DeepCopy methods.\n// The code generator cannot generate proper deep copy for external types, so we must manually\n// deep copy all nested fields including pointers, maps, and slices to prevent shared references\n// between the original and copied objects.\nfunc (in *TektonPrunerConfig) DeepCopyInto(out *TektonPrunerConfig) {\n\t*out = *in\n\tif in.GlobalConfig != nil {\n\t\tin, out := &in.GlobalConfig, &out.GlobalConfig\n\t\t*out = new(config.GlobalConfig)\n\t\t// Copy the embedded PrunerConfig fields\n\t\t(*out).PrunerConfig = (*in).PrunerConfig\n\t\t// Deep copy pointer fields in PrunerConfig\n\t\tif (*in).HistoryLimit != nil {\n\t\t\tval := *(*in).HistoryLimit\n\t\t\t(*out).HistoryLimit = &val\n\t\t}\n\t\tif (*in).SuccessfulHistoryLimit != nil {\n\t\t\tval := *(*in).SuccessfulHistoryLimit\n\t\t\t(*out).SuccessfulHistoryLimit = &val\n\t\t}\n\t\tif (*in).FailedHistoryLimit != nil {\n\t\t\tval := *(*in).FailedHistoryLimit\n\t\t\t(*out).FailedHistoryLimit = &val\n\t\t}\n\t\tif (*in).TTLSecondsAfterFinished != nil {\n\t\t\tval := *(*in).TTLSecondsAfterFinished\n\t\t\t(*out).TTLSecondsAfterFinished = &val\n\t\t}\n\t\tif (*in).EnforcedConfigLevel != nil {\n\t\t\tval := *(*in).EnforcedConfigLevel\n\t\t\t(*out).EnforcedConfigLevel = &val\n\t\t}\n\t\t// Deep copy the Namespaces map\n\t\tif (*in).Namespaces != nil {\n\t\t\t(*out).Namespaces = make(map[string]config.NamespaceSpec, len((*in).Namespaces))\n\t\t\tfor key, val := range (*in).Namespaces {\n\t\t\t\t// Deep copy each NamespaceSpec\n\t\t\t\tnewVal := config.NamespaceSpec{}\n\t\t\t\tnewVal.PrunerConfig = val.PrunerConfig\n\t\t\t\t// Deep copy pointer fields\n\t\t\t\tif val.HistoryLimit != nil {\n\t\t\t\t\tv := *val.HistoryLimit\n\t\t\t\t\tnewVal.HistoryLimit = &v\n\t\t\t\t}\n\t\t\t\tif val.SuccessfulHistoryLimit != nil {\n\t\t\t\t\tv := *val.SuccessfulHistoryLimit\n\t\t\t\t\tnewVal.SuccessfulHistoryLimit = &v\n\t\t\t\t}\n\t\t\t\tif val.FailedHistoryLimit != nil {\n\t\t\t\t\tv := *val.FailedHistoryLimit\n\t\t\t\t\tnewVal.FailedHistoryLimit = &v\n\t\t\t\t}\n\t\t\t\tif val.TTLSecondsAfterFinished != nil {\n\t\t\t\t\tv := *val.TTLSecondsAfterFinished\n\t\t\t\t\tnewVal.TTLSecondsAfterFinished = &v\n\t\t\t\t}\n\t\t\t\tif val.EnforcedConfigLevel != nil {\n\t\t\t\t\tv := *val.EnforcedConfigLevel\n\t\t\t\t\tnewVal.EnforcedConfigLevel = &v\n\t\t\t\t}\n\t\t\t\t// Deep copy PipelineRuns and TaskRuns slices. THIS section is not needed but we will check\n\t\t\t\tif val.PipelineRuns != nil {\n\t\t\t\t\tnewVal.PipelineRuns = make([]config.ResourceSpec, len(val.PipelineRuns))\n\t\t\t\t\tcopy(newVal.PipelineRuns, val.PipelineRuns)\n\t\t\t\t}\n\t\t\t\tif val.TaskRuns != nil {\n\t\t\t\t\tnewVal.TaskRuns = make([]config.ResourceSpec, len(val.TaskRuns))\n\t\t\t\t\tcopy(newVal.TaskRuns, val.TaskRuns)\n\t\t\t\t}\n\t\t\t\t(*out).Namespaces[key] = newVal\n\t\t\t}\n\t\t}\n\t}\n}\n```",
+      "file": "pkg/apis/operator/v1alpha1/tektonpruner_types.go",
+      "line": 104,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "anithapriyanatarajan",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\r\n\tif p.GlobalConfig == nil {\r\n\t\tp.GlobalConfig := &config.GlobalConfig{}\r\n\t\tp.GlobalConfig.SetDefaults()\r\n\t}\r\n```",
+      "file": "pkg/apis/operator/v1alpha1/tektonpruner_defaults.go",
+      "line": 38,
+      "diff_hunk": "@@ -30,5 +32,9 @@ func (p *Pruner) SetDefaults() {\n \tif p.Disabled == nil {\n \t\tp.Disabled = &DefaultPrunerDisabled\n \t}\n-\tp.GlobalConfig.SetDefaults()\n+\tif p.GlobalConfig == nil {\n+\t\tglobalConfig := config.GlobalConfig{}\n+\t\tglobalConfig.SetDefaults()\n+\t\tp.GlobalConfig = &globalConfig\n+\t}",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "pratap0007",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "@pramodbindal this deep copy in its current form is doing a shallow copy. Now that Globalconfig (https://github.com/tektoncd/operator/pull/3078/changes#diff-d6a7ec5137494ce440af1a8dbbc1e38ae53631b24983df6274663f2ff7cc5e1cR45) is a pointer, this issue seems to be evident. Below snippet worked while testing. we could review this further. Thankyou:\n```\n// DeepCopyInto is a manual deepcopy function to properly handle the GlobalConfig pointer.\n// This manual implementation is required because GlobalConfig is an external type from\n// vendor/github.com/tektoncd/pruner/pkg/config that does not have its own DeepCopy methods.\n// The code generator cannot generate proper deep copy for external types, so we must manually\n// deep copy all nested fields including pointers, maps, and slices to prevent shared references\n// between the original and copied objects.\nfunc (in *TektonPrunerConfig) DeepCopyInto(out *TektonPrunerConfig) {\n\t*out = *in\n\tif in.GlobalConfig != nil {\n\t\tin, out := &in.GlobalConfig, &out.GlobalConfig\n\t\t*out = new(config.GlobalConfig)\n\t\t// Copy the embedded PrunerConfig fields\n\t\t(*out).PrunerConfig = (*in).PrunerConfig\n\t\t// Deep copy pointer fields in PrunerConfig\n\t\tif (*in).HistoryLimit != nil {\n\t\t\tval := *(*in).HistoryLimit\n\t\t\t(*out).HistoryLimit = &val\n\t\t}\n\t\tif (*in).SuccessfulHistoryLimit != nil {\n\t\t\tval := *(*in).SuccessfulHistoryLimit\n\t\t\t(*out).SuccessfulHistoryLimit = &val\n\t\t}\n\t\tif (*in).FailedHistoryLimit != nil {\n\t\t\tval := *(*in).FailedHistoryLimit\n\t\t\t(*out).FailedHistoryLimit = &val\n\t\t}\n\t\tif (*in).TTLSecondsAfterFinished != nil {\n\t\t\tval := *(*in).TTLSecondsAfterFinished\n\t\t\t(*out).TTLSecondsAfterFinished = &val\n\t\t}\n\t\tif (*in).EnforcedConfigLevel != nil {\n\t\t\tval := *(*in).EnforcedConfigLevel\n\t\t\t(*out).EnforcedConfigLevel = &val\n\t\t}\n\t\t// Deep copy the Namespaces map\n\t\tif (*in).Namespaces != nil {\n\t\t\t(*out).Namespaces = make(map[string]config.NamespaceSpec, len((*in).Namespaces))\n\t\t\tfor key, val := range (*in).Namespaces {\n\t\t\t\t// Deep copy each NamespaceSpec\n\t\t\t\tnewVal := config.NamespaceSpec{}\n\t\t\t\tnewVal.PrunerConfig = val.PrunerConfig\n\t\t\t\t// Deep copy pointer fields\n\t\t\t\tif val.HistoryLimit != nil {\n\t\t\t\t\tv := *val.HistoryLimit\n\t\t\t\t\tnewVal.HistoryLimit = &v\n\t\t\t\t}\n\t\t\t\tif val.SuccessfulHistoryLimit != nil {\n\t\t\t\t\tv := *val.SuccessfulHistoryLimit\n\t\t\t\t\tnewVal.SuccessfulHistoryLimit = &v\n\t\t\t\t}\n\t\t\t\tif val.FailedHistoryLimit != nil {\n\t\t\t\t\tv := *val.FailedHistoryLimit\n\t\t\t\t\tnewVal.FailedHistoryLimit = &v\n\t\t\t\t}\n\t\t\t\tif val.TTLSecondsAfterFinished != nil {\n\t\t\t\t\tv := *val.TTLSecondsAfterFinished\n\t\t\t\t\tnewVal.TTLSecondsAfterFinished = &v\n\t\t\t\t}\n\t\t\t\tif val.EnforcedConfigLevel != nil {\n\t\t\t\t\tv := *val.EnforcedConfigLevel\n\t\t\t\t\tnewVal.EnforcedConfigLevel = &v\n\t\t\t\t}\n\t\t\t\t// Deep copy PipelineRuns and TaskRuns slices. THIS section is not needed but we will check\n\t\t\t\tif val.PipelineRuns != nil {\n\t\t\t\t\tnewVal.PipelineRuns = make([]config.ResourceSpec, len(val.PipelineRuns))\n\t\t\t\t\tcopy(newVal.PipelineRuns, val.PipelineRuns)\n\t\t\t\t}\n\t\t\t\tif val.TaskRuns != nil {\n\t\t\t\t\tnewVal.TaskRuns = make([]config.ResourceSpec, len(val.TaskRuns))\n\t\t\t\t\tcopy(newVal.TaskRuns, val.TaskRuns)\n\t\t\t\t}\n\t\t\t\t(*out).Namespaces[key] = newVal\n\t\t\t}\n\t\t}\n\t}\n}\n```",
+      "file": "pkg/apis/operator/v1alpha1/tektonpruner_types.go",
+      "line": 104,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "anithapriyanatarajan",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

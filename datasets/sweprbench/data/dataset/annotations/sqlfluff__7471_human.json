@@ -1,0 +1,83 @@
+{
+  "task_id": "sqlfluff__7471",
+  "pr_number": 7471,
+  "repo": "sqlfluff/sqlfluff",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 7,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 2,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "Should we consider using the unicode block for currency codes here for readability? https://en.wikipedia.org/wiki/Currency_Symbols_(Unicode_block)",
+      "file": "src/sqlfluff/dialects/dialect_tsql.py",
+      "line": null,
+      "diff_hunk": "@@ -208,11 +209,19 @@\n \n # Add hexadecimal literal lexer matcher before word matcher to ensure\n # patterns like 0x0, 0xAE are tokenized as numeric literals, not words\n+# handle money literals with $ and other supported currency symbols\n+# https://learn.microsoft.com/en-us/sql/t-sql/data-types/money-and-smallmoney-transact-sql\n tsql_dialect.insert_lexer_matchers(\n     [\n         RegexLexer(\n             \"numeric_literal\",\n-            r\"([xX]'([\\da-fA-F][\\da-fA-F])+'|0[xX][\\da-fA-F]*)\",\n+            (\n+                r\"([xX]'([\\da-fA-F][\\da-fA-F])+'\"\n+                r\"|0[xX][\\da-fA-F]*|\"\n+                r\"[+-]*[\uffe6\uffe5\uffe1\uffe0\uff04\ufe69\ufdfc\u20b1\u20b0\u20af\u20ae\u20ad\u20ac\u20ab\u20aa\u20a9\u20a8\u20a7\u20a6\u20a5\u20a4\u20a3\u20a2\u20a1\u20a0\u17db\u0e3f\u09f3\u09f2\u00a5\u00a4\u00a3\u00a2$]\"",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "WittierDinosaur",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Don't merge yet.  Need to add remaining symbols.  Still debating the best method.  Just wanted to make sure this resolved the build issue.",
+      "file": "utils/build_lexers.py",
+      "line": null,
+      "diff_hunk": "@@ -92,7 +92,8 @@ def _as_rust_lexer_matcher(lexer_matcher: LexerType, dialect: str, is_subdivide=\n         _ => false,\n     }\"\"\",\n         \"numeric_literal\": \"|input| input.starts_with(\"\n-        \"['x','X','.','0','1','2','3','4','5','6','7','8','9'])\",\n+        \"['x','X','.','0','1','2','3','4','5','6','7','8','9', \"\n+        \"'-', '+', '$', '\uffe1', '\uffe0'])\",",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "dpurfield",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Should we consider using the unicode block for currency codes here for readability? https://en.wikipedia.org/wiki/Currency_Symbols_(Unicode_block)",
+      "file": "src/sqlfluff/dialects/dialect_tsql.py",
+      "line": null,
+      "diff_hunk": "@@ -208,11 +209,19 @@\n \n # Add hexadecimal literal lexer matcher before word matcher to ensure\n # patterns like 0x0, 0xAE are tokenized as numeric literals, not words\n+# handle money literals with $ and other supported currency symbols\n+# https://learn.microsoft.com/en-us/sql/t-sql/data-types/money-and-smallmoney-transact-sql\n tsql_dialect.insert_lexer_matchers(\n     [\n         RegexLexer(\n             \"numeric_literal\",\n-            r\"([xX]'([\\da-fA-F][\\da-fA-F])+'|0[xX][\\da-fA-F]*)\",\n+            (\n+                r\"([xX]'([\\da-fA-F][\\da-fA-F])+'\"\n+                r\"|0[xX][\\da-fA-F]*|\"\n+                r\"[+-]*[\uffe6\uffe5\uffe1\uffe0\uff04\ufe69\ufdfc\u20b1\u20b0\u20af\u20ae\u20ad\u20ac\u20ab\u20aa\u20a9\u20a8\u20a7\u20a6\u20a5\u20a4\u20a3\u20a2\u20a1\u20a0\u17db\u0e3f\u09f3\u09f2\u00a5\u00a4\u00a3\u00a2$]\"",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "WittierDinosaur",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Don't merge yet.  Need to add remaining symbols.  Still debating the best method.  Just wanted to make sure this resolved the build issue.",
+      "file": "utils/build_lexers.py",
+      "line": null,
+      "diff_hunk": "@@ -92,7 +92,8 @@ def _as_rust_lexer_matcher(lexer_matcher: LexerType, dialect: str, is_subdivide=\n         _ => false,\n     }\"\"\",\n         \"numeric_literal\": \"|input| input.starts_with(\"\n-        \"['x','X','.','0','1','2','3','4','5','6','7','8','9'])\",\n+        \"['x','X','.','0','1','2','3','4','5','6','7','8','9', \"\n+        \"'-', '+', '$', '\uffe1', '\uffe0'])\",",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "dpurfield",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

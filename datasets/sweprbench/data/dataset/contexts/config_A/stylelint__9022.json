@@ -1,0 +1,10 @@
+{
+  "pr_number": 9022,
+  "repo": "stylelint/stylelint",
+  "task_id": "stylelint__9022",
+  "config_name": "config_A",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 395,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `lib/rules/index.mjs`: 626 changed lines, 0 function/branch hunks, logic markers=3.\n- `lib/lintPostcssResult.mjs`: 14 changed lines, 0 function/branch hunks, logic markers=1.\n- PR profile: type=bug_fix, difficulty=Type1_Direct, language=JavaScript, files_changed=3.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### lib/lintPostcssResult.mjs\n```diff\ndiff --git a/lib/lintPostcssResult.mjs b/lib/lintPostcssResult.mjs\nindex d608bb70ee..3a129a629e 100644\n--- a/lib/lintPostcssResult.mjs\n+++ b/lib/lintPostcssResult.mjs\n@@ -57,9 +57,17 @@ export default async function lintPostcssResult(stylelintOptions, postcssResult,\n \t\t? Object.keys(config.rules).sort((a, b) => rulesOrder.indexOf(a) - rulesOrder.indexOf(b))\n \t\t: [];\n \n-\tfor (const ruleName of ruleNames) {\n-\t\tconst ruleFunction = await getStylelintRule(ruleName, config);\n+\t// Load all rules in parallel.\n+\t/** @type {Array<[string, import('stylelint').Rule | undefined]>} */\n+\tconst ruleEntries = await Promise.all(\n+\t\truleNames.map(async (ruleName) => {\n+\t\t\tconst ruleFunction = await getStylelintRule(ruleName, config);\n \n+\t\t\treturn [ruleName, ruleFunction];\n+\t\t}),\n+\t);\n+\n+\tfor (const [ruleName, ruleFunction] of ruleEntries) {\n \t\tif (ruleFunction === undefined) {\n \t\t\tperformRules.push(\n \t\t\t\tPromise.all(\n```\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: JavaScript\n- Files changed: 3\n- PR type: bug_fix"
+}

@@ -1,0 +1,50 @@
+{
+  "task_id": "ratelimit__1016",
+  "pr_number": 1016,
+  "repo": "envoyproxy/ratelimit",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 4,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "// Instead of unconditional allocation:\r\nvar shareThresholdPatterns map[int]string  // nil initially\r\n\r\n// Only allocate when needed:\r\nif matchedViaWildcard && nextDescriptor != nil && nextDescriptor.shareThreshold {\r\n    if shareThresholdPatterns == nil {\r\n        shareThresholdPatterns = make(map[int]string)\r\n    }\r\n    // ... rest of logic\r\n}",
+      "file": "src/config/config_impl.go",
+      "line": null,
+      "diff_hunk": "@@ -320,6 +354,10 @@ func (this *rateLimitConfigImpl) GetLimit(\n \tvar valueToMetricFullKey strings.Builder\n \tvalueToMetricFullKey.WriteString(domain)\n \n+\t// Track share_threshold patterns for entries matched via wildcard (using indexes)\n+\t// This allows share_threshold to work when wildcard has nested descriptors\n+\tshareThresholdPatterns := make(map[int]string)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "collin-lee",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Maybe only allocate ShareThresholdKeyPattern when patterns are tracked:\r\n\r\nif i == len(descriptor.Entries)-1 {\r\n    // Create a copy of the rate limit to avoid modifying the shared object\r\n    originalLimit := nextDescriptor.limit\r\n    rateLimit = &RateLimit{\r\n        FullKey:        originalLimit.FullKey,\r\n        Stats:          originalLimit.Stats,\r\n        Limit:          originalLimit.Limit,\r\n        Unlimited:      originalLimit.Unlimited,\r\n        ShadowMode:     originalLimit.ShadowMode,\r\n        Name:           originalLimit.Name,\r\n        Replaces:       originalLimit.Replaces,\r\n        DetailedMetric: originalLimit.DetailedMetric,\r\n        // Initialize ShareThresholdKeyPattern to nil - will be allocated only if needed\r\n        ShareThresholdKeyPattern: nil,\r\n    }\r\n    // Apply all tracked share_threshold patterns when we find the rate_limit\r\n    // This works whether the rate_limit is at the wildcard level or deeper\r\n    // Only allocate the slice if we actually have patterns to store\r\n    if len(shareThresholdPatterns) > 0 {\r\n        rateLimit.ShareThresholdKeyPattern = make([]string, len(descriptor.Entries))\r\n        for idx, pattern := range shareThresholdPatterns {\r\n            rateLimit.ShareThresholdKeyPattern[idx] = pattern\r\n            logger.Debugf(\"share_threshold enabled for entry index %d, using wildcard pattern %s\", idx, pattern)\r\n        }\r\n    }\r\n}",
+      "file": "src/config/config_impl.go",
+      "line": null,
+      "diff_hunk": "@@ -391,7 +459,27 @@ func (this *rateLimitConfigImpl) GetLimit(\n \t\t\tlogger.Debugf(\"found rate limit: %s\", finalKey)\n \n \t\t\tif i == len(descriptor.Entries)-1 {\n-\t\t\t\trateLimit = nextDescriptor.limit\n+\t\t\t\t// Create a copy of the rate limit to avoid modifying the shared object\n+\t\t\t\toriginalLimit := nextDescriptor.limit\n+\t\t\t\trateLimit = &RateLimit{\n+\t\t\t\t\tFullKey:        originalLimit.FullKey,\n+\t\t\t\t\tStats:          originalLimit.Stats,\n+\t\t\t\t\tLimit:          originalLimit.Limit,\n+\t\t\t\t\tUnlimited:      originalLimit.Unlimited,\n+\t\t\t\t\tShadowMode:     originalLimit.ShadowMode,\n+\t\t\t\t\tName:           originalLimit.Name,\n+\t\t\t\t\tReplaces:       originalLimit.Replaces,\n+\t\t\t\t\tDetailedMetric: originalLimit.DetailedMetric,\n+\t\t\t\t\t// Initialize ShareThresholdKeyPattern with correct length, empty strings for entries without share_threshold\n+\t\t\t\t\tShareThresholdKeyPattern: make([]string, len(descriptor.Entries)),",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "collin-lee",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

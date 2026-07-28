@@ -1,0 +1,33 @@
+{
+  "task_id": "darts__2958",
+  "pr_number": 2958,
+  "repo": "unit8co/darts",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 1,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "MetricsCollection() handles all the supported cases, and tells us correctly if it does not handle some format. ",
+      "file": "darts/models/forecasting/pl_forecasting_module.py",
+      "line": 808,
+      "diff_hunk": "@@ -799,20 +800,11 @@ def output_chunk_length(self) -> Optional[int]:\n \n     @staticmethod\n     def configure_torch_metrics(\n-        torch_metrics: Union[torchmetrics.Metric, torchmetrics.MetricCollection],\n+        torch_metrics: Union[torchmetrics.Metric, torchmetrics.MetricCollection, Sequence[torchmetrics.Metric | torchmetrics.MetricCollection], Dict[str, torchmetrics.Metric | torchmetrics.MetricCollection]],\n     ) -> torchmetrics.MetricCollection:\n         \"\"\"process the torch_metrics parameter.\"\"\"\n         if torch_metrics is None:\n             torch_metrics = torchmetrics.MetricCollection([])\n-        elif isinstance(torch_metrics, torchmetrics.Metric):\n-            torch_metrics = torchmetrics.MetricCollection([torch_metrics])",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "breznak",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

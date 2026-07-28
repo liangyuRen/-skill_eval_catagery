@@ -1,0 +1,50 @@
+{
+  "task_id": "serverless-application-model__3824",
+  "pr_number": 3824,
+  "repo": "aws/serverless-application-model",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 1,
+  "substantive_comment_count": 1,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "Minor, but the comment should also mention that it returns the default when the `param_name` is not in the `parameters`. I think in that case the CloudFormation deployment might fail overall, but at least in this function context that case is supposed to be handled too..",
+      "file": "samtranslator/intrinsics/actions.py",
+      "line": null,
+      "diff_hunk": "@@ -5,6 +5,29 @@\n from samtranslator.model.exceptions import InvalidDocumentException, InvalidTemplateException\n \n \n+def _get_parameter_value(parameters: Dict[str, Any], param_name: str, default: Any = None) -> Any:\n+    \"\"\"\n+    Get parameter value from parameters dict, but return default (None) if it's a CloudFormation internal placeholder.",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "valerena",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Minor, but the comment should also mention that it returns the default when the `param_name` is not in the `parameters`. I think in that case the CloudFormation deployment might fail overall, but at least in this function context that case is supposed to be handled too..",
+      "file": "samtranslator/intrinsics/actions.py",
+      "line": null,
+      "diff_hunk": "@@ -5,6 +5,29 @@\n from samtranslator.model.exceptions import InvalidDocumentException, InvalidTemplateException\n \n \n+def _get_parameter_value(parameters: Dict[str, Any], param_name: str, default: Any = None) -> Any:\n+    \"\"\"\n+    Get parameter value from parameters dict, but return default (None) if it's a CloudFormation internal placeholder.",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "valerena",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

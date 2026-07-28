@@ -1,0 +1,83 @@
+{
+  "task_id": "pipecat__3392",
+  "pr_number": 3392,
+  "repo": "pipecat-ai/pipecat",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 7,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 2,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "Maybe make it a warning (so it's easy to see) and mention there was an error, otherwise it would be easy to miss that something went wrong (service might need to fix something).\r\n\r\n```\r\nlogger.warning(f\"{self} connection closed with an error during disconnect: {e}\")\r\n```",
+      "file": "src/pipecat/services/websocket_service.py",
+      "line": null,
+      "diff_hunk": "@@ -138,9 +139,23 @@ async def _receive_task_handler(self, report_error: Callable[[ErrorFrame], Await\n                 logger.debug(f\"{self} connection closed normally: {e}\")\n                 break\n             except ConnectionClosedError as e:\n-                # Error closure, don't retry\n-                logger.warning(f\"{self} connection closed, but with an error: {e}\")\n-                break\n+                # Don't reconnect if we're intentionally disconnecting\n+                if self._disconnecting:\n+                    logger.debug(f\"{self} connection closed during disconnect: {e}\")",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "aconchillo",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Should we do the same if there's an Exception? It seems the logic is kind of the same, maybe we can extract it into a `_maybe_try_reconnect` method.",
+      "file": "src/pipecat/services/websocket_service.py",
+      "line": 180,
+      "diff_hunk": "@@ -138,9 +139,23 @@ async def _receive_task_handler(self, report_error: Callable[[ErrorFrame], Await\n                 logger.debug(f\"{self} connection closed normally: {e}\")\n                 break\n             except ConnectionClosedError as e:\n-                # Error closure, don't retry\n-                logger.warning(f\"{self} connection closed, but with an error: {e}\")\n-                break\n+                # Don't reconnect if we're intentionally disconnecting\n+                if self._disconnecting:\n+                    logger.warning(f\"{self} connection closed with an error during disconnect: {e}\")\n+                    break\n+\n+                # Connection closed with error (e.g., no close frame received/sent)\n+                # This often indicates network issues, server problems, or abrupt disconnection\n+                message = f\"{self} connection closed, but with an error: {e}\"\n+                logger.warning(message)\n+\n+                if self._reconnect_on_error:\n+                    success = await self._try_reconnect(report_error=report_error)\n+                    if not success:\n+                        break\n+                else:\n+                    await report_error(ErrorFrame(message))\n+                    break",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "aconchillo",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Maybe make it a warning (so it's easy to see) and mention there was an error, otherwise it would be easy to miss that something went wrong (service might need to fix something).\r\n\r\n```\r\nlogger.warning(f\"{self} connection closed with an error during disconnect: {e}\")\r\n```",
+      "file": "src/pipecat/services/websocket_service.py",
+      "line": null,
+      "diff_hunk": "@@ -138,9 +139,23 @@ async def _receive_task_handler(self, report_error: Callable[[ErrorFrame], Await\n                 logger.debug(f\"{self} connection closed normally: {e}\")\n                 break\n             except ConnectionClosedError as e:\n-                # Error closure, don't retry\n-                logger.warning(f\"{self} connection closed, but with an error: {e}\")\n-                break\n+                # Don't reconnect if we're intentionally disconnecting\n+                if self._disconnecting:\n+                    logger.debug(f\"{self} connection closed during disconnect: {e}\")",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "aconchillo",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Should we do the same if there's an Exception? It seems the logic is kind of the same, maybe we can extract it into a `_maybe_try_reconnect` method.",
+      "file": "src/pipecat/services/websocket_service.py",
+      "line": 180,
+      "diff_hunk": "@@ -138,9 +139,23 @@ async def _receive_task_handler(self, report_error: Callable[[ErrorFrame], Await\n                 logger.debug(f\"{self} connection closed normally: {e}\")\n                 break\n             except ConnectionClosedError as e:\n-                # Error closure, don't retry\n-                logger.warning(f\"{self} connection closed, but with an error: {e}\")\n-                break\n+                # Don't reconnect if we're intentionally disconnecting\n+                if self._disconnecting:\n+                    logger.warning(f\"{self} connection closed with an error during disconnect: {e}\")\n+                    break\n+\n+                # Connection closed with error (e.g., no close frame received/sent)\n+                # This often indicates network issues, server problems, or abrupt disconnection\n+                message = f\"{self} connection closed, but with an error: {e}\"\n+                logger.warning(message)\n+\n+                if self._reconnect_on_error:\n+                    success = await self._try_reconnect(report_error=report_error)\n+                    if not success:\n+                        break\n+                else:\n+                    await report_error(ErrorFrame(message))\n+                    break",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "aconchillo",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

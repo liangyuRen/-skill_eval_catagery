@@ -1,0 +1,101 @@
+{
+  "task_id": "nessie__11676",
+  "pr_number": 11676,
+  "repo": "projectnessie/nessie",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 9,
+  "substantive_comment_count": 4,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3",
+    "c_4"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "this method is not called, apparently... I suppose there's no need to add it. In other cases the \"effective\" method are supposed to be used for internal call paths, but since we're merely transferring optional config to the AWS SDK client, I see not need to formalize defaults in Nessie code.",
+      "file": "catalog/files/api/src/main/java/org/projectnessie/catalog/files/config/S3BucketOptions.java",
+      "line": null,
+      "diff_hunk": "@@ -168,6 +177,12 @@ default boolean effectiveRequestSigningEnabled() {\n     return requestSigningEnabled().orElse(true);\n   }\n \n+  @Value.NonAttribute\n+  @JsonIgnore\n+  default boolean effectiveChunkedEncodingEnabled() {",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "dimas-b",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "nit: this indentation change looks odd, but if it passes CI checks, it's ok.... did you run `./gradlew spotlessApply`?",
+      "file": "catalog/files/impl/src/main/java/org/projectnessie/catalog/files/s3/S3ClientSupplier.java",
+      "line": 86,
+      "diff_hunk": "@@ -83,13 +84,13 @@ public S3Client getClient(StorageUri location) {\n   public S3Client getClient(S3NamedBucketOptions bucketOptions) {\n     S3ClientBuilder builder =\n         S3Client.builder()\n-            .httpClient(sdkClient)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "dimas-b",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "this method is not called, apparently... I suppose there's no need to add it. In other cases the \"effective\" method are supposed to be used for internal call paths, but since we're merely transferring optional config to the AWS SDK client, I see not need to formalize defaults in Nessie code.",
+      "file": "catalog/files/api/src/main/java/org/projectnessie/catalog/files/config/S3BucketOptions.java",
+      "line": null,
+      "diff_hunk": "@@ -168,6 +177,12 @@ default boolean effectiveRequestSigningEnabled() {\n     return requestSigningEnabled().orElse(true);\n   }\n \n+  @Value.NonAttribute\n+  @JsonIgnore\n+  default boolean effectiveChunkedEncodingEnabled() {",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "dimas-b",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "The default is `true` for this setting, is it not?",
+      "file": "servers/quarkus-server/src/main/resources/application.properties",
+      "line": 94,
+      "diff_hunk": "@@ -91,6 +91,7 @@ quarkus.google.cloud.enable-metadata-server=false\n # default S3 settings\n #nessie.catalog.service.s3.default-options.endpoint=http://localhost:9000\n #nessie.catalog.service.s3.default-options.path-style-access=false\n+#nessie.catalog.service.s3.default-options.chunked-encoding-enabled=false",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "dimas-b",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_4",
+      "body": "not sure how this slipped in \ud83e\udd14 would you mind rebasing to have a clean diff?",
+      "file": ".github/actions/patch-git/action.yml",
+      "line": 31,
+      "diff_hunk": "@@ -28,7 +28,7 @@ runs:\n   steps:\n \n     - name: Checkout ${{ inputs.name }} repo\n-      uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0\n+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "dimas-b",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

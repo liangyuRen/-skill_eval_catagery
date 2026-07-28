@@ -1,0 +1,50 @@
+{
+  "task_id": "webpack-bundle-analyzer__698",
+  "pr_number": 698,
+  "repo": "webpack/webpack-bundle-analyzer",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 5,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Huh. Why did the parsedSize change here and in some other assertions here as well?",
+      "file": "test/plugin.js",
+      "line": 42,
+      "diff_hunk": "@@ -42,10 +39,8 @@ describe(\"Plugin\", function () {\n       await webpackCompile(config);\n \n       await expectValidReport({\n-        parsedSize: 1343,\n-        // On node.js v16 and lower, the calculated gzip is one byte larger. Nice.\n-        gzipSize:\n-          parseInt(process.versions.node.split(\".\")[0]) <= 16 ? 360 : 358,\n+        parsedSize: 1349,",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "valscion",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Was this the reason? We had accidentally left a it.only here? \ud83d\ude2c ",
+      "file": "test/plugin.js",
+      "line": 187,
+      "diff_hunk": "@@ -165,33 +162,33 @@ describe(\"Plugin\", function () {\n           error = e;\n         }\n \n-        expect(error).to.equal(reportTitleError);\n+        expect(error).toBe(reportTitleError);\n       });\n     });\n \n     describe(\"compressionAlgorithm\", function () {\n       it(\"should default to gzip\", async function () {\n         const config = makeWebpackConfig({ analyzerOpts: {} });\n         await webpackCompile(config, \"4.44.2\");\n-        await expectValidReport({ parsedSize: 1311, gzipSize: 341 });\n+        await expectValidReport({ parsedSize: 1317, gzipSize: 341 });\n       });\n \n       it(\"should support gzip\", async function () {\n         const config = makeWebpackConfig({\n           analyzerOpts: { compressionAlgorithm: \"gzip\" },\n         });\n         await webpackCompile(config, \"4.44.2\");\n-        await expectValidReport({ parsedSize: 1311, gzipSize: 341 });\n+        await expectValidReport({ parsedSize: 1317, gzipSize: 341 });\n       });\n \n-      it.only(\"should support brotli\", async function () {",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "valscion",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

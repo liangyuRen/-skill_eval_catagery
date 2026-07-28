@@ -1,0 +1,67 @@
+{
+  "task_id": "darts__2984",
+  "pr_number": 2984,
+  "repo": "unit8co/darts",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 4,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\n        Optionally, whether to print operations progress.\n```",
+      "file": "darts/metrics/metrics.py",
+      "line": null,
+      "diff_hunk": "@@ -1889,12 +1889,7 @@ def smape(\n         passed as input, parallelising operations regarding different ``TimeSeries``. Defaults to `1`\n         (sequential). Setting the parameter to `-1` means using all the available processors.\n     verbose\n-        Optionally, whether to print operations progress.\n-\n-    Raises\n-    ------\n-    ValueError\n-        If the `actual_series` and the `pred_series` contain some zeros at the same time index.\n+        Optionally, whether to print operations progress.s",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "brunnedu",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "```suggestion\n```",
+      "file": "darts/metrics/metrics.py",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "brunnedu",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "```suggestion\n   When :math:`\\\\left| y_t \\\\right| + \\\\left| \\\\hat{y}_t \\\\right| = 0` for some :math:`t` (i.e., both actual and \n   prediction are zero), the error for that time step is 0.\n```",
+      "file": "darts/metrics/metrics.py",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "brunnedu",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

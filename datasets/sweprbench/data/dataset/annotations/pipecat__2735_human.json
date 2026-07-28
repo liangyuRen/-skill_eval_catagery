@@ -1,0 +1,50 @@
+{
+  "task_id": "pipecat__2735",
+  "pr_number": 2735,
+  "repo": "pipecat-ai/pipecat",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Using universal `LLMContext` let us get rid of this hack \ud83d\udc4d ",
+      "file": "tests/integration/test_integration_unified_function_calling.py",
+      "line": 64,
+      "diff_hunk": "@@ -60,21 +63,19 @@ async def _test_llm_function_calling(llm: LLMService):\n         },\n         {\"role\": \"user\", \"content\": \" How is the weather today in San Francisco, California?\"},\n     ]\n-    context = OpenAILLMContext(messages, standard_tools())\n-    # This is done by default inside the create_context_aggregator",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "kompfner",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "I changed the way we're mocking the function to avoid this unit test printing a deprecation warning.\n\nThe issue was that the `AsyncMock()`'s signature didn't match the single-`FunctionCallParams`-argument signature our code is expecting. Our code would then assume it was a deprecated old-style function.",
+      "file": "tests/integration/test_integration_unified_function_calling.py",
+      "line": 49,
+      "diff_hunk": "@@ -48,8 +46,13 @@ def standard_tools() -> ToolsSchema:\n \n \n async def _test_llm_function_calling(llm: LLMService):\n-    # Create an AsyncMock for the function\n-    mock_fetch_weather = AsyncMock()\n+    # Create a mock weather function",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "kompfner",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

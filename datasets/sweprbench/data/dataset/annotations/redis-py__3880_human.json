@@ -1,0 +1,101 @@
+{
+  "task_id": "redis-py__3880",
+  "pr_number": 3880,
+  "repo": "redis/redis-py",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 5,
+  "substantive_comment_count": 4,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3",
+    "c_4"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_4",
+      "body": "Same as for the async pool - I think we don't need to have this property stored for the pool object.",
+      "file": "redis/connection.py",
+      "line": null,
+      "diff_hunk": "@@ -2482,6 +2510,9 @@ def __init__(\n         if self._event_dispatcher is None:\n             self._event_dispatcher = EventDispatcher()\n \n+        # Store driver_info for propagation to connections",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "petyaslavova",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "The current implementation causes to have lib_name to be ignored - it will be valuable addition to the details in the docstrings. ",
+      "file": "redis/client.py",
+      "line": 290,
+      "diff_hunk": "@@ -280,6 +282,9 @@ def __init__(\n         decode_responses:\n             if `True`, the response will be decoded to utf-8.\n             Argument is ignored when connection_pool is provided.\n+        driver_info:\n+            Optional DriverInfo object to identify upstream libraries.",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "petyaslavova",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "The same fallback logic is repeated in 4 places: \r\nclient.py ,  asyncio/client.py, connection.py, asyncio/connection.py \r\n\r\n```\r\n  if driver_info is not None:\r\n      computed_driver_info = driver_info\r\n  else:\r\n      name = lib_name if lib_name is not None else \"redis-py\"\r\n      version = lib_version if lib_version is not None else get_lib_version()\r\n      computed_driver_info = DriverInfo(name=name, lib_version=version)\r\n```\r\nYou could add a helper in `driver_info.py`  - then each call site becomes a one-liner.",
+      "file": "redis/asyncio/client.py",
+      "line": null,
+      "diff_hunk": "@@ -306,6 +313,17 @@ def __init__(\n             # Create internal connection pool, expected to be closed by Redis instance\n             if not retry_on_error:\n                 retry_on_error = []\n+\n+            # Handle driver_info: if provided, use it; otherwise create from lib_name/lib_version\n+            if driver_info is not None:",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "bobymicroby",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Where do you use that? When a new connection is created only the connection_kwargs are provided as init arguments.",
+      "file": "redis/asyncio/connection.py",
+      "line": null,
+      "diff_hunk": "@@ -1190,6 +1227,9 @@ def __init__(\n         if self._event_dispatcher is None:\n             self._event_dispatcher = EventDispatcher()\n \n+        # Store driver_info for propagation to connections",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "petyaslavova",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_4",
+      "body": "Same as for the async pool - I think we don't need to have this property stored for the pool object.",
+      "file": "redis/connection.py",
+      "line": null,
+      "diff_hunk": "@@ -2482,6 +2510,9 @@ def __init__(\n         if self._event_dispatcher is None:\n             self._event_dispatcher = EventDispatcher()\n \n+        # Store driver_info for propagation to connections",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "petyaslavova",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

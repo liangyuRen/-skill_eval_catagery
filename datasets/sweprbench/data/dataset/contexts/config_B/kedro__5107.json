@@ -1,0 +1,10 @@
+{
+  "pr_number": 5107,
+  "repo": "kedro-org/kedro",
+  "task_id": "kedro__5107",
+  "config_name": "config_B",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 370,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `mkdocs.yml`: 4 changed lines, 0 function/branch hunks, logic markers=0.\n- PR profile: type=feature, difficulty=Type2_Contextual, language=Python, files_changed=5.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### mkdocs.yml\n```diff\ndiff --git a/mkdocs.yml b/mkdocs.yml\nindex 1d321ac95d..9c6acc59ea 100755\n--- a/mkdocs.yml\n+++ b/mkdocs.yml\n@@ -151,6 +151,7 @@ plugins:\n           - develop/automated_testing.md: Writing tests for Kedro projects\n           - develop/linting.md: Code formatting and linting setup\n           - develop/debugging.md: Debugging Kedro pipelines\n+          - develop/vibe_coding_with_mcp.md: Vibe coding with MCP\n \n         Deployment:\n           - deploy/index.md: Deployment overview and strategies\n@@ -348,6 +349,7 @@ nav:\n           - Automated testing: develop/automated_testing.md\n           - Code formatting and linting: develop/linting.md\n           - Debugging: develop/debugging.md\n+          - Vibe coding with MCP: develop/vibe_coding_with_mcp.md\n       - Deploy:\n           - Overview: deploy/index.md\n           - How to package your project: deploy/package_a_project.md\n\n```\n\n---\n\n## Layer 3 - Execution Context\n\n---\n\n## Layer 4 - Behavior Mapping\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 5\n- PR type: feature"
+}

@@ -1,0 +1,84 @@
+{
+  "task_id": "firebase-android-sdk__7599",
+  "pr_number": 7599,
+  "repo": "firebase/firebase-android-sdk",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 8,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "Debug print should be removed",
+      "file": "firebase-ai/src/test/java/com/google/firebase/ai/GenerativeModelTesting.kt",
+      "line": null,
+      "diff_hunk": "@@ -249,4 +252,63 @@ internal class GenerativeModelTesting {\n       )\n     )\n   }\n+\n+  @Test\n+  fun `thinkingLevel and thinkingBudget are mutually exclusive`() = doBlocking {\n+    val exception =\n+      shouldThrow<IllegalArgumentException> {\n+        thinkingConfig {\n+          thinkingLevel = ThinkingLevel.MEDIUM\n+          thinkingBudget = 1\n+        }\n+      }\n+    exception.message shouldContain \"Cannot set both\"\n+  }\n+\n+  @Test\n+  fun `correctly setting thinkingLevel in request`() = doBlocking {\n+    val mockEngine = MockEngine {\n+      respond(\n+        generateContentResponseAsJsonString(\"text response\"),\n+        HttpStatusCode.OK,\n+        headersOf(HttpHeaders.ContentType, \"application/json\")\n+      )\n+    }\n+\n+    val apiController =\n+      APIController(\n+        \"super_cool_test_key\",\n+        \"gemini-2.5-flash\",\n+        RequestOptions(),\n+        mockEngine,\n+        TEST_CLIENT_ID,\n+        mockFirebaseApp,\n+        TEST_VERSION,\n+        TEST_APP_ID,\n+        null,\n+      )\n+\n+    val generativeModel =\n+      GenerativeModel(\n+        \"gemini-2.5-flash\",\n+        generationConfig =\n+          generationConfig {\n+            thinkingConfig = thinkingConfig { thinkingLevel = ThinkingLevel.MEDIUM }\n+          },\n+        controller = apiController\n+      )\n+\n+    withTimeout(5.seconds) { generativeModel.generateContent(\"my test prompt\") }\n+\n+    mockEngine.requestHistory.shouldNotBeEmpty()\n+\n+    val request = mockEngine.requestHistory.first().body\n+    request.shouldBeInstanceOf<TextContent>()\n+\n+    request.text.let {\n+      print(request.text)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "emilypgoogle",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "It's simpler to perform this check in the `build()` function _once_, rather than _twice_ (one in each setter):\r\n\r\n```kotlin\r\npublic fun build(): ThinkingConfig {\r\n  if (thinkingLevel != null && thinkingBudget != null) {\r\n    throw IllegalArgumentException(\"Cannot set both `thinkingBudget` and `thinkingLevel` in the same request\")\r\n  }\r\n  ThinkingConfig(\r\n    thinkingBudget = thinkingBudget,\r\n    includeThoughts = includeThoughts,\r\n    thinkingLevel = thinkingLevel\r\n  )\r\n}\r\n```",
+      "file": "firebase-ai/src/main/kotlin/com/google/firebase/ai/type/ThinkingConfig.kt",
+      "line": null,
+      "diff_hunk": "@@ -35,11 +41,20 @@ private constructor(\n     @set:JvmSynthetic // hide void setter from Java\n     public var includeThoughts: Boolean? = null\n \n+    @JvmField\n+    @set:JvmSynthetic // hide void setter from Java\n+    public var thinkingLevel: ThinkingLevel? = null\n+\n     /**\n-     * Indicates the thinking budget in tokens. `0` is disabled. `-1` is dynamic. The default values\n-     * and allowed ranges are model dependent.\n+     * Indicates the thinking budget in tokens.\n+     *\n+     * Use `0` for disabled, and `-1` for dynamic. The range of\n+     * [supported thinking budget values](https://firebase.google.com/docs/ai-logic/thinking#supported-thinking-budget-values)\n+     * depends on the model.\n      */\n     public fun setThinkingBudget(thinkingBudget: Int): Builder = apply {\n+      if (thinkingLevel != null)\n+        throw IllegalArgumentException(\"Cannot set both `thinkingBudget` and `thinkingLevel`\")",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "thatfiredev",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Debug print should be removed",
+      "file": "firebase-ai/src/test/java/com/google/firebase/ai/GenerativeModelTesting.kt",
+      "line": null,
+      "diff_hunk": "@@ -249,4 +252,63 @@ internal class GenerativeModelTesting {\n       )\n     )\n   }\n+\n+  @Test\n+  fun `thinkingLevel and thinkingBudget are mutually exclusive`() = doBlocking {\n+    val exception =\n+      shouldThrow<IllegalArgumentException> {\n+        thinkingConfig {\n+          thinkingLevel = ThinkingLevel.MEDIUM\n+          thinkingBudget = 1\n+        }\n+      }\n+    exception.message shouldContain \"Cannot set both\"\n+  }\n+\n+  @Test\n+  fun `correctly setting thinkingLevel in request`() = doBlocking {\n+    val mockEngine = MockEngine {\n+      respond(\n+        generateContentResponseAsJsonString(\"text response\"),\n+        HttpStatusCode.OK,\n+        headersOf(HttpHeaders.ContentType, \"application/json\")\n+      )\n+    }\n+\n+    val apiController =\n+      APIController(\n+        \"super_cool_test_key\",\n+        \"gemini-2.5-flash\",\n+        RequestOptions(),\n+        mockEngine,\n+        TEST_CLIENT_ID,\n+        mockFirebaseApp,\n+        TEST_VERSION,\n+        TEST_APP_ID,\n+        null,\n+      )\n+\n+    val generativeModel =\n+      GenerativeModel(\n+        \"gemini-2.5-flash\",\n+        generationConfig =\n+          generationConfig {\n+            thinkingConfig = thinkingConfig { thinkingLevel = ThinkingLevel.MEDIUM }\n+          },\n+        controller = apiController\n+      )\n+\n+    withTimeout(5.seconds) { generativeModel.generateContent(\"my test prompt\") }\n+\n+    mockEngine.requestHistory.shouldNotBeEmpty()\n+\n+    val request = mockEngine.requestHistory.first().body\n+    request.shouldBeInstanceOf<TextContent>()\n+\n+    request.text.let {\n+      print(request.text)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "emilypgoogle",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Trailing comma would be ideal here.",
+      "file": "firebase-ai/src/main/kotlin/com/google/firebase/ai/type/ThinkingConfig.kt",
+      "line": null,
+      "diff_hunk": "@@ -19,11 +19,17 @@ package com.google.firebase.ai.type\n import kotlinx.serialization.SerialName\n import kotlinx.serialization.Serializable\n \n-/** Configuration parameters for thinking features. */\n+/**\n+ * Gemini 2.5 series models and newer utilize a thinking process before generating a response. This\n+ * allows them to reason through complex problems and plan a more coherent and accurate answer. See\n+ * the [thinking documentation](https://firebase.google.com/docs/ai-logic/thinking) for more\n+ * details.\n+ */\n public class ThinkingConfig\n private constructor(\n   internal val thinkingBudget: Int? = null,\n-  internal val includeThoughts: Boolean? = null\n+  internal val includeThoughts: Boolean? = null,\n+  internal val thinkingLevel: ThinkingLevel? = null",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "emilypgoogle",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "task_id": "dask__12002",
+  "pr_number": 12002,
+  "repo": "dask/dask",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 9,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "Could you elaborate on these and what needs fixing?",
+      "file": "pyproject.toml",
+      "line": null,
+      "diff_hunk": "@@ -98,6 +98,38 @@ find = {namespaces = false}\n [tool.setuptools.package-data]\n dask = [\"py.typed\"]\n \n+[tool.ruff]\n+line-length = 120\n+\n+[tool.ruff.lint]\n+extend-select = [\n+    \"B\",\n+    \"UP\",\n+]\n+ignore = [\n+    \"B011\",   # Do not `assert False`, raise `AssertionError()`\n+    \"B018\",   # Found useless expression\n+    \"B028\",   # FIXME: No explicit `stacklevel` keyword argument found\n+    \"B904\",   # Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling\n+    \"B905\",   # `zip()` without an explicit `strict=` parameter\n+    \"E402\",   # Module level import not at top of file\n+    \"E714\",   # Test for object identity should be `is not`\n+    \"E721\",   # Use `is` and `is not` for type comparisons, or `isinstance()` for isinstance checks\n+    \"E731\",   # Do not assign a `lambda` expression, use a `def`\n+    \"E741\",   # Ambiguous variable name: `l`\n+    \"UP007\",  # FIXME\n+    \"UP031\",  # FIXME\n+    \"UP032\",  # FIXME\n+    \"UP033\",  # FIXME",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jacobtomlinson",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I think it would be better to explicitly set `select` here. That way you don't have to try and remember what is in the default rule set.",
+      "file": "pyproject.toml",
+      "line": 107,
+      "diff_hunk": "@@ -98,6 +98,38 @@ find = {namespaces = false}\n [tool.setuptools.package-data]\n dask = [\"py.typed\"]\n \n+[tool.ruff]\n+line-length = 120\n+\n+[tool.ruff.lint]\n+extend-select = [\n+    \"B\",\n+    \"UP\",\n+]",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jacobtomlinson",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Could you elaborate on these and what needs fixing?",
+      "file": "pyproject.toml",
+      "line": null,
+      "diff_hunk": "@@ -98,6 +98,38 @@ find = {namespaces = false}\n [tool.setuptools.package-data]\n dask = [\"py.typed\"]\n \n+[tool.ruff]\n+line-length = 120\n+\n+[tool.ruff.lint]\n+extend-select = [\n+    \"B\",\n+    \"UP\",\n+]\n+ignore = [\n+    \"B011\",   # Do not `assert False`, raise `AssertionError()`\n+    \"B018\",   # Found useless expression\n+    \"B028\",   # FIXME: No explicit `stacklevel` keyword argument found\n+    \"B904\",   # Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling\n+    \"B905\",   # `zip()` without an explicit `strict=` parameter\n+    \"E402\",   # Module level import not at top of file\n+    \"E714\",   # Test for object identity should be `is not`\n+    \"E721\",   # Use `is` and `is not` for type comparisons, or `isinstance()` for isinstance checks\n+    \"E731\",   # Do not assign a `lambda` expression, use a `def`\n+    \"E741\",   # Ambiguous variable name: `l`\n+    \"UP007\",  # FIXME\n+    \"UP031\",  # FIXME\n+    \"UP032\",  # FIXME\n+    \"UP033\",  # FIXME",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jacobtomlinson",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "I still think it would be too to include in each comment what each rule is, and why we are ignoring it.\r\n```suggestion\r\n    # The following rules will make extensive changes, we will adopt these gradually in the future\r\n    \"UP007\",  # Update Union type annotations to use the | operator\r\n    \"UP031\",  # Replace printf style string formatting with f-strings\r\n    \"UP032\",  # Replace .format() style string formatting with f-strings\r\n    \"UP033\",  # Use functools.cache instead of functools.lru_cache\r\n```",
+      "file": "pyproject.toml",
+      "line": null,
+      "diff_hunk": "@@ -93,6 +93,41 @@ find = {namespaces = false}\n [tool.setuptools.package-data]\n dask = [\"py.typed\"]\n \n+[tool.ruff]\n+line-length = 120\n+\n+[tool.ruff.lint]\n+# By default, Ruff enables Flake8's F rules, along with a subset of the\n+# E rules, omitting any stylistic rules that overlap with the use of a\n+# formatter, like ruff format or Black. \n+# We specify additional rules with extend-select.\n+extend-select = [\n+    \"B\",\n+    \"UP\",\n+]\n+ignore = [\n+    \"B011\",   # Do not `assert False`, raise `AssertionError()`\n+    \"B018\",   # Found useless expression\n+    \"B028\",   # FIXME: No explicit `stacklevel` keyword argument found\n+    \"B904\",   # Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling\n+    \"B905\",   # `zip()` without an explicit `strict=` parameter\n+    \"E402\",   # Module level import not at top of file\n+    \"E714\",   # Test for object identity should be `is not`\n+    \"E721\",   # Use `is` and `is not` for type comparisons, or `isinstance()` for isinstance checks\n+    \"E731\",   # Do not assign a `lambda` expression, use a `def`\n+    \"E741\",   # Ambiguous variable name: `l`\n+    \"UP007\",  # FIXME: extensive changes will be applied in a dedicated upcoming PR\n+    \"UP031\",  # FIXME: extensive changes will be applied in a dedicated upcoming PR\n+    \"UP032\",  # FIXME: extensive changes will be applied in a dedicated upcoming PR\n+    \"UP033\",  # FIXME: extensive changes will be applied in a dedicated upcoming PR",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jacobtomlinson",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

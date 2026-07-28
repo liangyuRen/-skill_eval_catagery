@@ -1,0 +1,33 @@
+{
+  "task_id": "openbao__2321",
+  "pr_number": 2321,
+  "repo": "openbao/openbao",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I think requiring no error once is sufficient \ud83d\ude42 \n```suggestion\n\t\t\trequire.NoError(t, err)\n```",
+      "file": "vault/external_tests/identity/cross_namespace_test.go",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,150 @@\n+// Copyright (c) 2026 OpenBao a Series of LF Projects, LLC\n+// SPDX-License-Identifier: MPL-2.0\n+\n+package identity\n+\n+import (\n+\t\"testing\"\n+\n+\tvaulthttp \"github.com/openbao/openbao/http\"\n+\t\"github.com/openbao/openbao/vault\"\n+\t\"github.com/stretchr/testify/require\"\n+)\n+\n+func TestUnsafeCrossNamespaceIdentity(t *testing.T) {\n+\tcases := []struct {\n+\t\tparentNamespaced, childNamespaced bool\n+\t}{\n+\t\t{\n+\t\t\tparentNamespaced: true,\n+\t\t\tchildNamespaced:  true,\n+\t\t}, {\n+\t\t\tparentNamespaced: true,\n+\t\t\tchildNamespaced:  false,\n+\t\t}, {\n+\t\t\tparentNamespaced: false,\n+\t\t\tchildNamespaced:  true,\n+\t\t}, {\n+\t\t\tparentNamespaced: false,\n+\t\t\tchildNamespaced:  false,\n+\t\t},\n+\t}\n+\n+\tfor _, tc := range cases {\n+\t\tname := \"\"\n+\t\tif tc.parentNamespaced {\n+\t\t\tname += \"parent_namespaced\"\n+\t\t} else {\n+\t\t\tname += \"parent_root\"\n+\t\t}\n+\t\tif tc.childNamespaced {\n+\t\t\tname += \"_child_namespaced\"\n+\t\t} else {\n+\t\t\tname += \"_child_root\"\n+\t\t}\n+\n+\t\tt.Run(name, func(t *testing.T) {\n+\t\t\tt.Parallel()\n+\n+\t\t\tcoreConfig := &vault.CoreConfig{\n+\t\t\t\tUnsafeCrossNamespaceIdentity: true,\n+\t\t\t\tLogLevel:                     \"debug\",\n+\t\t\t}\n+\t\t\tcluster := vault.NewTestCluster(t, coreConfig, &vault.TestClusterOptions{\n+\t\t\t\tHandlerFunc: vaulthttp.Handler,\n+\t\t\t\tNumCores:    2,\n+\t\t\t})\n+\t\t\tcluster.Start()\n+\t\t\tdefer cluster.Cleanup()\n+\n+\t\t\tcore := cluster.Cores[0].Core\n+\t\t\tvault.TestWaitActive(t, core)\n+\t\t\tclient := cluster.Cores[0].Client\n+\t\t\tclient.SetCheckRedirect(nil)\n+\n+\t\t\t// create data\n+\n+\t\t\tt.Log(\"creating namespace\")\n+\t\t\t_, err := client.Logical().Write(\"sys/namespaces/test\", map[string]any{})\n+\t\t\trequire.NoError(t, err)\n+\n+\t\t\tclient.SetCloneToken(true)\n+\n+\t\t\tparentClient, err := client.Clone()\n+\t\t\trequire.NoError(t, err)\n+\t\t\tif tc.parentNamespaced {\n+\t\t\t\tparentClient.SetNamespace(\"test\")\n+\t\t\t}\n+\n+\t\t\tchildClient, err := client.Clone()\n+\t\t\trequire.NoError(t, err)\n+\t\t\trequire.NoError(t, err)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "JanMa",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "task_id": "pipecat__2872",
+  "pr_number": 2872,
+  "repo": "pipecat-ai/pipecat",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 4,
+  "substantive_comment_count": 3,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "We also can now cleanup the unit tests and remove weird things we had to do.",
+      "file": "tests/test_pipeline.py",
+      "line": 257,
+      "diff_hunk": "@@ -254,7 +254,7 @@ async def on_frame_reached_downstream(task, frame):\n \n         try:\n             await asyncio.wait_for(\n-                asyncio.shield(task.run(PipelineTaskParams(loop=asyncio.get_event_loop()))),\n+                task.run(PipelineTaskParams(loop=asyncio.get_event_loop())),",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "aconchillo",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "```suggestion\r\n        # Create all main tasks and wait for the main push task. This is the task\r\n```",
+      "file": "src/pipecat/pipeline/task.py",
+      "line": null,
+      "diff_hunk": "@@ -417,51 +416,40 @@ async def run(self, params: PipelineTaskParams):\n         \"\"\"\n         if self.has_finished():\n             return\n-        cleanup_pipeline = True\n-        try:\n-            # Setup processors.\n-            await self._setup(params)\n \n-            # Create all main tasks and wait of the main push task. This is the\n-            # task that pushes frames to the very beginning of our pipeline (our\n-            # controlled source processor).\n-            push_task = await self._create_tasks()\n-            await push_task\n+        # Setup processors.\n+        await self._setup(params)\n \n-            # We have already cleaned up the pipeline inside the task.\n-            cleanup_pipeline = False\n+        # Create all main tasks and wait of the main push task. This is the task",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "markbackman",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Does this do anything now? There's another `self._finished = True` in finally, which supersedes.",
+      "file": "src/pipecat/pipeline/task.py",
+      "line": null,
+      "diff_hunk": "@@ -417,51 +416,40 @@ async def run(self, params: PipelineTaskParams):\n         \"\"\"\n         if self.has_finished():\n             return\n-        cleanup_pipeline = True\n-        try:\n-            # Setup processors.\n-            await self._setup(params)\n \n-            # Create all main tasks and wait of the main push task. This is the\n-            # task that pushes frames to the very beginning of our pipeline (our\n-            # controlled source processor).\n-            push_task = await self._create_tasks()\n-            await push_task\n+        # Setup processors.\n+        await self._setup(params)\n \n-            # We have already cleaned up the pipeline inside the task.\n-            cleanup_pipeline = False\n+        # Create all main tasks and wait of the main push task. This is the task\n+        # that pushes frames to the very beginning of our pipeline (our\n+        # controlled source processor).\n+        await self._create_tasks()\n \n+        try:\n+            # Wait for pipeline to finish.\n+            await self._wait_for_pipeline_finished()\n             # Pipeline has finished nicely.\n             self._finished = True",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "markbackman",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

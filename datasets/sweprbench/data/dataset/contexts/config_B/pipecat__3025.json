@@ -1,0 +1,10 @@
+{
+  "pr_number": 3025,
+  "repo": "pipecat-ai/pipecat",
+  "task_id": "pipecat__3025",
+  "config_name": "config_B",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 152,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `src/pipecat/utils/tracing/service_decorators.py`: 72 changed lines, 1 function/branch hunks, logic markers=14.\n- PR profile: type=bug_fix, difficulty=Type1_Direct, language=Python, files_changed=2.\n\n---\n\n## Layer 2 - Diff (Core)\n\n---\n\n## Layer 3 - Execution Context\n\n---\n\n## Layer 4 - Behavior Mapping\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 2\n- PR type: bug_fix"
+}

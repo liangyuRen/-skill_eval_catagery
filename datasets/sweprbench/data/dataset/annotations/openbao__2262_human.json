@@ -1,0 +1,67 @@
+{
+  "task_id": "openbao__2262",
+  "pr_number": 2262,
+  "repo": "openbao/openbao",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 3,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\n\t_, err = b.HandleRequest(namespace.RootContext(t.Context()), req)\n```",
+      "file": "vault/logical_system_test.go",
+      "line": null,
+      "diff_hunk": "@@ -145,6 +146,40 @@ func TestSystemConfigCORS(t *testing.T) {\n \t\tt.Fatalf(\"bad: %#v\", actual)\n \t}\n \n+\treq = logical.TestRequest(t, logical.UpdateOperation, \"config/cors\")\n+\treq.Data[\"allowed_origins\"] = \"http://www.example.com\"\n+\treq.Data[\"allowed_headers\"] = \"X-Custom-Header\"\n+\treq.Data[\"allow_credentials\"] = \"true\"\n+\t_, err = b.HandleRequest(namespace.RootContext(nil), req)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "satoqz",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "```suggestion\n\tactual, err = b.HandleRequest(namespace.RootContext(t.Context()), req)\n```",
+      "file": "vault/logical_system_test.go",
+      "line": null,
+      "diff_hunk": "@@ -145,6 +146,40 @@ func TestSystemConfigCORS(t *testing.T) {\n \t\tt.Fatalf(\"bad: %#v\", actual)\n \t}\n \n+\treq = logical.TestRequest(t, logical.UpdateOperation, \"config/cors\")\n+\treq.Data[\"allowed_origins\"] = \"http://www.example.com\"\n+\treq.Data[\"allowed_headers\"] = \"X-Custom-Header\"\n+\treq.Data[\"allow_credentials\"] = \"true\"\n+\t_, err = b.HandleRequest(namespace.RootContext(nil), req)\n+\tif err != nil {\n+\t\tt.Fatal(err)\n+\t}\n+\n+\texpected = &logical.Response{\n+\t\tData: map[string]interface{}{\n+\t\t\t\"enabled\":           true,\n+\t\t\t\"allowed_origins\":   []string{\"http://www.example.com\"},\n+\t\t\t\"allowed_headers\":   append(StdAllowedHeaders, \"X-Custom-Header\"),\n+\t\t\t\"allow_credentials\": true,\n+\t\t},\n+\t}\n+\n+\treq = logical.TestRequest(t, logical.ReadOperation, \"config/cors\")\n+\tactual, err = b.HandleRequest(namespace.RootContext(nil), req)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "satoqz",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "```suggestion\ncore/listeners: Add a parameter to allow cross-origin requests to include credentials (`Access-Control-Allow-Credentials` header).\n```",
+      "file": "changelog/2262.txt",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,3 @@\n+```release-note:improvement\n+core: add a parameter to allow cross-origin requests to include credentials",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "satoqz",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

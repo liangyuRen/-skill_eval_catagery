@@ -1,0 +1,33 @@
+{
+  "task_id": "metaflow__2441",
+  "pr_number": 2441,
+  "repo": "Netflix/metaflow",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "This filters out an object with key exactly equal to `ABC/` when listing prefix `ABC/`. In S3 key names can actually contain `/` so someone could create a file called `ABC/` (it's weird but valid)\r\n\r\n",
+      "file": "metaflow/plugins/datatools/s3/s3op.py",
+      "line": 592,
+      "diff_hunk": "@@ -582,11 +582,23 @@ def list_prefix(self, prefix_url, delimiter=\"\"):\n                 # - the trailing slash is significant in S3\n                 if \"Contents\" in page:\n                     for key in page.get(\"Contents\", []):\n-                        url = url_base + key[\"Key\"]\n+                        key_path = key[\"Key\"]\n+                        # filter out sibling directories that share the same prefix\n+                        if delimiter == \"\":  # recursive mode\n+                            normalized_prefix = prefix_url.path\n+                            if not normalized_prefix.endswith(\"/\"):\n+                                normalized_prefix += \"/\"\n+                            # Only include keys that are actually under our directory\n+                            if not (",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "npow",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

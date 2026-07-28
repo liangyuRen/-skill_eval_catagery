@@ -1,0 +1,10 @@
+{
+  "pr_number": 2819,
+  "repo": "pipecat-ai/pipecat",
+  "task_id": "pipecat__2819",
+  "config_name": "config_A",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 136,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `src/pipecat/services/sarvam/tts.py`: 94 changed lines, 9 function/branch hunks, logic markers=4.\n- PR profile: type=feature, difficulty=Type2_Contextual, language=Python, files_changed=2.\n\n---\n\n## Layer 2 - Diff (Core)\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 2\n- PR type: feature"
+}

@@ -1,0 +1,33 @@
+{
+  "task_id": "spyder__25595",
+  "pr_number": 25595,
+  "repo": "spyder-ide/spyder",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "`conda-based-app` is _only_ created by our `constructor`-based installer in `pre-install.[sh|bat]`. I'll investigate how an Anaconda distribution could end up passing this `if` clause.",
+      "file": "spyder/config/base.py",
+      "line": 665,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "mrclary",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

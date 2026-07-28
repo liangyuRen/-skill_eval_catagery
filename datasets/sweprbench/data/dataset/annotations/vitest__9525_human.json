@@ -1,0 +1,33 @@
+{
+  "task_id": "vitest__9525",
+  "pr_number": 9525,
+  "repo": "vitest-dev/vitest",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 9,
+  "substantive_comment_count": 1,
+  "changes_required": true,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Is it a browser only setting? Or does it affect UI without the browser?\r\n\r\nlocal storage in browser tests will reset between sessions so there is not a lot of reason to use it there\r\n\r\nIf it's for UI, then the setting shouldn't be in `browser` config",
+      "file": "packages/ui/client/composables/navigation.ts",
+      "line": null,
+      "diff_hunk": "@@ -35,6 +35,31 @@ export const detailSizes = useLocalStorage<[left: number, right: number]>(\n   ],\n )\n \n+export const detailsPanelVisible = useLocalStorage<boolean>(\n+  'vitest-ui_details-panel-visible',\n+  true,\n+)\n+\n+export const detailsPosition = useLocalStorage<'right' | 'bottom'>(\n+  'vitest-ui_details-panel-position',\n+  'right',\n+)\n+\n+// Config overrides localStorage when set\n+// If config specifies detailsPanelPosition, it always takes precedence\n+// If config doesn't set it, localStorage value (user preference) is used\n+// Defer watch setup to avoid accessing config before initialization\n+nextTick(() => {\n+  watchOnce(\n+    () => config.value?.browser?.detailsPanelPosition,",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "sheremet-va",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

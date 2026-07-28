@@ -1,0 +1,50 @@
+{
+  "task_id": "metaflow__2616",
+  "pr_number": 2616,
+  "repo": "Netflix/metaflow",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Can we move the above code into this if block -- I don't think anything is used outside of this block.",
+      "file": "metaflow/plugins/datatools/s3/s3.py",
+      "line": 1765,
+      "diff_hunk": "@@ -1760,17 +1761,33 @@ def try_s3_op(last_ok_count, pending_retries, out_lines, inject_failures):\n                 # due to a transient failure so we try again.\n                 transient_retry_count += 1\n                 total_ok_count += last_ok_count\n-                print(\n-                    \"Transient S3 failure (attempt #%d) -- total success: %d, \"\n-                    \"last attempt %d/%d -- remaining: %d\"\n-                    % (\n-                        transient_retry_count,\n-                        total_ok_count,\n-                        last_ok_count,\n-                        last_ok_count + last_retry_count,\n-                        len(pending_retries),\n+\n+                # Extract transient error type from pending retry lines\n+                error_info = \"\"\n+                if pending_retries:\n+                    try:\n+                        # Parse the first line to get transient error type\n+                        first_retry = json.loads(\n+                            pending_retries[0].decode(\"utf-8\").strip()\n+                        )\n+                        if \"transient_error_type\" in first_retry:\n+                            error_info = \" (%s)\" % first_retry[\"transient_error_type\"]\n+                    except (json.JSONDecodeError, IndexError, KeyError):\n+                        pass\n+\n+                if S3_LOG_TRANSIENT_RETRIES:",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "romain-intel",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "space before %s?",
+      "file": "metaflow/plugins/datatools/s3/s3.py",
+      "line": 1783,
+      "diff_hunk": "@@ -1760,17 +1761,33 @@ def try_s3_op(last_ok_count, pending_retries, out_lines, inject_failures):\n                 # due to a transient failure so we try again.\n                 transient_retry_count += 1\n                 total_ok_count += last_ok_count\n-                print(\n-                    \"Transient S3 failure (attempt #%d) -- total success: %d, \"\n-                    \"last attempt %d/%d -- remaining: %d\"\n-                    % (\n-                        transient_retry_count,\n-                        total_ok_count,\n-                        last_ok_count,\n-                        last_ok_count + last_retry_count,\n-                        len(pending_retries),\n+\n+                # Extract transient error type from pending retry lines\n+                error_info = \"\"\n+                if pending_retries:\n+                    try:\n+                        # Parse the first line to get transient error type\n+                        first_retry = json.loads(\n+                            pending_retries[0].decode(\"utf-8\").strip()\n+                        )\n+                        if \"transient_error_type\" in first_retry:\n+                            error_info = \" (%s)\" % first_retry[\"transient_error_type\"]\n+                    except (json.JSONDecodeError, IndexError, KeyError):\n+                        pass\n+\n+                if S3_LOG_TRANSIENT_RETRIES:\n+                    print(\n+                        \"Transient S3 failure (attempt #%d) -- total success: %d, \"\n+                        \"last attempt %d/%d -- remaining: %d%s\"",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "romain-intel",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

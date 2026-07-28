@@ -1,0 +1,101 @@
+{
+  "task_id": "pipecat__2932",
+  "pr_number": 2932,
+  "repo": "pipecat-ai/pipecat",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 18,
+  "substantive_comment_count": 4,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3",
+    "c_4"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "I'm just guessing that this PR won't land for version 0.0.92.\n\nNote to self: update this if this assumed version turns out to be wrong.",
+      "file": "src/pipecat/services/google/gemini_live/llm.py",
+      "line": null,
+      "diff_hunk": "@@ -219,6 +222,10 @@ class GeminiLiveContext(OpenAILLMContext):\n \n     Provides Gemini-specific context management including system instruction\n     extraction and message format conversion for the Live API.\n+\n+    .. deprecated:: 0.0.93",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "kompfner",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "This pattern is a bit ugly.\n\nPrior to this change, though, we actually had a bug\u2014`create_context_aggregator()` would *always* return an assistant context aggregator configured with `expect_stripped_words=False`, even when it ought not to have been (i.e. when the LLM was configured to output text).",
+      "file": "examples/foundational/26a-gemini-live-transcription.py",
+      "line": 97,
+      "diff_hunk": "@@ -90,7 +92,12 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):\n             #     },\n         ],\n     )\n-    context_aggregator = llm.create_context_aggregator(context)\n+    context_aggregator = LLMContextAggregatorPair(\n+        context,\n+        # `expect_stripped_words=False` needed when Gemini Live used with AUDIO",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "kompfner",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "I'm just guessing that this PR won't land for version 0.0.92.\n\nNote to self: update this if this assumed version turns out to be wrong.",
+      "file": "src/pipecat/services/google/gemini_live/llm.py",
+      "line": null,
+      "diff_hunk": "@@ -219,6 +222,10 @@ class GeminiLiveContext(OpenAILLMContext):\n \n     Provides Gemini-specific context management including system instruction\n     extraction and message format conversion for the Live API.\n+\n+    .. deprecated:: 0.0.93",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "kompfner",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Yuck.",
+      "file": "src/pipecat/services/google/gemini_live/llm.py",
+      "line": 1583,
+      "diff_hunk": "@@ -1458,7 +1568,17 @@ async def _handle_msg_output_transcription(self, message: LiveServerMessage):\n         # Collect text for tracing\n         self._llm_output_buffer += text\n \n-        await self.push_frame(LLMTextFrame(text=text))\n+        # NOTE: Shoot. When using Vertex AI, output transcription messages",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "kompfner",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_4",
+      "body": "Is this for the case where we\u2019re loading a previous context ?",
+      "file": "src/pipecat/services/google/gemini_live/llm.py",
+      "line": 971,
+      "diff_hunk": "@@ -883,6 +957,40 @@ async def process_frame(self, frame: Frame, direction: FrameDirection):\n         else:\n             await self.push_frame(frame, direction)\n \n+    async def _handle_context(self, context: LLMContext):\n+        if not self._context:\n+            # We got our initial context\n+            self._context = context\n+            if context.tools:\n+                self._tools = context.tools\n+            # Initialize our bookkeeping of already-completed tool calls in\n+            # the context\n+            await self._process_completed_function_calls(send_new_results=False)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "filipi87",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

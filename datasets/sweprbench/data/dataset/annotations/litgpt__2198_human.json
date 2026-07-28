@@ -1,0 +1,67 @@
+{
+  "task_id": "litgpt__2198",
+  "pr_number": 2198,
+  "repo": "Lightning-AI/litgpt",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 6,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "please add link https://github.com/Lightning-AI/LitLogger",
+      "file": "tutorials/pretrain_tinyllama.md",
+      "line": null,
+      "diff_hunk": "@@ -141,6 +141,14 @@ GPU memory. For more tips to avoid out-of-memory issues, please also see the mor\n [Dealing with out-of-memory (OOM) errors](oom.md) guide.\n \n Last, logging is kept minimal in the script, but for long-running experiments we recommend switching to a proper experiment tracker.\n+LitGPT supports multiple experiment trackers including:\n+\n+- **TensorBoard** (default): Local visualization with TensorBoard\n+- **CSV Logger**: Simple local logging to CSV files\n+- **WandB**: Cloud-based experiment tracking with Weights & Biases\n+- **MLflow**: MLflow experiment tracking\n+- **LitLogger**: Lightning.ai's native experiment tracking (set `--logger_name=litlogger`)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "lianakoleva",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "you changed the type of `logger_name` from ` Literal[\"wandb\", \"tensorboard\", \"csv\", \"mlflow\"]` to `LoggerChoice`, but in all of the models' yaml files, it is still `Literal['wandb', 'tensorboard', 'csv', 'mlflow', 'litlogger'], default: csv)`",
+      "file": "extensions/thunder/pretrain.py",
+      "line": 80,
+      "diff_hunk": "@@ -76,7 +77,7 @@ def setup(\n     devices: Union[int, str] = \"auto\",\n     num_nodes: int = 1,\n     tokenizer_dir: Optional[Path] = None,\n-    logger_name: Literal[\"wandb\", \"tensorboard\", \"csv\", \"mlflow\"] = \"tensorboard\",\n+    logger_name: LoggerChoice = \"tensorboard\",",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "lianakoleva",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "please add link https://github.com/Lightning-AI/LitLogger",
+      "file": "tutorials/pretrain_tinyllama.md",
+      "line": null,
+      "diff_hunk": "@@ -141,6 +141,14 @@ GPU memory. For more tips to avoid out-of-memory issues, please also see the mor\n [Dealing with out-of-memory (OOM) errors](oom.md) guide.\n \n Last, logging is kept minimal in the script, but for long-running experiments we recommend switching to a proper experiment tracker.\n+LitGPT supports multiple experiment trackers including:\n+\n+- **TensorBoard** (default): Local visualization with TensorBoard\n+- **CSV Logger**: Simple local logging to CSV files\n+- **WandB**: Cloud-based experiment tracking with Weights & Biases\n+- **MLflow**: MLflow experiment tracking\n+- **LitLogger**: Lightning.ai's native experiment tracking (set `--logger_name=litlogger`)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "lianakoleva",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

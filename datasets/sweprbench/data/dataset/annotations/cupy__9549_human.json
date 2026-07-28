@@ -1,0 +1,83 @@
+{
+  "task_id": "cupy__9549",
+  "pr_number": 9549,
+  "repo": "cupy/cupy",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 9,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 2,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "Hmmm, this is slightly surprising to me. Since I guess it now ignores the dtype of `q`?\nThat is correct for `nearest`, `lower`, and `higher` in principle, but it seems that has been ignored for a long time, so not relevant for NumPy 2.4.\n\nIf `q` is not floating is the problem that the result dtype is inferred as integral?  Maybe we could add `if method (not) in ...: np.result_type(a, q, 0.0)` to work around that.\n\nBut right now I am not sure sure what changed here that needs an update.",
+      "file": "cupy/_statistics/order.py",
+      "line": null,
+      "diff_hunk": "@@ -328,6 +327,7 @@ def percentile(a, q, axis=None, out=None,\n     if interpolation is not None:\n         method = _check_interpolation_as_method(\n             method, interpolation, 'percentile')\n+    dtype = numpy.common_type(a)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "seberg",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "nit: by our convention this should be applied to CUDA 13.1 now, not 13.0",
+      "file": ".pfnci/matrix.yaml",
+      "line": 278,
+      "diff_hunk": "@@ -275,7 +275,7 @@\n   cutensor: \"2.4\"\n   cusparselt: \"0.8.1\"\n   python: \"3.14\"\n-  numpy: \"2.3\"\n+  numpy: \"2.4\"",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "leofang",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Hmmm, this is slightly surprising to me. Since I guess it now ignores the dtype of `q`?\nThat is correct for `nearest`, `lower`, and `higher` in principle, but it seems that has been ignored for a long time, so not relevant for NumPy 2.4.\n\nIf `q` is not floating is the problem that the result dtype is inferred as integral?  Maybe we could add `if method (not) in ...: np.result_type(a, q, 0.0)` to work around that.\n\nBut right now I am not sure sure what changed here that needs an update.",
+      "file": "cupy/_statistics/order.py",
+      "line": null,
+      "diff_hunk": "@@ -328,6 +327,7 @@ def percentile(a, q, axis=None, out=None,\n     if interpolation is not None:\n         method = _check_interpolation_as_method(\n             method, interpolation, 'percentile')\n+    dtype = numpy.common_type(a)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "seberg",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "nit: by our convention this should be applied to CUDA 13.1 now, not 13.0",
+      "file": ".pfnci/matrix.yaml",
+      "line": 278,
+      "diff_hunk": "@@ -275,7 +275,7 @@\n   cutensor: \"2.4\"\n   cusparselt: \"0.8.1\"\n   python: \"3.14\"\n-  numpy: \"2.3\"\n+  numpy: \"2.4\"",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "leofang",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

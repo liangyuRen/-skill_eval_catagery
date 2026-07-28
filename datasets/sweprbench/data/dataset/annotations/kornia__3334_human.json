@@ -1,0 +1,50 @@
+{
+  "task_id": "kornia__3334",
+  "pr_number": 3334,
+  "repo": "kornia/kornia",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "wondering if the data should we expect from user to be passed explicitly as tensor or parameter, and then have `as_parameter()` or similar? feels a bit weird the `wrap_in_parameter` argument",
+      "file": "kornia/geometry/quaternion.py",
+      "line": null,
+      "diff_hunk": "@@ -75,11 +75,15 @@ class Quaternion(Module):\n \n     \"\"\"\n \n-    def __init__(self, data: Tensor) -> None:\n+    _data: Union[Tensor, Parameter]\n+\n+    def __init__(self, data: Tensor, wrap_in_parameter: bool = True) -> None:",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "edgarriba",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "wondering if the data should we expect from user to be passed explicitly as tensor or parameter, and then have `as_parameter()` or similar? feels a bit weird the `wrap_in_parameter` argument",
+      "file": "kornia/geometry/quaternion.py",
+      "line": null,
+      "diff_hunk": "@@ -75,11 +75,15 @@ class Quaternion(Module):\n \n     \"\"\"\n \n-    def __init__(self, data: Tensor) -> None:\n+    _data: Union[Tensor, Parameter]\n+\n+    def __init__(self, data: Tensor, wrap_in_parameter: bool = True) -> None:",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "edgarriba",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

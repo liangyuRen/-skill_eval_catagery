@@ -1,0 +1,67 @@
+{
+  "task_id": "pipecat__3431",
+  "pr_number": 3431,
+  "repo": "pipecat-ai/pipecat",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 8,
+  "substantive_comment_count": 3,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "@kompfner I see the `LLMThoughtEndFrame` definition includes the ability to set the thought signature. I'm assuming this is acceptable.\r\n\r\nI can see that the signature is always None, at least for now. I'm not sure if/when that will change. The Gemini Live API has been changing a lot and I expect that it will continue to.",
+      "file": "src/pipecat/services/google/gemini_live/llm.py",
+      "line": null,
+      "diff_hunk": "@@ -1455,10 +1458,19 @@ async def _handle_msg_model_turn(self, msg: LiveServerMessage):\n                 await self._set_bot_is_responding(True)\n                 await self.push_frame(LLMFullResponseStartFrame())\n \n-            self._bot_text_buffer += text\n-            self._search_result_buffer += text  # Also accumulate for grounding\n-            frame = LLMTextFrame(text=text)\n-            await self.push_frame(frame)\n+            # Check if this is a thought\n+            if part.thought:\n+                # Gemini Live emits fully-formed thoughts rather than chunks,\n+                # so bracket each thought in start/end frames\n+                await self.push_frame(LLMThoughtStartFrame())\n+                await self.push_frame(LLMThoughtTextFrame(text))\n+                await self.push_frame(LLMThoughtEndFrame(signature=part.thought_signature))",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "markbackman",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Oh man, I thought I updated everything :disappointed:. Thanks!",
+      "file": "examples/foundational/26a-gemini-live-transcription.py",
+      "line": 142,
+      "diff_hunk": "@@ -127,14 +129,17 @@ async def on_client_disconnected(transport, client):\n         logger.info(f\"Client disconnected\")\n         await task.cancel()\n \n-    # Register event handler for transcript updates\n-    @transcript.event_handler(\"on_transcript_update\")\n-    async def on_transcript_update(processor, frame):\n-        for msg in frame.messages:\n-            if isinstance(msg, TranscriptionMessage):\n-                timestamp = f\"[{msg.timestamp}] \" if msg.timestamp else \"\"\n-                line = f\"{timestamp}{msg.role}: {msg.content}\"\n-                logger.info(f\"Transcript: {line}\")\n+    @user_aggregator.event_handler(\"on_user_turn_stopped\")\n+    async def on_user_turn_stopped(aggregator, strategy, message: UserTurnStoppedMessage):\n+        timestamp = f\"[{message.timestamp}] \" if message.timestamp else \"\"\n+        line = f\"{timestamp}user: {message.content}\"\n+        logger.info(f\"Transcript: {line}\")\n+\n+    @assistant_aggregator.event_handler(\"on_assistant_turn_stopped\")\n+    async def on_assistant_turn_stopped(aggregator, message: AssistantTurnStoppedMessage):\n+        timestamp = f\"[{message.timestamp}] \" if message.timestamp else \"\"\n+        line = f\"{timestamp}assistant: {message.content}\"\n+        logger.info(f\"Transcript: {line}\")",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "aconchillo",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Wait so prior to this PR we were treating thoughts as regular responses? Why haven't we always been hearing strange long inner monologue when talking to Gemini Live?",
+      "file": "src/pipecat/services/google/gemini_live/llm.py",
+      "line": 1461,
+      "diff_hunk": "@@ -1455,10 +1458,19 @@ async def _handle_msg_model_turn(self, msg: LiveServerMessage):\n                 await self._set_bot_is_responding(True)\n                 await self.push_frame(LLMFullResponseStartFrame())\n \n-            self._bot_text_buffer += text\n-            self._search_result_buffer += text  # Also accumulate for grounding\n-            frame = LLMTextFrame(text=text)\n-            await self.push_frame(frame)\n+            # Check if this is a thought",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "kompfner",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

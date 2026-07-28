@@ -1,0 +1,10 @@
+{
+  "pr_number": 25451,
+  "repo": "spyder-ide/spyder",
+  "task_id": "spyder__25451",
+  "config_name": "config_B",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 172,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `spyder/api/config/mixins.py`: 343 changed lines, 8 function/branch hunks, logic markers=19.\n- `spyder/api/config/decorators.py`: 96 changed lines, 0 function/branch hunks, logic markers=5.\n- PR profile: type=feature, difficulty=Type1_Direct, language=Python, files_changed=2.\n\n---\n\n## Layer 2 - Diff (Core)\n\n---\n\n## Layer 3 - Execution Context\n\n---\n\n## Layer 4 - Behavior Mapping\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 2\n- PR type: feature"
+}

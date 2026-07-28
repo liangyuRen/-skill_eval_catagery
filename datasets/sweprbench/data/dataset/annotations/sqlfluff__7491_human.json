@@ -1,0 +1,67 @@
+{
+  "task_id": "sqlfluff__7491",
+  "pr_number": 7491,
+  "repo": "sqlfluff/sqlfluff",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 8,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I know it was coming from the existing grammar but if we are modifying this segment, I have checked the specification, and there is no brackets around the filename, and only one file is supported, so if you could check it and update that would be great.",
+      "file": "src/sqlfluff/dialects/dialect_tsql.py",
+      "line": 5438,
+      "diff_hunk": "@@ -5433,83 +5434,60 @@ class OpenRowSetSegment(BaseSegment):\n                 ),\n                 Sequence(\n                     \"BULK\",\n+                    # Filepath(s)\n                     OptionallyBracketed(",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "peterbud",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "According to the spec it is not a single column, but a comma delimited list of multiple columns",
+      "file": "src/sqlfluff/dialects/dialect_tsql.py",
+      "line": null,
+      "diff_hunk": "@@ -5433,83 +5434,60 @@ class OpenRowSetSegment(BaseSegment):\n                 ),\n                 Sequence(\n                     \"BULK\",\n+                    # Filepath(s)\n                     OptionallyBracketed(\n                         Delimited(Ref(\"QuotedLiteralSegmentOptWithN\")),\n                     ),\n                     Ref(\"CommaSegment\"),\n-                    OneOf(\n-                        Sequence(\n+                    Delimited(\n+                        OneOf(\n+                            # Bulk options taking normal or unicode strings\n                             Sequence(\n-                                \"FORMATFILE\",\n+                                OneOf(\n+                                    \"DATA_SOURCE\",\n+                                    \"CODEPAGE\",\n+                                    \"DATAFILETYPE\",\n+                                    \"FORMAT\",\n+                                    \"FORMATFILE\",\n+                                    \"FORMATFILE_DATA_SOURCE\",\n+                                    \"FIELDTERMINATOR\",\n+                                    \"ROWTERMINATOR\",\n+                                    \"FIELDQUOTE\",\n+                                    \"ESCAPE_CHAR\",\n+                                    \"DATA_COMPRESSION\",\n+                                    \"PARSER_VERSION\",\n+                                    \"ERRORFILE\",\n+                                    \"ERRORFILE_LOCATION\",\n+                                    \"ERRORFILE_DATA_SOURCE\",\n+                                    \"ROWSET_OPTIONS\",\n+                                ),\n                                 Ref(\"EqualsSegment\"),\n                                 Ref(\"QuotedLiteralSegmentOptWithN\"),\n-                                Ref(\"CommaSegment\"),\n-                                optional=True,\n                             ),\n-                            Delimited(\n-                                AnyNumberOf(\n-                                    Sequence(\n-                                        \"DATA_SOURCE\",\n-                                        Ref(\"EqualsSegment\"),\n-                                        Ref(\"QuotedLiteralSegmentOptWithN\"),\n-                                    ),\n-                                    Sequence(\n-                                        \"ERRORFILE\",\n-                                        Ref(\"EqualsSegment\"),\n-                                        Ref(\"QuotedLiteralSegmentOptWithN\"),\n-                                    ),\n-                                    Sequence(\n-                                        \"ERRORFILE_DATA_SOURCE\",\n-                                        Ref(\"EqualsSegment\"),\n-                                        Ref(\"QuotedLiteralSegmentOptWithN\"),\n-                                    ),\n-                                    Sequence(\n-                                        \"MAXERRORS\",\n-                                        Ref(\"EqualsSegment\"),\n-                                        Ref(\"NumericLiteralSegment\"),\n-                                    ),\n-                                    Sequence(\n-                                        \"FIRSTROW\",\n-                                        Ref(\"EqualsSegment\"),\n-                                        Ref(\"NumericLiteralSegment\"),\n-                                    ),\n-                                    Sequence(\n-                                        \"LASTROW\",\n-                                        Ref(\"EqualsSegment\"),\n-                                        Ref(\"NumericLiteralSegment\"),\n-                                    ),\n-                                    Sequence(\n-                                        \"CODEPAGE\",\n-                                        Ref(\"EqualsSegment\"),\n-                                        Ref(\"QuotedLiteralSegment\"),\n-                                    ),\n-                                    Sequence(\n-                                        \"FORMAT\",\n-                                        Ref(\"EqualsSegment\"),\n-                                        Ref(\"QuotedLiteralSegment\"),\n-                                    ),\n-                                    Sequence(\n-                                        \"FIELDQUOTE\",\n-                                        Ref(\"EqualsSegment\"),\n-                                        Ref(\"QuotedLiteralSegmentOptWithN\"),\n-                                    ),\n-                                    Sequence(\n-                                        \"FORMATFILE\",\n-                                        Ref(\"EqualsSegment\"),\n-                                        Ref(\"QuotedLiteralSegmentOptWithN\"),\n-                                    ),\n-                                    Sequence(\n-                                        \"FORMATFILE_DATA_SOURCE\",\n-                                        Ref(\"EqualsSegment\"),\n-                                        Ref(\"QuotedLiteralSegmentOptWithN\"),\n-                                    ),\n+                            # Bulk options that take numeric or boolean types\n+                            Sequence(\n+                                OneOf(\n+                                    \"FIRSTROW\",\n+                                    \"LASTROW\",\n+                                    \"MAXERRORS\",\n+                                    \"ROWS_PER_BATCH\",\n+                                    \"HEADER_ROW\",\n                                 ),\n-                                optional=True,\n+                                Ref(\"EqualsSegment\"),\n+                                Ref(\"LiteralGrammar\"),\n+                            ),\n+                            Sequence(\n+                                \"ORDER\",",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "peterbud",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "I think the brackets around the filename are not spec conform",
+      "file": "test/fixtures/dialects/tsql/openrowset.sql",
+      "line": 46,
+      "diff_hunk": "@@ -35,14 +35,44 @@ SELECT *\n FROM OPENROWSET(BULK(N'D:\\XChange\\test-csv.csv',\n     N'D:\\XChange\\test-csv2.csv'),\n     FORMATFILE = N'D:\\XChange\\test-csv.fmt',\n+    FORMATFILE_DATA_SOURCE = 'root\\',\n+    ROWTERMINATOR = '\\n,',\n+    FIELDTERMINATOR = '\\t',\n     FIRSTROW=2,\n     FORMAT='CSV') AS cars;\n GO\n \n+SELECT *\n+FROM OPENROWSET(BULK(",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "peterbud",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

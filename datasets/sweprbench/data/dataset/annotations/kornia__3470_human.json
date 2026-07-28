@@ -1,0 +1,84 @@
+{
+  "task_id": "kornia__3470",
+  "pr_number": 3470,
+  "repo": "kornia/kornia",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 9,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_3",
+      "body": "can you use the KORNIA_CHECK api to raise errors ?",
+      "file": "kornia/contrib/distance_transform.py",
+      "line": null,
+      "diff_hunk": "@@ -54,7 +52,7 @@ def distance_transform(image: Tensor, kernel_size: int = 3, h: float = 0.35) ->\n         >>> dt = distance_transform(volume)\n \n     \"\"\"\n-    if not isinstance(image, Tensor):\n+    if not isinstance(image, torch.Tensor):",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "edgarriba",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "check on main, as there was a massive refactor and core doesn't contain Tensor anymore, use directly torch.Tensor\n\nsame for utlils",
+      "file": "kornia/contrib/distance_transform.py",
+      "line": null,
+      "diff_hunk": "@@ -15,82 +15,105 @@\n # limitations under the License.\n #\n \n+from __future__ import annotations\n+\n import math\n \n import torch\n from torch import nn\n \n-from kornia.filters import filter2d\n+from kornia.core import Tensor",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "edgarriba",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Refactoring Suggestion (Style): I see conv_op is defined inside both conditional branches. While Python handles scope this way without crashing, it's generally safer and cleaner to assign the function alias explicitly.\r\n\r\nConsider using direct assignment:\r\n```Python\r\nif dim == 4:\r\n    conv_op = filter2d\r\nelse:\r\n    # Bind the 3D-specific args once\r\n    conv_op = filter3d\r\n```\r\n    ",
+      "file": "kornia/contrib/distance_transform.py",
+      "line": null,
+      "diff_hunk": "@@ -15,82 +15,106 @@\n # limitations under the License.\n #\n \n+from __future__ import annotations\n+\n import math\n \n import torch\n from torch import nn\n \n-from kornia.filters import filter2d\n-from kornia.geometry.grid import create_meshgrid\n+from kornia.filters import filter2d, filter3d\n+from kornia.geometry.grid import create_meshgrid, create_meshgrid3d\n \n \n def distance_transform(image: torch.Tensor, kernel_size: int = 3, h: float = 0.35) -> torch.Tensor:\n-    r\"\"\"Approximates the Manhattan distance transform of images using cascaded convolution operations.\n+    r\"\"\"Approximates the Euclidean distance transform of images/volumes using cascaded convolution operations.\n \n-    The value at each pixel in the output represents the distance to the nearest non-zero pixel in the image image.\n+    The value at each pixel/voxel represents the distance to the nearest non-zero element.\n     It uses the method described in :cite:`pham2021dtlayer`.\n-    The transformation is applied independently across the channel dimension of the images.\n+    The transformation is applied independently across the channel dimension.\n \n     Args:\n-        image: Image with shape :math:`(B,C,H,W)`.\n-        kernel_size: size of the convolution kernel.\n+        image: Image or volume with shape :math:`(B,C,H,W)` or :math:`(B,C,D,H,W)`.\n+        kernel_size: size of the convolution kernel. Must be an odd number.\n         h: value that influence the approximation of the min function.\n \n     Returns:\n-        tensor with shape :math:`(B,C,H,W)`.\n+        tensor with the same shape as input.\n \n     Example:\n+        >>> # 2D example:\n         >>> tensor = torch.zeros(1, 1, 5, 5)\n         >>> tensor[:,:, 1, 2] = 1\n-        >>> dt = kornia.contrib.distance_transform(tensor)\n+        >>> dt = distance_transform(tensor)\n+        >>> # 3D example:\n+        >>> volume = torch.zeros(1, 1, 5, 5, 5)\n+        >>> volume[:, :, 2, 2, 2] = 1\n+        >>> dt = distance_transform(volume)\n \n     \"\"\"\n     if not isinstance(image, torch.Tensor):\n         raise TypeError(f\"image type is not a torch.Tensor. Got {type(image)}\")\n \n-    if not len(image.shape) == 4:\n-        raise ValueError(f\"Invalid image shape, we expect BxCxHxW. Got: {image.shape}\")\n+    if not image.is_floating_point():\n+        raise TypeError(\"image must be a floating point tensor\")\n \n-    if kernel_size % 2 == 0:\n-        raise ValueError(\"Kernel size must be an odd number.\")\n+    dim = len(image.shape)\n+    if dim not in (4, 5):\n+        raise ValueError(f\"Invalid image shape, we expect 4D or 5D. Got: {image.shape}\")\n \n-    # n_iters is set such that the DT will be able to propagate from any corner of the image to its far,\n-    # diagonally opposite corner\n-    n_iters: int = math.ceil(max(image.shape[2], image.shape[3]) / math.floor(kernel_size / 2))\n-    grid = create_meshgrid(\n-        kernel_size, kernel_size, normalized_coordinates=False, device=image.device, dtype=image.dtype\n-    )\n+    if kernel_size % 2 == 0 or kernel_size < 3:\n+        raise ValueError(\"kernel_size must be an odd integer >= 3\")\n \n-    grid -= math.floor(kernel_size / 2)\n-    kernel = torch.hypot(grid[0, :, :, 0], grid[0, :, :, 1])\n-    kernel = torch.exp(kernel / -h).unsqueeze(0)\n+    if not (h > 0):\n+        raise ValueError(\"h must be a positive float\")\n \n-    out = torch.zeros_like(image)\n+    device = image.device\n+    dtype = image.dtype\n+    k_half = kernel_size // 2\n+\n+    if dim == 4:\n+        n_iters = math.ceil(max(image.shape[2], image.shape[3]) / k_half)\n+        grid = create_meshgrid(kernel_size, kernel_size, False, device, dtype)\n+        grid = grid - k_half\n \n-    # It is possible to avoid cloning the image if boundary = image, but this would require modifying the image tensor.\n+        dist = torch.hypot(grid[0, ..., 0], grid[0, ..., 1])\n+        kernel = torch.exp(-dist / h).unsqueeze(0)\n+\n+        def conv_op(x: torch.Tensor, k: torch.Tensor) -> torch.Tensor:",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "AdityaKumarSethia",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "can you use the KORNIA_CHECK api to raise errors ?",
+      "file": "kornia/contrib/distance_transform.py",
+      "line": null,
+      "diff_hunk": "@@ -54,7 +52,7 @@ def distance_transform(image: Tensor, kernel_size: int = 3, h: float = 0.35) ->\n         >>> dt = distance_transform(volume)\n \n     \"\"\"\n-    if not isinstance(image, Tensor):\n+    if not isinstance(image, torch.Tensor):",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "edgarriba",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

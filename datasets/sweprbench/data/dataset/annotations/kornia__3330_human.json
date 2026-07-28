@@ -1,0 +1,50 @@
+{
+  "task_id": "kornia__3330",
+  "pr_number": 3330,
+  "repo": "kornia/kornia",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 4,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "just curious why shape (1, *)",
+      "file": "kornia/augmentation/container/video.py",
+      "line": 206,
+      "diff_hunk": "@@ -183,39 +183,57 @@ def forward_parameters(self, batch_shape: torch.Size) -> List[ParamItem]:\n         # Got param generation shape to (B, C, H, W). Ignoring T.\n         batch_shape = self.__infer_channel_exclusive_batch_shape__(batch_shape, self._temporal_channel)\n \n-        if not self.same_on_frame:\n-            # Overwrite param generation shape to (B * T, C, H, W).\n-            batch_shape = torch.Size([batch_shape[0] * frame_num, *batch_shape[1:]])\n-\n         params = []\n         for name, module in named_modules:\n-            if isinstance(module, K.RandomCrop):\n-                mod_param = module.forward_parameters(batch_shape)\n-                if self.same_on_frame:\n-                    mod_param[\"src\"] = mod_param[\"src\"].repeat(frame_num, 1, 1)\n-                    mod_param[\"dst\"] = mod_param[\"dst\"].repeat(frame_num, 1, 1)\n-                param = ParamItem(name, mod_param)\n-            elif isinstance(module, (SequentialBase,)):\n-                seq_param = module.forward_parameters(batch_shape)\n-                if self.same_on_frame:\n-                    raise ValueError(\"Sequential is currently unsupported for ``same_on_frame``.\")\n-                param = ParamItem(name, seq_param)\n-            elif isinstance(module, (_AugmentationBase, K.MixAugmentationBaseV2)):\n-                mod_param = module.forward_parameters(batch_shape)\n-                if self.same_on_frame:\n+            if isinstance(module, (K.RandomCrop, _AugmentationBase, K.MixAugmentationBaseV2)):\n+                is_same_on_batch = getattr(module, \"same_on_batch\", False)\n+\n+                if self.same_on_frame and is_same_on_batch:\n+                    mod_shape = torch.Size([1, *batch_shape[1:]])",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "edgarriba",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "to avoid boilerplate code, why not parametrising somehow the test with shape and expected indices or something like that to merge the three tests into one",
+      "file": "tests/augmentation/container/test_video_sequential.py",
+      "line": 170,
+      "diff_hunk": "@@ -166,3 +166,108 @@ def test_autocast(self, data_format, device, dtype):\n             output = aug(imgs)\n \n         assert output.dtype == dtype, \"Output image dtype should match the input dtype\"\n+\n+    @pytest.mark.parametrize(\"data_format\", [\"BCTHW\", \"BTCHW\"])",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "edgarriba",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

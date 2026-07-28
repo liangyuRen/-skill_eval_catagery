@@ -1,0 +1,50 @@
+{
+  "task_id": "agents__4713",
+  "pr_number": 4713,
+  "repo": "livekit/agents",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 5,
+  "substantive_comment_count": 1,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "should we allow a filter parameter here like `chat_ctx.messages(roles=[\"user\", \"assistant\"])`",
+      "file": "livekit-agents/livekit/agents/beta/workflows/warm_transfer.py",
+      "line": 133,
+      "diff_hunk": "@@ -130,15 +130,10 @@ def get_instructions(\n         # users can override this method if they want to customize the entire instructions\n         prev_convo = \"\"\n         if chat_ctx:\n-            context_copy = chat_ctx.copy(\n-                exclude_empty_message=True,\n-                exclude_instructions=True,\n-                exclude_function_call=True,\n-                exclude_handoff=True,\n-                exclude_config_update=True,\n-            )\n-            for msg in context_copy.items:\n-                if msg.type != \"message\":\n+            for msg in chat_ctx.messages():",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "chenghao-mou",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "should we allow a filter parameter here like `chat_ctx.messages(roles=[\"user\", \"assistant\"])`",
+      "file": "livekit-agents/livekit/agents/beta/workflows/warm_transfer.py",
+      "line": 133,
+      "diff_hunk": "@@ -130,15 +130,10 @@ def get_instructions(\n         # users can override this method if they want to customize the entire instructions\n         prev_convo = \"\"\n         if chat_ctx:\n-            context_copy = chat_ctx.copy(\n-                exclude_empty_message=True,\n-                exclude_instructions=True,\n-                exclude_function_call=True,\n-                exclude_handoff=True,\n-                exclude_config_update=True,\n-            )\n-            for msg in context_copy.items:\n-                if msg.type != \"message\":\n+            for msg in chat_ctx.messages():",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "chenghao-mou",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

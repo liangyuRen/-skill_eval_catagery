@@ -1,0 +1,50 @@
+{
+  "task_id": "backstage__32466",
+  "pr_number": 32466,
+  "repo": "backstage/backstage",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 4,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\nFixes an issue where a user lacking permission to schedule tasks can now easily see the issue through a custom icon + tooltip.\n```\nor such?",
+      "file": ".changeset/small-jars-lick.md",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,5 @@\n+---\n+'@backstage/plugin-devtools': patch\n+---\n+\n+fix: change errorPage in `ScheduledTasksContent` component to provide better feedback.",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "aramissennyeydd",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Is the import ordering update here intentional? If we can, let's keep the ordering as it was before.",
+      "file": "plugins/devtools/src/components/Content/ScheduledTasksContent/ScheduledTasksContent.tsx",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "aramissennyeydd",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

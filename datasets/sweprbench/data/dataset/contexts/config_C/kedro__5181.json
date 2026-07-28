@@ -1,0 +1,10 @@
+{
+  "pr_number": 5181,
+  "repo": "kedro-org/kedro",
+  "task_id": "kedro__5181",
+  "config_name": "config_C",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 285,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `mkdocs.yml`: 3 changed lines, 0 function/branch hunks, logic markers=0.\n- PR profile: type=feature, difficulty=Type2_Contextual, language=Python, files_changed=2.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### mkdocs.yml\n```diff\ndiff --git a/mkdocs.yml b/mkdocs.yml\nindex e9030258e5..9c8cf2cd0f 100755\n--- a/mkdocs.yml\n+++ b/mkdocs.yml\n@@ -453,6 +453,7 @@ nav:\n           - DVC: integrations-and-plugins/dvc.md\n           - Delta Lake: integrations-and-plugins/deltalake_versioning.md\n           - Iceberg: integrations-and-plugins/iceberg_versioning.md\n+          - Great Expectations: integrations-and-plugins/great_expectations.md\n           - Pandera: integrations-and-plugins/pandera.md\n       - IDE Support:\n           - Visual Studio Code: ide/set_up_vscode.md\n\n```\n\n---\n\n## Layer 3 - Execution Context\n\n---\n\n## Layer 4 - Behavior Mapping\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 2\n- PR type: feature"
+}

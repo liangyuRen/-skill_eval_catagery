@@ -1,0 +1,50 @@
+{
+  "task_id": "numba__10366",
+  "pr_number": 10366,
+  "repo": "numba/numba",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 4,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "This is out of scope of this PR. I can remove.\r\n\r\nWas there a reason for it, when `normalize_axis` already handles the conversion from negative to positive axis?",
+      "file": "numba/np/arrayobj.py",
+      "line": 6978,
+      "diff_hunk": "@@ -6975,13 +6975,6 @@ def numpy_swapaxes(a, axis1, axis2):\n     def impl(a, axis1, axis2):\n         axis1 = normalize_axis(\"np.swapaxes\", \"axis1\", ndim, axis1)\n         axis2 = normalize_axis(\"np.swapaxes\", \"axis2\", ndim, axis2)\n-",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ricardoV94",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "I assume there is no tuple_insert helper? If there is (or it is easy to add) we can implement in a single pass",
+      "file": "numba/np/arrayobj.py",
+      "line": 7082,
+      "diff_hunk": "@@ -7035,6 +7035,44 @@ def impl(a, axis1, axis2):\n     return impl\n \n \n+@overload(np.moveaxis)\n+def numpy_moveaxis(a, source, destination):\n+    if not isinstance(a, types.Array):\n+        raise errors.TypingError('The first argument \"a\" must be an array')\n+    if not isinstance(source, (types.Integer, types.BaseTuple)):\n+        raise errors.TypingError(\n+            'The second argument \"source\" must be an integer or tuple of integers'\n+        )\n+    if not isinstance(destination, (types.Integer, types.BaseTuple)):\n+        raise errors.TypingError(\n+            'The third argument \"destination\" must be an integer or tuple of integers'\n+        )\n+\n+    ndim = a.ndim\n+    order_init = (1,) * a.ndim\n+\n+    def impl(a, source, destination):\n+        source = normalize_axis_tuple(\"np.moveaxis\", \"source\", ndim, source)\n+        destination = normalize_axis_tuple(\"np.moveaxis\", \"destination\", ndim, destination)\n+        if len(source) != len(destination):\n+            raise ValueError(\n+                \"`source` and `destination` arguments must have the same number of parameters\"\n+            )\n+\n+        order_list = [n for n in range(a.ndim) if n not in source]\n+\n+        for dest, src in sorted(zip(destination, source)):\n+            order_list.insert(dest, src)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ricardoV94",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

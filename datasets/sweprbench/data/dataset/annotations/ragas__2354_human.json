@@ -1,0 +1,67 @@
+{
+  "task_id": "ragas__2354",
+  "pr_number": 2354,
+  "repo": "vibrantlabsai/ragas",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 3,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\n        if is_multiple_completion_supported(self.langchain_llm) and not self.bypass_n:\n```",
+      "file": "src/ragas/llms/base.py",
+      "line": null,
+      "diff_hunk": "@@ -225,7 +228,7 @@ def generate_text(\n             old_temperature = self.langchain_llm.temperature  # type: ignore\n             self.langchain_llm.temperature = temperature  # type: ignore\n \n-        if is_multiple_completion_supported(self.langchain_llm):\n+        if is_multiple_completion_supported(self.langchain_llm) && and not self.bypass_n:",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "anistark",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "```suggestion\n        # Certain reasoning LLMs (e.g., OpenAI o1 series) do not support n parameter for\n   multiple completions\n```",
+      "file": "src/ragas/llms/base.py",
+      "line": null,
+      "diff_hunk": "@@ -158,6 +159,8 @@ def __init__(\n         self.is_finished_parser = is_finished_parser\n         # Certain LLMs (e.g., OpenAI o1 series) do not support temperature\n         self.bypass_temperature = bypass_temperature\n+        # Certain Reason LLMs do not support n",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "anistark",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "I guess this is redundant now that you've added in line 8 above. Or was that not needed? ",
+      "file": "tests/unit/llms/test_llm.py",
+      "line": null,
+      "diff_hunk": "@@ -1,10 +1,13 @@\n from __future__ import annotations\n \n import typing as t\n+from unittest.mock import MagicMock, patch\n \n+import pytest\n from langchain_core.outputs import Generation, LLMResult\n+from langchain_core.prompt_values import PromptValue\n \n-from ragas.llms.base import BaseRagasLLM\n+from ragas.llms.base import BaseRagasLLM, LangchainLLMWrapper\n \n if t.TYPE_CHECKING:\n     from langchain_core.prompt_values import PromptValue",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "anistark",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

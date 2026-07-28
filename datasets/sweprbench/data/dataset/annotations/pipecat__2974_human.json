@@ -1,0 +1,67 @@
+{
+  "task_id": "pipecat__2974",
+  "pr_number": 2974,
+  "repo": "pipecat-ai/pipecat",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 4,
+  "substantive_comment_count": 3,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "A few thoughts:\n\n- In `fallback_to_base_code()` shouldn't we always emit a warning, like we do in `fallback_to_full_code()`? We're already falling back. Either the user has tried to configure a service with a full language code (e.g. \"en-US\") when it only supports base codes (e.g. \"en\") or they've provided an unverified base code (or both\u2014a full code with an unverified base component).\n- We might want to broaden the `fallback` methods into `resolve` methods (or maybe just a single `resolve` method), so that they also handle checking the map for the user-provided language before falling back. We have a lot of logic scattered about that looks like:\n  ```python\n  # Check\n  result = LANGUAGE_MAP.get(language)\n\n  # Fall back\n  if not result:\n    result = fallback_to_base_code(language, LANGUAGE_MAP)\n  ```\n  That could be simplified to:\n  ```python\n  result = resolve_language(language, LANGUAGE_MAP, fallback=BaseCode) # BaseCode | FullCode\n  ```",
+      "file": "src/pipecat/transcriptions/language.py",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "kompfner",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "The language conversation utility functions weren't previously used. This uses them and aligns with the other STT and TTS services.",
+      "file": "src/pipecat/services/speechmatics/stt.py",
+      "line": 610,
+      "diff_hunk": "@@ -604,11 +604,21 @@ def _process_config(self) -> None:\n         Creates a transcription config object based on the service parameters. Aligns\n         with the Speechmatics RT API transcription config.\n         \"\"\"\n+        # Convert language if it's a Language enum\n+        language = self._params.language\n+        if isinstance(language, Language):\n+            language = _language_to_speechmatics_language(language)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "markbackman",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "\ud83d\udc4d ",
+      "file": "src/pipecat/services/whisper/stt.py",
+      "line": 109,
+      "diff_hunk": "@@ -106,159 +106,70 @@ def language_to_whisper_language(language: Language) -> Optional[str]:\n     Note:\n         Only includes languages officially supported by Whisper.\n     \"\"\"\n-    language_map = {\n+    LANGUAGE_MAP = {",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "kompfner",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "task_id": "firebase-android-sdk__7619",
+  "pr_number": 7619,
+  "repo": "firebase/firebase-android-sdk",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 4,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nThe number of parameters in this function is quite large, which can impact readability and maintainability. The probability-related parameters (`structSizeEdgeCaseProbability` through `nestedProbability`) are passed through this function only to be used in the recursive call to `generateValue`.\n\nTo improve clarity, consider encapsulating these probabilities into a dedicated data class. For example:\n\n```kotlin\nprivate data class GenerationProbabilities(\n  val structSizeEdgeCase: Float,\n  val listSizeEdgeCase: Float,\n  val structKeyEdgeCase: Float,\n  val scalarValueEdgeCase: Float,\n  val nested: Float\n)\n```\n\nAdopting this would simplify the signatures for `generateCompositeValue`, `generateValue`, `generateStruct`, and `generateListValue`, making the code easier to follow.",
+      "file": "firebase-dataconnect/testutil/src/main/kotlin/com/google/firebase/dataconnect/testutil/property/arbitrary/proto.kt",
+      "line": 529,
+      "diff_hunk": "@@ -575,51 +450,266 @@ fun Value.maxDepth(): Int =\n     else -> 1\n   }\n \n-private class NextNestedValueResult(\n-  val value: Value,\n-  val descendants: List<DataConnectPathValuePair>,\n-)\n+private class StructOrListValueGenerator(\n+  private val scalarValue: Arb<Value>,\n+  private val structKey: Arb<String>,\n+  private val structSize: IntRange,\n+  private val listSize: IntRange,\n+) {\n+  fun generateStruct(\n+    rs: RandomSource,\n+    path: DataConnectPath,\n+    depth: Int,\n+    descendants: MutableList<DataConnectPathValuePair>,\n+    structSizeEdgeCaseProbability: Float,\n+    listSizeEdgeCaseProbability: Float,\n+    structKeyEdgeCaseProbability: Float,\n+    scalarValueEdgeCaseProbability: Float,\n+    nestedProbability: Float,\n+  ): Struct {\n+    require(depth > 0) { \"invalid depth: $depth (must be greater than zero)\" }\n \n-private enum class NextNestedValueCase {\n-  Struct,\n-  ListValue,\n-}\n+    val structBuilder = Struct.newBuilder()\n \n-private fun RandomSource.nextNestedValue(\n-  structArb: StructArb,\n-  listValueArb: ListValueArb,\n-  path: DataConnectPath,\n-  depth: Int,\n-  sizeEdgeCaseProbability: Float,\n-  structKeyEdgeCaseProbability: Float,\n-  valueEdgeCaseProbability: Float,\n-  nestedProbability: Float,\n-): NextNestedValueResult =\n-  when (NextNestedValueCase.entries.random(random)) {\n-    NextNestedValueCase.Struct -> {\n-      val sample =\n-        structArb.sample(\n-          this,\n+    val childPathSegmentGenerator =\n+      generateSequence { structKey.next(rs, structKeyEdgeCaseProbability) }\n+        .filterNot { structBuilder.containsFields(it) }\n+        .map(DataConnectPathSegment::Field)\n+        .iterator()\n+\n+    generateCompositeValue(\n+      rs = rs,\n+      path = path,\n+      depth = depth,\n+      sizeRange = structSize,\n+      sizeEdgeCaseProbability = structSizeEdgeCaseProbability,\n+      descendants = descendants,\n+      structSizeEdgeCaseProbability = structSizeEdgeCaseProbability,\n+      listSizeEdgeCaseProbability = listSizeEdgeCaseProbability,\n+      structKeyEdgeCaseProbability = structKeyEdgeCaseProbability,\n+      scalarValueEdgeCaseProbability = scalarValueEdgeCaseProbability,\n+      nestedProbability = nestedProbability,\n+      childPathSegmentForIndex = { childPathSegmentGenerator.next() },\n+      onChildGenerated = { childPathSegment, value ->\n+        structBuilder.putFields(childPathSegment.field, value)\n+      },\n+    )\n+\n+    return structBuilder.build()\n+  }\n+\n+  fun generateListValue(\n+    rs: RandomSource,\n+    path: DataConnectPath,\n+    depth: Int,\n+    descendants: MutableList<DataConnectPathValuePair>,\n+    structSizeEdgeCaseProbability: Float,\n+    listSizeEdgeCaseProbability: Float,\n+    structKeyEdgeCaseProbability: Float,\n+    scalarValueEdgeCaseProbability: Float,\n+    nestedProbability: Float,\n+  ): ListValue {\n+    require(depth > 0) { \"invalid depth: $depth (must be greater than zero)\" }\n+\n+    val listValueBuilder = ListValue.newBuilder()\n+\n+    generateCompositeValue(\n+      rs = rs,\n+      path = path,\n+      depth = depth,\n+      sizeRange = listSize,\n+      sizeEdgeCaseProbability = listSizeEdgeCaseProbability,\n+      descendants = descendants,\n+      structSizeEdgeCaseProbability = structSizeEdgeCaseProbability,\n+      listSizeEdgeCaseProbability = listSizeEdgeCaseProbability,\n+      structKeyEdgeCaseProbability = structKeyEdgeCaseProbability,\n+      scalarValueEdgeCaseProbability = scalarValueEdgeCaseProbability,\n+      nestedProbability = nestedProbability,\n+      childPathSegmentForIndex = DataConnectPathSegment::ListIndex,\n+      onChildGenerated = { _, value -> listValueBuilder.addValues(value) },\n+    )\n+\n+    return listValueBuilder.build()\n+  }\n+\n+  private inline fun <P : DataConnectPathSegment> generateCompositeValue(\n+    rs: RandomSource,\n+    path: DataConnectPath,\n+    depth: Int,\n+    sizeRange: IntRange,\n+    sizeEdgeCaseProbability: Float,\n+    descendants: MutableList<DataConnectPathValuePair>,\n+    structSizeEdgeCaseProbability: Float,\n+    listSizeEdgeCaseProbability: Float,\n+    structKeyEdgeCaseProbability: Float,\n+    scalarValueEdgeCaseProbability: Float,\n+    nestedProbability: Float,\n+    childPathSegmentForIndex: (index: Int) -> P,\n+    onChildGenerated: (pathSegment: P, value: Value) -> Unit,\n+  ) {",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "task_id": "kedro__5257",
+  "pr_number": 5257,
+  "repo": "kedro-org/kedro",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 1,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\r\nBefore submitting the Argo Workflows spec you need to deploy a Kubernetes Secrets.\r\n```",
+      "file": "docs/deploy/supported-platforms/argo.md",
+      "line": 191,
+      "diff_hunk": "@@ -171,24 +171,24 @@ spec:\n !!! note\n     The Argo Workflows is defined as the dependencies between tasks using a directed-acyclic graph (DAG).\n \n-For the purpose of this walk-through, we will use an AWS S3 bucket for datasets; therefore `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables must be set to have an ability to communicate with S3. The `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` values should be stored in [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) (an example [Kubernetes Secrets spec is given below](#submit-argo-workflows-spec-to-kubernetes)).\n+In this walk-through, we use an AWS S3 bucket for datasets. Set the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables so the workflow can communicate with S3. Store both values in [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/); an example [Kubernetes Secrets spec is given below](#submit-the-argo-workflows-spec-to-kubernetes).\n \n The spec template is written with the [Jinja templating language](https://jinja.palletsprojects.com/en/2.11.x/), so you must install the Jinja Python package:\n \n ```console\n $ pip install Jinja2\n ```\n \n-Finally, run the helper script from project's directory to build the Argo Workflows spec (the spec will be saved to `<project_root>/templates/argo-<package_name>.yml` file).\n+Run the helper script from the project directory to build the Argo Workflows spec (the spec will be saved to `<project_root>/templates/argo-<package_name>.yml` file).\n \n ```console\n $ cd <project_root>\n $ python build_argo_spec.py <project_image>\n ```\n \n-### Submit Argo Workflows spec to Kubernetes\n+### Submit the Argo Workflows spec to Kubernetes\n \n-Before submitting the Argo Workflows spec you need to deploy a Kubernetes Secrets.\n+Before submitting the Argo Workflows spec you need to deploy a Kubernetes Secret.",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ElenaKhaustova",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\r\nBefore submitting the Argo Workflows spec you need to deploy a Kubernetes Secrets.\r\n```",
+      "file": "docs/deploy/supported-platforms/argo.md",
+      "line": 191,
+      "diff_hunk": "@@ -171,24 +171,24 @@ spec:\n !!! note\n     The Argo Workflows is defined as the dependencies between tasks using a directed-acyclic graph (DAG).\n \n-For the purpose of this walk-through, we will use an AWS S3 bucket for datasets; therefore `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables must be set to have an ability to communicate with S3. The `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` values should be stored in [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/) (an example [Kubernetes Secrets spec is given below](#submit-argo-workflows-spec-to-kubernetes)).\n+In this walk-through, we use an AWS S3 bucket for datasets. Set the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables so the workflow can communicate with S3. Store both values in [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/); an example [Kubernetes Secrets spec is given below](#submit-the-argo-workflows-spec-to-kubernetes).\n \n The spec template is written with the [Jinja templating language](https://jinja.palletsprojects.com/en/2.11.x/), so you must install the Jinja Python package:\n \n ```console\n $ pip install Jinja2\n ```\n \n-Finally, run the helper script from project's directory to build the Argo Workflows spec (the spec will be saved to `<project_root>/templates/argo-<package_name>.yml` file).\n+Run the helper script from the project directory to build the Argo Workflows spec (the spec will be saved to `<project_root>/templates/argo-<package_name>.yml` file).\n \n ```console\n $ cd <project_root>\n $ python build_argo_spec.py <project_image>\n ```\n \n-### Submit Argo Workflows spec to Kubernetes\n+### Submit the Argo Workflows spec to Kubernetes\n \n-Before submitting the Argo Workflows spec you need to deploy a Kubernetes Secrets.\n+Before submitting the Argo Workflows spec you need to deploy a Kubernetes Secret.",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ElenaKhaustova",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

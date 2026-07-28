@@ -1,0 +1,67 @@
+{
+  "task_id": "prowler__9834",
+  "pr_number": 9834,
+  "repo": "prowler-cloud/prowler",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 3,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "I think we should mark them as `FAIL`, even if we already know they\u2019ll fail, because a report still needs to be generated. If someone is already aware of the issue and understands the associated risk, they always have the option to mute it.",
+      "file": "prowler/providers/gcp/services/compute/compute_instance_on_host_maintenance_migrate/compute_instance_on_host_maintenance_migrate.py",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,37 @@\n+from prowler.lib.check.models import Check, Check_Report_GCP\n+from prowler.providers.gcp.services.compute.compute_client import compute_client\n+\n+\n+class compute_instance_on_host_maintenance_migrate(Check):\n+    \"\"\"\n+    Ensure Compute Engine VM instances have On Host Maintenance set to MIGRATE.\n+\n+    This check evaluates whether VM instances are configured to live migrate during\n+    host maintenance events, preventing downtime when Google performs maintenance.\n+\n+    - PASS: VM instance has On Host Maintenance set to MIGRATE.\n+    - FAIL: VM instance has On Host Maintenance set to TERMINATE.\n+    \"\"\"\n+\n+    def execute(self) -> list[Check_Report_GCP]:\n+        findings = []\n+        for instance in compute_client.instances:\n+            # Skip preemptible and Spot VMs as they cannot use MIGRATE",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "HugoPBrito",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I think we should mark them as `FAIL`, even if we already know they\u2019ll fail, because a report still needs to be generated. If someone is already aware of the issue and understands the associated risk, they always have the option to mute it.",
+      "file": "prowler/providers/gcp/services/compute/compute_instance_on_host_maintenance_migrate/compute_instance_on_host_maintenance_migrate.py",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,37 @@\n+from prowler.lib.check.models import Check, Check_Report_GCP\n+from prowler.providers.gcp.services.compute.compute_client import compute_client\n+\n+\n+class compute_instance_on_host_maintenance_migrate(Check):\n+    \"\"\"\n+    Ensure Compute Engine VM instances have On Host Maintenance set to MIGRATE.\n+\n+    This check evaluates whether VM instances are configured to live migrate during\n+    host maintenance events, preventing downtime when Google performs maintenance.\n+\n+    - PASS: VM instance has On Host Maintenance set to MIGRATE.\n+    - FAIL: VM instance has On Host Maintenance set to TERMINATE.\n+    \"\"\"\n+\n+    def execute(self) -> list[Check_Report_GCP]:\n+        findings = []\n+        for instance in compute_client.instances:\n+            # Skip preemptible and Spot VMs as they cannot use MIGRATE",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "HugoPBrito",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "```suggestion\n                        f\"If high availability is required, consider using a non-preemptible VM instead.\"\n```",
+      "file": "prowler/providers/gcp/services/compute/compute_instance_on_host_maintenance_migrate/compute_instance_on_host_maintenance_migrate.py",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,41 @@\n+from prowler.lib.check.models import Check, Check_Report_GCP\n+from prowler.providers.gcp.services.compute.compute_client import compute_client\n+\n+\n+class compute_instance_on_host_maintenance_migrate(Check):\n+    \"\"\"\n+    Ensure Compute Engine VM instances have On Host Maintenance set to MIGRATE.\n+\n+    This check evaluates whether VM instances are configured to live migrate during\n+    host maintenance events, preventing downtime when Google performs maintenance.\n+\n+    - PASS: VM instance has On Host Maintenance set to MIGRATE.\n+    - FAIL: VM instance has On Host Maintenance set to TERMINATE.\n+    \"\"\"\n+\n+    def execute(self) -> list[Check_Report_GCP]:\n+        findings = []\n+        for instance in compute_client.instances:\n+            report = Check_Report_GCP(metadata=self.metadata(), resource=instance)\n+\n+            if instance.on_host_maintenance == \"MIGRATE\":\n+                report.status = \"PASS\"\n+                report.status_extended = f\"VM Instance {instance.name} has On Host Maintenance set to MIGRATE.\"\n+            else:\n+                report.status = \"FAIL\"\n+                if instance.preemptible or instance.provisioning_model == \"SPOT\":\n+                    vm_type = \"preemptible\" if instance.preemptible else \"Spot\"\n+                    report.status_extended = (\n+                        f\"VM Instance {instance.name} is a {vm_type} VM and has On Host Maintenance set to TERMINATE. \"\n+                        f\"{vm_type.capitalize()} VMs cannot use MIGRATE and must always use TERMINATE. \"\n+                        f\"If high availability is required, use a standard VM instead.\"",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "HugoPBrito",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "task_id": "nessie__11886",
+  "pr_number": 11886,
+  "repo": "projectnessie/nessie",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 12,
+  "substantive_comment_count": 1,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "I tend to think that reading `resolve.conf` using the platform default encoding is correct.",
+      "file": "tools/network/src/main/java/org/projectnessie/nessie/networktools/ResolvConf.java",
+      "line": null,
+      "diff_hunk": "@@ -55,7 +56,7 @@ public static ResolvConf fromReader(BufferedReader reader) throws IOException {\n    * syntax of the {@code /etc/resolv.conf} file, see {@code man resolv.conf}.\n    */\n   public static ResolvConf fromFile(String file) throws IOException {\n-    try (FileReader fileReader = new FileReader(file);\n+    try (FileReader fileReader = new FileReader(file, StandardCharsets.US_ASCII);",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "dimas-b",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I tend to think that reading `resolve.conf` using the platform default encoding is correct.",
+      "file": "tools/network/src/main/java/org/projectnessie/nessie/networktools/ResolvConf.java",
+      "line": null,
+      "diff_hunk": "@@ -55,7 +56,7 @@ public static ResolvConf fromReader(BufferedReader reader) throws IOException {\n    * syntax of the {@code /etc/resolv.conf} file, see {@code man resolv.conf}.\n    */\n   public static ResolvConf fromFile(String file) throws IOException {\n-    try (FileReader fileReader = new FileReader(file);\n+    try (FileReader fileReader = new FileReader(file, StandardCharsets.US_ASCII);",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "dimas-b",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

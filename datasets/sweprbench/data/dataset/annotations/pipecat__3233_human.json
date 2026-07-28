@@ -1,0 +1,50 @@
+{
+  "task_id": "pipecat__3233",
+  "pr_number": 3233,
+  "repo": "pipecat-ai/pipecat",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 9,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Good catch!\r\n\r\nWe can make this more concise and more future proof if we just check for `_error` in the message_type:\r\n```\r\n        elif message_type and message_type.endswith(\"_error\"):\r\n            # Handle all error types\r\n            error_msg = data.get(\"error\", \"Unknown error\")\r\n            await self.push_error(error_msg=f\"ElevenLabs {message_type}: {error_msg}\")\r\n```\r\n\r\nThis would replace your proposal and the individual checks for `\"error\"`, `\"auth_error\"`, and `\"quota_exceeded_error\"`.",
+      "file": "src/pipecat/services/elevenlabs/stt.py",
+      "line": null,
+      "diff_hunk": "@@ -738,12 +733,14 @@ async def _process_response(self, data: dict):\n             error_msg = data.get(\"error\", \"Authentication error\")\n             logger.error(f\"ElevenLabs auth error: {error_msg}\")\n             await self.push_error(error_msg=f\"Auth error: {error_msg}\")\n-\n         elif message_type == \"quota_exceeded_error\":\n             error_msg = data.get(\"error\", \"Quota exceeded\")\n             logger.error(f\"ElevenLabs quota exceeded: {error_msg}\")\n             await self.push_error(error_msg=f\"Quota exceeded: {error_msg}\")\n-\n+        elif message_type in error_types:",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "markbackman",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Remove?\r\n\r\n```suggestion\r\n```",
+      "file": "changelog/3233.fixed.md",
+      "line": 2,
+      "diff_hunk": "@@ -0,0 +1,2 @@\n+- Improved error handling in `ElevenLabsRealtimeSTTService`\n+- Fixed an issue in `ElevenLabsRealtimeSTTService` causing an infinite loop that blocks the process if the websocket disconnects due to an error",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "markbackman",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

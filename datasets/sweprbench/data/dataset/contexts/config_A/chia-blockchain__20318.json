@@ -1,0 +1,10 @@
+{
+  "pr_number": 20318,
+  "repo": "Chia-Network/chia-blockchain",
+  "task_id": "chia-blockchain__20318",
+  "config_name": "config_A",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 395,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `chia/wallet/wallet_state_manager.py`: 330 changed lines, 1 function/branch hunks, logic markers=59.\n- `chia/wallet/wallet_rpc_api.py`: 342 changed lines, 4 function/branch hunks, logic markers=1.\n- `chia/_tests/wallet/rpc/test_wallet_rpc.py`: 4 changed lines, 1 function/branch hunks, logic markers=0.\n- PR profile: type=feature, difficulty=Type2_Contextual, language=Python, files_changed=3.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### chia/_tests/wallet/rpc/test_wallet_rpc.py\n```diff\ndiff --git a/chia/_tests/wallet/rpc/test_wallet_rpc.py b/chia/_tests/wallet/rpc/test_wallet_rpc.py\nindex 4baeef7b9ea2..61f92abca7c2 100644\n--- a/chia/_tests/wallet/rpc/test_wallet_rpc.py\n+++ b/chia/_tests/wallet/rpc/test_wallet_rpc.py\n@@ -2302,8 +2302,6 @@ async def have_nfts() -> bool:\n \n     # Test with the hex version of nft_id\n     nft_id = (await nft_wallet.get_current_nfts())[0].coin.name().hex()\n-    with pytest.raises(ResponseFailureError, match=\"Invalid Coin ID format for 'coin_id'\"):\n-        await wallet_1_rpc.get_nft_info(NFTGetInfo(\"error\"))\n     nft_info = (await wallet_1_rpc.get_nft_info(NFTGetInfo(nft_id))).nft_info\n     assert nft_info.nft_coin_id == (await nft_wallet.get_current_nfts())[0].coin.name()\n     # Test with the bech32m version of nft_id\n```\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 3\n- PR type: feature"
+}

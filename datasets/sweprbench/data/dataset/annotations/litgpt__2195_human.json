@@ -1,0 +1,50 @@
+{
+  "task_id": "litgpt__2195",
+  "pr_number": 2195,
+  "repo": "Lightning-AI/litgpt",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "Maybe we can move this part below the Gemma-2 (around line 560) to keep things consistent.\n\nAlso, @adi776borate \u2014 do we need to set `untie_weights` here? (just checking).",
+      "file": "litgpt/scripts/convert_lit_checkpoint.py",
+      "line": null,
+      "diff_hunk": "@@ -565,6 +565,9 @@ def convert_lit_checkpoint(checkpoint_dir: Path, output_dir: Path) -> None:\n         copy_fn = partial(copy_weights_olmo2, config)\n     elif config.name.lower().startswith(\"qwen3\"):\n         copy_fn = partial(copy_weights_qwen_3, config)\n+    elif config.name.startswith(\"Gemma-3\"):\n+        untie_weights = True\n+        copy_fn = partial(copy_weights_gemma_3, config, untie_weights=untie_weights)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "bhimrazy",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Maybe we can move this part below the Gemma-2 (around line 560) to keep things consistent.\n\nAlso, @adi776borate \u2014 do we need to set `untie_weights` here? (just checking).",
+      "file": "litgpt/scripts/convert_lit_checkpoint.py",
+      "line": null,
+      "diff_hunk": "@@ -565,6 +565,9 @@ def convert_lit_checkpoint(checkpoint_dir: Path, output_dir: Path) -> None:\n         copy_fn = partial(copy_weights_olmo2, config)\n     elif config.name.lower().startswith(\"qwen3\"):\n         copy_fn = partial(copy_weights_qwen_3, config)\n+    elif config.name.startswith(\"Gemma-3\"):\n+        untie_weights = True\n+        copy_fn = partial(copy_weights_gemma_3, config, untie_weights=untie_weights)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "bhimrazy",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

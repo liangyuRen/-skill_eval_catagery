@@ -1,0 +1,10 @@
+{
+  "pr_number": 5250,
+  "repo": "kedro-org/kedro",
+  "task_id": "kedro__5250",
+  "config_name": "config_C",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 429,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `kedro/utils.py`: 96 changed lines, 1 function/branch hunks, logic markers=12.\n- `mkdocs.yml`: 4 changed lines, 0 function/branch hunks, logic markers=0.\n- `tests/test_utils.py`: 151 changed lines, 1 function/branch hunks, logic markers=7.\n- PR profile: type=feature, difficulty=Type1_Direct, language=Python, files_changed=7.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### mkdocs.yml\n```diff\ndiff --git a/mkdocs.yml b/mkdocs.yml\nindex 31e15f6d80..c0e341e366 100755\n--- a/mkdocs.yml\n+++ b/mkdocs.yml\n@@ -253,6 +253,7 @@ plugins:\n           - about/technical_steering_committee.md: Kedro's Technical Steering Committee\n           - about/migration.md: Migration guide between Kedro versions\n           - about/telemetry.md: Understanding Kedro telemetry\n+          - about/experimental.md: Experimental APIs in Kedro\n \n markdown_extensions:\n   - attr_list\n@@ -464,6 +465,7 @@ nav:\n             #   - Kedro Wizard: about/community/wizard.md\n           - Contributing:\n               - Kedro's Technical Steering Committee: about/technical_steering_committee.md\n+          - Experimental APIs in Kedro: about/experimental.md\n             #   - Kedro Maintainer: about/contributing/maintainer.md\n             #   - Contributing on GitHub: about/contributing/github.md\n             #   - Contributing documentation: about/contributing/documentation.md\n```\n\n---\n\n## Layer 3 - Execution Context\n\n---\n\n## Layer 4 - Behavior Mapping\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 7\n- PR type: feature"
+}

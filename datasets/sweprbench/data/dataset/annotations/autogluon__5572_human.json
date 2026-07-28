@@ -1,0 +1,33 @@
+{
+  "task_id": "autogluon__5572",
+  "pr_number": 5572,
+  "repo": "autogluon/autogluon",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I've also seen failures in tabular tests due to downloading Mitra (although far less common than AutoMM failures). We may want to also do a separate PR which pre-downloads Mitra (and maybe TabPFN/TabDPT/TabICL/etc.?)",
+      "file": "multimodal/tests/hf_model_list.yaml",
+      "line": 23,
+      "diff_hunk": "@@ -20,6 +20,7 @@ others:\n - huawei-noah/TinyBERT_General_4L_312D\n - microsoft/deberta-base\n - microsoft/deberta-v3-base\n+- microsoft/deberta-v3-small",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "Innixma",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

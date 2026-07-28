@@ -1,0 +1,33 @@
+{
+  "task_id": "sqlfluff__7499",
+  "pr_number": 7499,
+  "repo": "sqlfluff/sqlfluff",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "If we are at it, the increment cannot be negative? TBH: I did not even know that seed can be negative",
+      "file": "src/sqlfluff/dialects/dialect_tsql.py",
+      "line": 5123,
+      "diff_hunk": "@@ -5109,6 +5116,7 @@ class IdentityGrammar(BaseSegment):\n         # optional (seed, increment) e.g. (1, 1)\n         Bracketed(\n             Sequence(\n+                Ref(\"SignedSegmentGrammar\", optional=True),\n                 Ref(\"NumericLiteralSegment\"),\n                 Ref(\"CommaSegment\"),\n                 Ref(\"NumericLiteralSegment\"),",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "peterbud",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

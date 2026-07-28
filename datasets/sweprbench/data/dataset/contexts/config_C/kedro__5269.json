@@ -1,0 +1,10 @@
+{
+  "pr_number": 5269,
+  "repo": "kedro-org/kedro",
+  "task_id": "kedro__5269",
+  "config_name": "config_C",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 265,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `.github/styles/Kedro/headings.yml`: 4 changed lines, 0 function/branch hunks, logic markers=0.\n- PR profile: type=bug_fix, difficulty=Type1_Direct, language=Python, files_changed=11.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### .github/styles/Kedro/headings.yml\n```diff\ndiff --git a/.github/styles/Kedro/headings.yml b/.github/styles/Kedro/headings.yml\nindex ec5e6818c4..b2915bd5b6 100644\n--- a/.github/styles/Kedro/headings.yml\n+++ b/.github/styles/Kedro/headings.yml\n@@ -46,11 +46,13 @@ exceptions:\n   - Iceberg\n   - IDs\n   - IO\n+  - IPython\n   - Jenkins\n   - JFrog\n   - JFrog Artifactory\n   - Jira\n   - Jupyter Notebook\n+  - JupyterLab\n   - Kafka\n   - Kubeflow\n   - Kubeflow Pipelines\n```\n\n---\n\n## Layer 3 - Execution Context\n\n---\n\n## Layer 4 - Behavior Mapping\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 11\n- PR type: bug_fix"
+}

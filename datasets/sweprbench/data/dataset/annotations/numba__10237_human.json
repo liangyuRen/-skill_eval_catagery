@@ -1,0 +1,100 @@
+{
+  "task_id": "numba__10237",
+  "pr_number": 10237,
+  "repo": "numba/numba",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 8,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 2,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "To be consistent with other source-inclusion statements/licences in this file, this should probably start with a sentence like:\r\nhttps://github.com/numba/numba/blob/338b0a2a98a3ede6fba7888a03726804d2059a61/LICENSES.third-party#L456-L461\r\n(adapted to `numba-cuda`). With included source using that reference format.\r\n",
+      "file": "LICENSES.third-party",
+      "line": 543,
+      "diff_hunk": "@@ -530,3 +530,33 @@ INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM\n LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR\n OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR\n PERFORMANCE OF THIS SOFTWARE.\n+\n+numba-cuda\n+----------\n+",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "stuartarchibald",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "To be consistent with code inclusion formatting, this should have a URL to the repository involved with a SHA of the commit and line numbers so as to act as a permanent reference.",
+      "file": "numba/cuda/cudadrv/driver.py",
+      "line": null,
+      "diff_hunk": "@@ -365,6 +365,10 @@ def _find_api(self, fname):\n         else:\n             variants = ('_v2', '')\n \n+        # workaround from https://github.com/NVIDIA/numba-cuda/pull/185",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "stuartarchibald",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "To be consistent with other source-inclusion statements/licences in this file, this should probably start with a sentence like:\r\nhttps://github.com/numba/numba/blob/338b0a2a98a3ede6fba7888a03726804d2059a61/LICENSES.third-party#L456-L461\r\n(adapted to `numba-cuda`). With included source using that reference format.\r\n",
+      "file": "LICENSES.third-party",
+      "line": 543,
+      "diff_hunk": "@@ -530,3 +530,33 @@ INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM\n LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR\n OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR\n PERFORMANCE OF THIS SOFTWARE.\n+\n+numba-cuda\n+----------\n+",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "stuartarchibald",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "To be consistent with code inclusion formatting, this should have a URL to the repository involved with a SHA of the commit and line numbers so as to act as a permanent reference.",
+      "file": "numba/cuda/cudadrv/driver.py",
+      "line": null,
+      "diff_hunk": "@@ -365,6 +365,10 @@ def _find_api(self, fname):\n         else:\n             variants = ('_v2', '')\n \n+        # workaround from https://github.com/NVIDIA/numba-cuda/pull/185",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "stuartarchibald",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "```suggestion\r\n        # workaround from https://github.com/NVIDIA/numba-cuda/commit/6e08c9d08e9de59c7af28b720289debbbd384764  # noqa: E501\r\n```\r\n\r\nThis line is now too long for `flake8`, it needs an exception comment at the end. From memory, I think it's a `#noqa: E501`.\r\n",
+      "file": "numba/cuda/cudadrv/driver.py",
+      "line": null,
+      "diff_hunk": "@@ -365,6 +365,10 @@ def _find_api(self, fname):\n         else:\n             variants = ('_v2', '')\n \n+        # workaround from https://github.com/NVIDIA/numba-cuda/commit/6e08c9d08e9de59c7af28b720289debbbd384764",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "stuartarchibald",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "task_id": "stylelint__9039",
+  "pr_number": 9039,
+  "repo": "stylelint/stylelint",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\r\nFixed: `named-grid-areas-no-invalid` false positives for mix of tabs and spaces\r\n```\r\n\r\nTo align with [our conventions](https://stylelint.io/maintainer-guide/issues#titles). We have a lot of entries in our [CHANGELOG](https://stylelint.io/CHANGELOG) and keeping things consistent helps users scan it and our release notes.  The positives/negatives bit helps us determine if it's a patch or minor change based on our [semver policy](https://stylelint.io/about/semantic-versioning/).",
+      "file": ".changeset/fix-8134.md",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,5 @@\n+---\n+\"stylelint\": patch\n+---\n+\n+Fixed: `named-grid-areas-no-invalid` not recognizing valid whitespace separators",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jeddy3",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

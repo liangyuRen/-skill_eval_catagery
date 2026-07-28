@@ -1,0 +1,84 @@
+{
+  "task_id": "protocompile__569",
+  "pr_number": 569,
+  "repo": "bufbuild/protocompile",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 6,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "You should include a comment explaining what this does.\r\n\r\nThat said, I think it might be clearer to just `clear(s.stack); s.state = s.state[:0]` on the way out.",
+      "file": "internal/toposort/toposort.go",
+      "line": null,
+      "diff_hunk": "@@ -78,46 +72,47 @@ func (s *Sorter[Node, Key]) Sort(\n \t\t\ts.push(root)\n \t\t\t// This algorithm is DFS that has been tail-call-optimized into a loop.\n \t\t\t// Each node is visited twice in the loop: once to add its children to\n-\t\t\t// the stack, and once to pop it and add it to the output. The visited\n-\t\t\t// stack tracks whether this is the first or second visit through the\n-\t\t\t// loop.\n+\t\t\t// the stack, and once to pop it and add it to the output. The state\n+\t\t\t// tracks whether this Node has been visisted and if its the first\n+\t\t\t// or second visit through the loop.\n \t\t\tfor len(s.stack) > 0 {\n \t\t\t\tnode, _ := slicesx.Last(s.stack)\n \t\t\t\tk := s.Key(node)\n-\t\t\t\tstate := s.state[k]\n+\t\t\t\tyielded, visited := s.state[k]\n \n-\t\t\t\tif state == unsorted {\n-\t\t\t\t\ts.state[k] = working\n+\t\t\t\tif !visited {\n+\t\t\t\t\ts.state[k] = false\n \t\t\t\t\tfor child := range dag(node) {\n \t\t\t\t\t\ts.push(child)\n \t\t\t\t\t}\n \t\t\t\t\tcontinue\n \t\t\t\t}\n \n+\t\t\t\tvar zeroNode Node\n+\t\t\t\ts.stack[len(s.stack)-1] = zeroNode",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "mcy",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Need a comment explaining what this bool means. Though note that converting into a `bool` doesn't actually do anything, because internally every `bool` is one byte wide. Maps don't do binpacking, to my knowledge.",
+      "file": "internal/toposort/toposort.go",
+      "line": null,
+      "diff_hunk": "@@ -50,7 +43,7 @@ type Sorter[Node any, Key comparable] struct {\n \t// A function to extract a unique key from each node, for marking.\n \tKey func(Node) Key\n \n-\tstate     map[Key]byte\n+\tstate     map[Key]bool",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "mcy",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "You should include a comment explaining what this does.\r\n\r\nThat said, I think it might be clearer to just `clear(s.stack); s.state = s.state[:0]` on the way out.",
+      "file": "internal/toposort/toposort.go",
+      "line": null,
+      "diff_hunk": "@@ -78,46 +72,47 @@ func (s *Sorter[Node, Key]) Sort(\n \t\t\ts.push(root)\n \t\t\t// This algorithm is DFS that has been tail-call-optimized into a loop.\n \t\t\t// Each node is visited twice in the loop: once to add its children to\n-\t\t\t// the stack, and once to pop it and add it to the output. The visited\n-\t\t\t// stack tracks whether this is the first or second visit through the\n-\t\t\t// loop.\n+\t\t\t// the stack, and once to pop it and add it to the output. The state\n+\t\t\t// tracks whether this Node has been visisted and if its the first\n+\t\t\t// or second visit through the loop.\n \t\t\tfor len(s.stack) > 0 {\n \t\t\t\tnode, _ := slicesx.Last(s.stack)\n \t\t\t\tk := s.Key(node)\n-\t\t\t\tstate := s.state[k]\n+\t\t\t\tyielded, visited := s.state[k]\n \n-\t\t\t\tif state == unsorted {\n-\t\t\t\t\ts.state[k] = working\n+\t\t\t\tif !visited {\n+\t\t\t\t\ts.state[k] = false\n \t\t\t\t\tfor child := range dag(node) {\n \t\t\t\t\t\ts.push(child)\n \t\t\t\t\t}\n \t\t\t\t\tcontinue\n \t\t\t\t}\n \n+\t\t\t\tvar zeroNode Node\n+\t\t\t\ts.stack[len(s.stack)-1] = zeroNode",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "mcy",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Does this change have a behavior difference? I'd drop it, because it makes the diff confusing.",
+      "file": "internal/toposort/toposort.go",
+      "line": 101,
+      "diff_hunk": "@@ -62,43 +61,47 @@ func (s *Sorter[Node, Key]) Sort(\n ) iter.Seq[Node] {\n \tif s.state == nil {\n \t\ts.state = make(map[Key]byte)\n-\t} else {\n-\t\tclear(s.state)\n \t}\n-\ts.stack = s.stack[0:]\n \n \treturn func(yield func(Node) bool) {\n \t\tif s.iterating {\n \t\t\tpanic(\"internal/toposort: Sort() called re\u00ebntrantly\")\n \t\t}\n \t\ts.iterating = true\n-\t\tdefer func() { s.iterating = false }()\n+\t\tdefer func() {\n+\t\t\tclear(s.state)\n+\t\t\tclear(s.stack)\n+\t\t\ts.stack = s.stack[:0]\n+\t\t\ts.iterating = false\n+\t\t}()\n \n \t\tfor _, root := range roots {\n \t\t\ts.push(root)\n \t\t\t// This algorithm is DFS that has been tail-call-optimized into a loop.\n \t\t\t// Each node is visited twice in the loop: once to add its children to\n-\t\t\t// the stack, and once to pop it and add it to the output. The visited\n-\t\t\t// stack tracks whether this is the first or second visit through the\n-\t\t\t// loop.\n+\t\t\t// the stack, and once to pop it and add it to the output. The state\n+\t\t\t// tracks whether this node has been visisted and if its the first\n+\t\t\t// or second visit through the loop.\n \t\t\tfor len(s.stack) > 0 {\n \t\t\t\tnode, _ := slicesx.Last(s.stack)\n \t\t\t\tk := s.Key(node)\n \t\t\t\tstate := s.state[k]\n \n \t\t\t\tif state == unsorted {\n-\t\t\t\t\ts.state[k] = working\n+\t\t\t\t\ts.state[k] = walking\n \t\t\t\t\tfor child := range dag(node) {\n \t\t\t\t\t\ts.push(child)\n \t\t\t\t\t}\n \t\t\t\t\tcontinue\n \t\t\t\t}\n \n \t\t\t\ts.stack = s.stack[:len(s.stack)-1]\n-\t\t\t\tif state != sorted && !yield(node) {\n-\t\t\t\t\treturn\n+\t\t\t\tif state != sorted {\n+\t\t\t\t\tif !yield(node) {\n+\t\t\t\t\t\treturn\n+\t\t\t\t\t}\n+\t\t\t\t\ts.state[k] = sorted\n \t\t\t\t}\n-\t\t\t\ts.state[k] = sorted",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "mcy",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

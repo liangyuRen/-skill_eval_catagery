@@ -1,0 +1,100 @@
+{
+  "task_id": "webpack-bundle-analyzer__679",
+  "pr_number": 679,
+  "repo": "webpack/webpack-bundle-analyzer",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 4,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 2,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "Let's have this test use the same pattern we are using in https://github.com/webpack/webpack-bundle-analyzer/blob/main/test/analyzer.js which utilizes the `stats.json` files we have in https://github.com/webpack/webpack-bundle-analyzer/tree/main/test/stats. So don't create a new long test case for this but add one to the existing set we have.\n\nFor example this one:\n\nhttps://github.com/webpack/webpack-bundle-analyzer/blob/18843c16aff7ade12a6671c8d1bdc190c2bb8e55/test/analyzer.js#L68-L74\n\nThe `stats.json` should be generated with some valid webpack configuration and you should let us know in the PR how that `stats.json` was generated. Generating that file through AI directly is not OK but it should be generated with some actual webpack config.\n\nSuch as the `assets: false` one that @alexander-akait said earlier.\n",
+      "file": "test/real-world-stats.test.js",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,55 @@\n+const {expect} = require('chai');",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "valscion",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "You need to use here json stats for tests",
+      "file": "test/analyzer.js",
+      "line": null,
+      "diff_hunk": "@@ -94,6 +94,11 @@ describe('Analyzer', function () {\n     );\n   });\n \n+  it('should handle stats with minimal configuration', async function () {\n+    generateReportFrom('with-invalid-dynamic-require.json');",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "alexander-akait",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "That is not true, but yes you can set `assets: false` and we will not have the field",
+      "file": "test/real-world-stats.test.js",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,55 @@\n+const {expect} = require('chai');\n+const analyzer = require('../lib/analyzer');\n+\n+describe('Real-world incomplete stats scenarios', function() {\n+  it('should handle stats from minimal webpack config', function() {\n+    const realWorldStats = {\n+      version: \"5.0.0\",\n+      hash: \"abc123def456\",\n+      publicPath: \"/dist/\",\n+      outputPath: \"/project/dist\",\n+      chunks: [\n+        {\n+          id: 0,\n+          names: [\"main\"],\n+          files: [\"main.js\"],\n+          hash: \"abc123\",\n+          size: 1024\n+        }\n+      ],\n+      // Real-world scenario: assets array missing (common in minimal configs)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "alexander-akait",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Let's have this test use the same pattern we are using in https://github.com/webpack/webpack-bundle-analyzer/blob/main/test/analyzer.js which utilizes the `stats.json` files we have in https://github.com/webpack/webpack-bundle-analyzer/tree/main/test/stats. So don't create a new long test case for this but add one to the existing set we have.\n\nFor example this one:\n\nhttps://github.com/webpack/webpack-bundle-analyzer/blob/18843c16aff7ade12a6671c8d1bdc190c2bb8e55/test/analyzer.js#L68-L74\n\nThe `stats.json` should be generated with some valid webpack configuration and you should let us know in the PR how that `stats.json` was generated. Generating that file through AI directly is not OK but it should be generated with some actual webpack config.\n\nSuch as the `assets: false` one that @alexander-akait said earlier.\n",
+      "file": "test/real-world-stats.test.js",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,55 @@\n+const {expect} = require('chai');",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "valscion",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "You need to use here json stats for tests",
+      "file": "test/analyzer.js",
+      "line": null,
+      "diff_hunk": "@@ -94,6 +94,11 @@ describe('Analyzer', function () {\n     );\n   });\n \n+  it('should handle stats with minimal configuration', async function () {\n+    generateReportFrom('with-invalid-dynamic-require.json');",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "alexander-akait",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

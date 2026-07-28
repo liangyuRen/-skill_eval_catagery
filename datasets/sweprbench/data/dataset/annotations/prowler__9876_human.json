@@ -1,0 +1,14 @@
+{
+  "task_id": "prowler__9876",
+  "pr_number": 9876,
+  "repo": "prowler-cloud/prowler",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 0,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [],
+  "requested_changes": [],
+  "comments": []
+}

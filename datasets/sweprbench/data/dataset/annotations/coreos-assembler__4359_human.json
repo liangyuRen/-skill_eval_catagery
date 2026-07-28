@@ -1,0 +1,84 @@
+{
+  "task_id": "coreos-assembler__4359",
+  "pr_number": 4359,
+  "repo": "coreos/coreos-assembler",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 4,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nThe indentation in this new function uses spaces, while the rest of the file and Go standard practice is to use tabs. Please use tabs for indentation for consistency.\n\n```go\nfunc (inst *QemuInstance) RemoveBlockDeviceForMultipath() error {\n\tconst targetDevice = \"mpath11\"\n\n\tblkdevs, err := inst.listBlkDevices()\n\tif err != nil {\n\t\treturn errors.Wrapf(err, \"Could not list block devices through qmp\")\n\t}\n\n\tvar deviceRemove string\n\tfor _, dev := range blkdevs.Return {\n\t\tif dev.Device == targetDevice {\n\t\t\tdeviceRemove = dev.DevicePath\n\t\t\tbreak\n\t\t}\n\t}\n\n\tif deviceRemove == \"\" {\n\t\treturn fmt.Errorf(\"Target device %q not found in block device list\", targetDevice)\n\t}\n\n\tif err = inst.deleteBlockDevice(deviceRemove); err != nil {\n\t\treturn errors.Wrapf(err, \"Could not delete device %v\", deviceRemove)\n\t}\n\n\treturn nil\n}\n```",
+      "file": "mantle/platform/qemu.go",
+      "line": null,
+      "diff_hunk": "@@ -445,6 +446,34 @@ func (inst *QemuInstance) RemovePrimaryBlockDevice() (err2 error) {\n \treturn nil\n }\n \n+// RemoveBlockDeviceForMultipath remove 1 block device on multipath.\n+func (inst *QemuInstance) RemoveBlockDeviceForMultipath() error {\n+    const targetDevice = \"mpath11\"\n+\n+    blkdevs, err := inst.listBlkDevices()\n+    if err != nil {\n+        return errors.Wrapf(err, \"Could not list block devices through qmp\")\n+    }\n+\n+    var deviceRemove string\n+    for _, dev := range blkdevs.Return {\n+        if dev.Device == targetDevice {\n+            deviceRemove = dev.DevicePath\n+            break\n+        }\n+    }\n+\n+    if deviceRemove == \"\" {\n+        return fmt.Errorf(\"Target device %q not found in block device list\", targetDevice)\n+    }\n+\n+    if err = inst.deleteBlockDevice(deviceRemove); err != nil {\n+        return errors.Wrapf(err, \"Could not delete device %v\", deviceRemove)\n+    }\n+\n+    return nil\n+}",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "![high](https://www.gstatic.com/codereviewagent/high-priority.svg)\n\nThe output from `c.MustSSH` and `c.MustSSHf` can contain leading/trailing whitespace, including newlines. `strconv.Atoi` will fail to parse a string like `\"2\\n\"`, causing the test to fail incorrectly. Also, `sudo multipath -l -v 1` might not find any device and return an empty string, which would lead to an incorrect `lsblk` command. It's safer to trim the output from shell commands before parsing and to add a check for an empty device name.\n\n```go\n\tdevice := strings.TrimSpace(string(c.MustSSH(m, \"sudo multipath -l -v 1\")))\n\tif device == \"\" {\n\t\tc.Fatalf(\"Failed to find multipath device\")\n\t}\n\toutput := string(c.MustSSHf(m, \"lsblk --pairs --paths --inverse --output NAME /dev/mapper/%s | grep -v /dev/mapper | wc -l\", device))\n\tcount, err := strconv.Atoi(strings.TrimSpace(output))\n\tif err != nil {\n\t\tc.Fatalf(\"Failed to parse device count: %v\", err)\n\t}\n```",
+      "file": "mantle/kola/tests/misc/multipath.go",
+      "line": null,
+      "diff_hunk": "@@ -223,3 +241,33 @@ func waitForCompleteFirstboot(c cluster.TestCluster) {\n \t\tc.Fatalf(\"Timed out while waiting for first-boot-complete.target to be ready: %v\", err)\n \t}\n }\n+\n+func verifyMultipathDisks(c cluster.TestCluster, m platform.Machine, expect int) {\n+\tdevice := string(c.MustSSH(m, \"sudo multipath -l -v 1\"))\n+\toutput := string(c.MustSSHf(m, \"lsblk --pairs --paths --inverse --output NAME /dev/mapper/%s | grep -v /dev/mapper | wc -l\", device))\n+\tcount, err := strconv.Atoi(output)\n+\tif err != nil {\n+\t\tc.Fatalf(\"Failed to parse device count: %v\", err)\n+\t}",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nThe indentation in this new function uses spaces, while the rest of the file and Go standard practice is to use tabs. Please use tabs for indentation for consistency.\n\n```go\nfunc (inst *QemuInstance) RemoveBlockDeviceForMultipath() error {\n\tconst targetDevice = \"mpath11\"\n\n\tblkdevs, err := inst.listBlkDevices()\n\tif err != nil {\n\t\treturn errors.Wrapf(err, \"Could not list block devices through qmp\")\n\t}\n\n\tvar deviceRemove string\n\tfor _, dev := range blkdevs.Return {\n\t\tif dev.Device == targetDevice {\n\t\t\tdeviceRemove = dev.DevicePath\n\t\t\tbreak\n\t\t}\n\t}\n\n\tif deviceRemove == \"\" {\n\t\treturn fmt.Errorf(\"Target device %q not found in block device list\", targetDevice)\n\t}\n\n\tif err = inst.deleteBlockDevice(deviceRemove); err != nil {\n\t\treturn errors.Wrapf(err, \"Could not delete device %v\", deviceRemove)\n\t}\n\n\treturn nil\n}\n```",
+      "file": "mantle/platform/qemu.go",
+      "line": null,
+      "diff_hunk": "@@ -445,6 +446,34 @@ func (inst *QemuInstance) RemovePrimaryBlockDevice() (err2 error) {\n \treturn nil\n }\n \n+// RemoveBlockDeviceForMultipath remove 1 block device on multipath.\n+func (inst *QemuInstance) RemoveBlockDeviceForMultipath() error {\n+    const targetDevice = \"mpath11\"\n+\n+    blkdevs, err := inst.listBlkDevices()\n+    if err != nil {\n+        return errors.Wrapf(err, \"Could not list block devices through qmp\")\n+    }\n+\n+    var deviceRemove string\n+    for _, dev := range blkdevs.Return {\n+        if dev.Device == targetDevice {\n+            deviceRemove = dev.DevicePath\n+            break\n+        }\n+    }\n+\n+    if deviceRemove == \"\" {\n+        return fmt.Errorf(\"Target device %q not found in block device list\", targetDevice)\n+    }\n+\n+    if err = inst.deleteBlockDevice(deviceRemove); err != nil {\n+        return errors.Wrapf(err, \"Could not delete device %v\", deviceRemove)\n+    }\n+\n+    return nil\n+}",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Let's add more info here, if someone see this issue it has a tip to where to look at, \r\nmaybe we can also do something like it what you are doing with the  `c.RunCmdSync(m, \"grep mpath.wwid= /proc/cmdline\")`\r\n\r\nc.Fatalf(\r\n    \"Reboot failed: %v. Likely caused by multipath not booting with only one remaining path. \"+\r\n    \"Verify that the kernel cmdline includes 'mpath.wwid=' and that dracut has support for wwid.\",\r\n    err,\r\n)\r\n\r\n",
+      "file": "mantle/kola/tests/misc/multipath.go",
+      "line": null,
+      "diff_hunk": "@@ -223,3 +241,37 @@ func waitForCompleteFirstboot(c cluster.TestCluster) {\n \t\tc.Fatalf(\"Timed out while waiting for first-boot-complete.target to be ready: %v\", err)\n \t}\n }\n+\n+func verifyMultipathDisks(c cluster.TestCluster, m platform.Machine, expect int) {\n+\tdevice := strings.TrimSpace(string(c.MustSSH(m, \"sudo multipath -l -v 1\")))\n+\tif device == \"\" {\n+\t\tc.Fatalf(\"Failed to find multipath device\")\n+\t}\n+\toutput := string(c.MustSSHf(m, \"lsblk --pairs --paths --inverse --output NAME /dev/mapper/%s | grep -v /dev/mapper | wc -l\", device))\n+\tcount, err := strconv.Atoi(strings.TrimSpace(output))\n+\tif err != nil {\n+\t\tc.Fatalf(\"Failed to parse device count: %v\", err)\n+\t}\n+\n+\tif count != expect {\n+\t\tc.Fatalf(\"Expected %d multipath devices, but found %d\", expect, count)\n+\t}\n+}\n+\n+func runMultipathReduceDisk(c cluster.TestCluster) {\n+\tm := c.Machines()[0]\n+\tverifyMultipathBoot(c, m)\n+\t// wait until first-boot-complete.target is reached\n+\twaitForCompleteFirstboot(c)\n+\tverifyMultipathDisks(c, m, 2)\n+\n+\tif err := m.(platform.QEMUMachine).RemoveBlockDeviceForMultipath(\"mpath11\"); err != nil {\n+\t\tc.Fatalf(\"Failed to remove multipath disk: %v\", err)\n+\t}\n+\n+\tif err := m.Reboot(); err != nil {\n+\t\tc.Fatalf(\"Failed to reboot the machine: %v\", err)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ravanelli",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

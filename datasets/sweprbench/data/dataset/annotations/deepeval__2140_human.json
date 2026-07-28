@@ -1,0 +1,33 @@
+{
+  "task_id": "deepeval__2140",
+  "pr_number": 2140,
+  "repo": "confident-ai/deepeval",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": true,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "@spike-spiegel-21 does this still work if `agent.run()` is called somewhere else in between `await agent.run(\"What are the LLMs?\")` and `confident_instrumentation_settings.get_trace_id()`?",
+      "file": "tests/test_integrations/test_pydanticai/simple_agent.py",
+      "line": null,
+      "diff_hunk": "@@ -27,7 +27,12 @@\n )\n \n \n-def execute_simple_agent():\n-    result = asyncio.run(agent.run(\"What are the LLMs?\"))\n+async def execute_simple_agent():\n+    result = await agent.run(\"What are the LLMs?\")\n     print(\"===============Simple agent output:===============\")\n     print(result)\n+    print(\"===============Trace ID:===============\")\n+    print(confident_instrumentation_settings.get_trace_id())",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "penguine-ip",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

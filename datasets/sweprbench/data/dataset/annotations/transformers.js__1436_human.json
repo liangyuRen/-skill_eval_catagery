@@ -1,0 +1,67 @@
+{
+  "task_id": "transformers.js__1436",
+  "pr_number": 1436,
+  "repo": "huggingface/transformers.js",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 6,
+  "substantive_comment_count": 3,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "ah thanks! Probably why it wasn't being registered correctly.",
+      "file": "src/models/mgp_str/processing_mgp_str.js",
+      "line": 122,
+      "diff_hunk": "@@ -119,8 +119,7 @@ export class MgpstrProcessor extends Processor {\n      * - bpe_preds: The list of BPE decoded sentences.\n      * - wp_preds: The list of wp decoded sentences.\n      */\n-    // @ts-expect-error The type of this method is not compatible with the one\n-    // in the base class. It might be a good idea to fix this.\n+    // @ts-expect-error The type of this method is not compatible with the one in the base class.",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "xenova",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "what does this do (specifically needed for this PR)? \ud83d\udc40 https://www.typescriptlang.org/tsconfig/#esModuleInterop",
+      "file": "tsconfig.json",
+      "line": 17,
+      "diff_hunk": "@@ -13,7 +13,8 @@\n     \"declaration\": true,\n     \"declarationMap\": true,\n     \"noEmit\": false,\n-    \"emitDeclarationOnly\": true\n+    \"emitDeclarationOnly\": true,\n+    \"esModuleInterop\": true",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "xenova",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "```suggestion\r\n```",
+      "file": ".gitignore",
+      "line": null,
+      "diff_hunk": "@@ -5,6 +5,7 @@ node_modules\n .DS_STORE\n deno.lock\n .idea\n+demo",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "xenova",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

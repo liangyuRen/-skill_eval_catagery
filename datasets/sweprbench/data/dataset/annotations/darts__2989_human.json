@@ -1,0 +1,84 @@
+{
+  "task_id": "darts__2989",
+  "pr_number": 2989,
+  "repo": "unit8co/darts",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 4,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "Instead of comparing two sets of columns, we should rather check that both series have the expected column order (e.g. compare lists)",
+      "file": "darts/tests/dataprocessing/transformers/test_static_covariates_transformer.py",
+      "line": null,
+      "diff_hunk": "@@ -211,6 +211,51 @@ def test_zero_cardinality_multi_series(self):\n         pd.testing.assert_frame_equal(ts1_inv.static_covariates, ts1.static_covariates)\n         pd.testing.assert_frame_equal(ts2_inv.static_covariates, ts2.static_covariates)\n \n+    def test_cols_cat_order_different_from_data(self):\n+        series = [\n+            self.series.with_static_covariates(\n+                pd.DataFrame({\"Country\": [\"US\"], \"City\": [\"New York\"]})\n+            ),\n+            self.series.with_static_covariates(\n+                pd.DataFrame({\"Country\": [\"China\"], \"City\": [\"Beijing\"]})\n+            ),\n+        ]\n+\n+        transformer = StaticCovariatesTransformer(\n+            transformer_cat=OneHotEncoder(sparse_output=False),\n+            cols_cat=[\"City\", \"Country\"],\n+        )\n+\n+        transformed = transformer.fit_transform(series)\n+\n+        expected_columns = {",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "dennisbader",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Looks great @brunnedu! I agree with @jakubchlapek that it would be more robust for the future if we performed the same operation for both `cols_num` and `cols_cat`. I would suggest to combine `_infer_static_cov_dtypes()` and `_create_component_masks()` into one method (and remove the old ones) that returns both processed column names and masks.\r\n\r\ne.g. something like below:\r\n\r\n```\r\n    @staticmethod\r\n    def _process_static_cov_columns(\r\n        stat_covs: pd.DataFrame,\r\n        cols_num: Optional[Sequence[str]],\r\n        cols_cat: Optional[Sequence[str]],\r\n    ) -> tuple[list[str], list[str], np.ndarray, np.ndarray]:\r\n        \"\"\"\r\n        Extracts numerical and categorical static covariate (component / columns) names and their component masks \r\n        in order of the input data.\r\n        \"\"\"\r\n        if cols_num is None:\r\n            mask_num = stat_covs.columns.isin(\r\n                stat_covs.select_dtypes(include=np.number).columns\r\n            )\r\n        else:\r\n            mask_num = stat_covs.columns.isin(cols_num)\r\n        cols_num = stat_covs.columns[mask_num].tolist()\r\n\r\n        if cols_cat is None:\r\n            mask_cat = stat_covs.columns.isin(\r\n                stat_covs.select_dtypes(exclude=np.number).columns\r\n            )\r\n        else:\r\n            mask_cat = stat_covs.columns.isin(cols_cat)\r\n        cols_cat = stat_covs.columns[mask_cat].tolist()\r\n        return cols_num, cols_cat, mask_num, mask_cat\r\n```\r\n\r\nThat would simplify things a bit and we can also revert all changes below",
+      "file": "darts/dataprocessing/transformers/static_covariates_transformer.py",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "dennisbader",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Instead of comparing two sets of columns, we should rather check that both series have the expected column order (e.g. compare lists)",
+      "file": "darts/tests/dataprocessing/transformers/test_static_covariates_transformer.py",
+      "line": null,
+      "diff_hunk": "@@ -211,6 +211,51 @@ def test_zero_cardinality_multi_series(self):\n         pd.testing.assert_frame_equal(ts1_inv.static_covariates, ts1.static_covariates)\n         pd.testing.assert_frame_equal(ts2_inv.static_covariates, ts2.static_covariates)\n \n+    def test_cols_cat_order_different_from_data(self):\n+        series = [\n+            self.series.with_static_covariates(\n+                pd.DataFrame({\"Country\": [\"US\"], \"City\": [\"New York\"]})\n+            ),\n+            self.series.with_static_covariates(\n+                pd.DataFrame({\"Country\": [\"China\"], \"City\": [\"Beijing\"]})\n+            ),\n+        ]\n+\n+        transformer = StaticCovariatesTransformer(\n+            transformer_cat=OneHotEncoder(sparse_output=False),\n+            cols_cat=[\"City\", \"Country\"],\n+        )\n+\n+        transformed = transformer.fit_transform(series)\n+\n+        expected_columns = {",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "dennisbader",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "These could also be simplified to (might be easier to compare the two series)\r\n\r\n```suggestion\r\n    assert first_static_covs.iloc[0].tolist() == [1.0, 0.0, 1.0, 0.0]\r\n```",
+      "file": "darts/tests/dataprocessing/transformers/test_static_covariates_transformer.py",
+      "line": null,
+      "diff_hunk": "@@ -211,6 +211,51 @@ def test_zero_cardinality_multi_series(self):\n         pd.testing.assert_frame_equal(ts1_inv.static_covariates, ts1.static_covariates)\n         pd.testing.assert_frame_equal(ts2_inv.static_covariates, ts2.static_covariates)\n \n+    def test_cols_cat_order_different_from_data(self):\n+        series = [\n+            self.series.with_static_covariates(\n+                pd.DataFrame({\"Country\": [\"US\"], \"City\": [\"New York\"]})\n+            ),\n+            self.series.with_static_covariates(\n+                pd.DataFrame({\"Country\": [\"China\"], \"City\": [\"Beijing\"]})\n+            ),\n+        ]\n+\n+        transformer = StaticCovariatesTransformer(\n+            transformer_cat=OneHotEncoder(sparse_output=False),\n+            cols_cat=[\"City\", \"Country\"],\n+        )\n+\n+        transformed = transformer.fit_transform(series)\n+\n+        expected_columns = {\n+            \"City_Beijing\",\n+            \"City_New York\",\n+            \"Country_China\",\n+            \"Country_US\",\n+        }\n+        actual_columns = set(transformed[0].static_covariates.columns.tolist())\n+        assert actual_columns == expected_columns\n+\n+        first_static_covs = transformed[0].static_covariates\n+        assert first_static_covs[\"Country_US\"].iloc[0] == 1.0\n+        assert first_static_covs[\"Country_China\"].iloc[0] == 0.0\n+        assert first_static_covs[\"City_New York\"].iloc[0] == 1.0\n+        assert first_static_covs[\"City_Beijing\"].iloc[0] == 0.0",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "dennisbader",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

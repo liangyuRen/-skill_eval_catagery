@@ -1,0 +1,67 @@
+{
+  "task_id": "cupy__9561",
+  "pr_number": 9561,
+  "repo": "cupy/cupy",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 4,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "It seems that `args.code` is still active but ignored. Maybe add an error for that?\r\n(Mainly, because `%timeit` supports that as setup code I think).\r\n\r\nEDIT: For clarity, I mean:\r\n```\r\n%%gpu_timeit -n100 a = cp.ones(100)\r\na.sum()\r\n```\r\nthe `a = cp.ones(100)` is just ignored, but if it was used would be an error (and if it was called, should be setup code).\r\n\r\nIf it is trivial to do as setup code, that would be even cooler of course.",
+      "file": "cupyx/profiler/_timeit_magic.py",
+      "line": 87,
+      "diff_hunk": "@@ -0,0 +1,99 @@\n+from __future__ import annotations\n+\n+import functools\n+import inspect\n+import textwrap\n+\n+from IPython.core.magic import (\n+    Magics, magics_class, line_cell_magic, needs_local_scope\n+)\n+from IPython.core.magic_arguments import (\n+    argument, magic_arguments, parse_argstring\n+)\n+\n+from cupyx.profiler import benchmark\n+\n+\n+@functools.cache\n+def _get_benchmark_defaults():\n+    \"\"\"Extract default parameter values from benchmark function.\"\"\"\n+    sig = inspect.signature(benchmark)\n+    defaults = {}\n+    for param_name, param in sig.parameters.items():\n+        if param.default != inspect.Parameter.empty:\n+            defaults[param_name] = param.default\n+    return defaults\n+\n+\n+@magics_class\n+class GPUTimeitMagics(Magics):\n+    \"\"\"GPU-aware timing magics using cupyx.profiler.benchmark.\"\"\"\n+\n+    @line_cell_magic\n+    @needs_local_scope\n+    @magic_arguments()\n+    @argument(\n+        '-n', '--n-repeat', type=int,\n+        default=_get_benchmark_defaults()['n_repeat'],\n+        help=f'Number of repeats '\n+             f'(default: {_get_benchmark_defaults()[\"n_repeat\"]})'\n+    )\n+    @argument(\n+        '-w', '--n-warmup', type=int,\n+        default=_get_benchmark_defaults()['n_warmup'],\n+        help=f'Number of warmup runs '\n+             f'(default: {_get_benchmark_defaults()[\"n_warmup\"]})'\n+    )\n+    @argument(\n+        '--max-duration', type=float,\n+        default=_get_benchmark_defaults()['max_duration'],\n+        help='Maximum duration in seconds (default: '\n+             f'{_get_benchmark_defaults()[\"max_duration\"]})'\n+    )\n+    @argument(\n+        'code', nargs='*',\n+        help='Code to benchmark'\n+    )\n+    def gpu_timeit(self, line, cell=None, local_ns=None):\n+        \"\"\"Time code with GPU synchronization.\n+\n+        Works as both line and cell magic.\n+\n+        Line magic usage:\n+            %gpu_timeit [-n N_REPEAT] [-w N_WARMUP] [--max-duration SEC] \\\n+expression\n+\n+        Cell magic usage:\n+            %%gpu_timeit [-n N_REPEAT] [-w N_WARMUP] [--max-duration SEC]\n+            <code>\n+\n+        Examples:\n+            %gpu_timeit cp.random.random((1000, 1000)).sum()\n+            %gpu_timeit -n 100 --max-duration 5 cp.arange(1024**3).sum()\n+\n+            %%gpu_timeit -n 100\n+            x = cp.random.random((1000, 1000))\n+            result = x @ x.T\n+        \"\"\"\n+        args = parse_argstring(self.gpu_timeit, line)\n+\n+        if cell is None:\n+            # Line magic\n+            code = ' '.join(args.code).strip()\n+\n+            def run():\n+                return eval(code, self.shell.user_ns, local_ns)\n+        else:\n+            # Cell magic",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "seberg",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "It seems that `args.code` is still active but ignored. Maybe add an error for that?\r\n(Mainly, because `%timeit` supports that as setup code I think).\r\n\r\nEDIT: For clarity, I mean:\r\n```\r\n%%gpu_timeit -n100 a = cp.ones(100)\r\na.sum()\r\n```\r\nthe `a = cp.ones(100)` is just ignored, but if it was used would be an error (and if it was called, should be setup code).\r\n\r\nIf it is trivial to do as setup code, that would be even cooler of course.",
+      "file": "cupyx/profiler/_timeit_magic.py",
+      "line": 87,
+      "diff_hunk": "@@ -0,0 +1,99 @@\n+from __future__ import annotations\n+\n+import functools\n+import inspect\n+import textwrap\n+\n+from IPython.core.magic import (\n+    Magics, magics_class, line_cell_magic, needs_local_scope\n+)\n+from IPython.core.magic_arguments import (\n+    argument, magic_arguments, parse_argstring\n+)\n+\n+from cupyx.profiler import benchmark\n+\n+\n+@functools.cache\n+def _get_benchmark_defaults():\n+    \"\"\"Extract default parameter values from benchmark function.\"\"\"\n+    sig = inspect.signature(benchmark)\n+    defaults = {}\n+    for param_name, param in sig.parameters.items():\n+        if param.default != inspect.Parameter.empty:\n+            defaults[param_name] = param.default\n+    return defaults\n+\n+\n+@magics_class\n+class GPUTimeitMagics(Magics):\n+    \"\"\"GPU-aware timing magics using cupyx.profiler.benchmark.\"\"\"\n+\n+    @line_cell_magic\n+    @needs_local_scope\n+    @magic_arguments()\n+    @argument(\n+        '-n', '--n-repeat', type=int,\n+        default=_get_benchmark_defaults()['n_repeat'],\n+        help=f'Number of repeats '\n+             f'(default: {_get_benchmark_defaults()[\"n_repeat\"]})'\n+    )\n+    @argument(\n+        '-w', '--n-warmup', type=int,\n+        default=_get_benchmark_defaults()['n_warmup'],\n+        help=f'Number of warmup runs '\n+             f'(default: {_get_benchmark_defaults()[\"n_warmup\"]})'\n+    )\n+    @argument(\n+        '--max-duration', type=float,\n+        default=_get_benchmark_defaults()['max_duration'],\n+        help='Maximum duration in seconds (default: '\n+             f'{_get_benchmark_defaults()[\"max_duration\"]})'\n+    )\n+    @argument(\n+        'code', nargs='*',\n+        help='Code to benchmark'\n+    )\n+    def gpu_timeit(self, line, cell=None, local_ns=None):\n+        \"\"\"Time code with GPU synchronization.\n+\n+        Works as both line and cell magic.\n+\n+        Line magic usage:\n+            %gpu_timeit [-n N_REPEAT] [-w N_WARMUP] [--max-duration SEC] \\\n+expression\n+\n+        Cell magic usage:\n+            %%gpu_timeit [-n N_REPEAT] [-w N_WARMUP] [--max-duration SEC]\n+            <code>\n+\n+        Examples:\n+            %gpu_timeit cp.random.random((1000, 1000)).sum()\n+            %gpu_timeit -n 100 --max-duration 5 cp.arange(1024**3).sum()\n+\n+            %%gpu_timeit -n 100\n+            x = cp.random.random((1000, 1000))\n+            result = x @ x.T\n+        \"\"\"\n+        args = parse_argstring(self.gpu_timeit, line)\n+\n+        if cell is None:\n+            # Line magic\n+            code = ' '.join(args.code).strip()\n+\n+            def run():\n+                return eval(code, self.shell.user_ns, local_ns)\n+        else:\n+            # Cell magic",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "seberg",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Might be tempted to use `textwrap.dedent()`, but doesn't matter.",
+      "file": "tests/cupyx_tests/profiler_tests/test_timeit_magic.py",
+      "line": 96,
+      "diff_hunk": "@@ -0,0 +1,141 @@\n+\"\"\"Tests for IPython %gpu_timeit magic.\"\"\"\n+from __future__ import annotations\n+\n+import re\n+import pytest\n+\n+import cupy\n+\n+\n+# Skip entire module if IPython is not available\n+pytest.importorskip('IPython')\n+\n+\n+@pytest.fixture\n+def ipython_shell():\n+    \"\"\"Provide an IPython shell for testing.\"\"\"\n+    from IPython.testing.globalipapp import get_ipython\n+    ip = get_ipython()\n+\n+    # Load the extension\n+    from cupyx.profiler import load_ipython_extension\n+    load_ipython_extension(ip)\n+\n+    # Add cupy to namespace for convenience\n+    ip.user_ns['cp'] = cupy\n+\n+    yield ip\n+\n+    # Cleanup\n+    for key in ['cp', 'x', 'n', 'a', 'b', 'c', 'd', 'result']:\n+        ip.user_ns.pop(key, None)\n+\n+\n+def _capture_output(ipython_shell, magic_type, line, cell=None):\n+    \"\"\"Capture stdout from running a magic command.\"\"\"\n+    import io\n+    import sys\n+\n+    old_stdout = sys.stdout\n+    sys.stdout = io.StringIO()\n+\n+    try:\n+        if magic_type == 'line':\n+            ipython_shell.run_line_magic('gpu_timeit', line)\n+        else:\n+            ipython_shell.run_cell_magic('gpu_timeit', line, cell)\n+        output = sys.stdout.getvalue()\n+    finally:\n+        sys.stdout = old_stdout\n+\n+    return output\n+\n+\n+def _verify_benchmark_output(output):\n+    \"\"\"Verify output contains expected benchmark results.\"\"\"\n+    # Check for presence of CPU and GPU timing info\n+    assert 'CPU:' in output, \"Output should contain CPU timing\"\n+    assert 'GPU' in output, \"Output should contain GPU timing\"\n+    assert 'us' in output or 'ms' in output, \"Output should contain time units\"\n+\n+    # Verify format matches benchmark output (contains numbers)\n+    # Example: \"CPU:    40.705 us   +/-  1.570\"\n+    number_pattern = r'\\d+\\.\\d+'\n+    assert re.search(\n+        number_pattern, output), \"Output should contain timing numbers\"\n+\n+\n+class TestGPUTimeitMagic:\n+    \"\"\"Test %gpu_timeit magic functionality.\"\"\"\n+\n+    def test_line_magic_simple_expression(self, ipython_shell):\n+        \"\"\"Test line magic with a simple expression.\"\"\"\n+        output = _capture_output(\n+            ipython_shell, 'line', 'cp.array([1, 2, 3]).sum()'\n+        )\n+        _verify_benchmark_output(output)\n+\n+    def test_line_magic_with_namespace(self, ipython_shell):\n+        \"\"\"Test that line magic can access user namespace.\"\"\"\n+        ipython_shell.user_ns['x'] = cupy.array([1, 2, 3, 4, 5])\n+        output = _capture_output(ipython_shell, 'line', 'x.sum()')\n+        _verify_benchmark_output(output)\n+\n+    def test_line_magic_with_options(self, ipython_shell):\n+        \"\"\"Test line magic with custom options.\"\"\"\n+        output = _capture_output(\n+            ipython_shell, 'line', '-n 10 -w 2 cp.ones(100).sum()'\n+        )\n+        _verify_benchmark_output(output)\n+\n+    def test_cell_magic_simple(self, ipython_shell):\n+        \"\"\"Test cell magic with simple code.\"\"\"\n+        cell_code = \"\"\"\n+x = cp.random.random((100, 100))\n+y = x @ x.T\n+\"\"\"",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "seberg",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

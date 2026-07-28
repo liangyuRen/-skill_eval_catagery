@@ -1,0 +1,33 @@
+{
+  "task_id": "kedro__5269",
+  "pr_number": 5269,
+  "repo": "kedro-org/kedro",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Is it turned off and on because it's noisy on the code sections? ",
+      "file": "docs/tutorials/add_another_pipeline.md",
+      "line": 248,
+      "diff_hunk": "@@ -237,12 +239,13 @@ There are a range of options to run sections of the default pipeline as describe\n \n ## Modular pipelines\n \n-In many typical Kedro projects, a single (\u201cmain\u201d) pipeline increases in complexity as the project evolves. To keep your project fit for purpose, we recommend that you create [modular pipelines](../build/modular_pipelines.md), which are logically isolated and can be reused. You can instantiate a modular pipeline multiple times as a \"template\" pipeline that can run with different inputs/outputs/parameters.\n+In a typical Kedro project, a single (\u201cmain\u201d) pipeline increases in complexity as the project evolves. To keep your project fit for purpose, we recommend that you create [modular pipelines](../build/modular_pipelines.md), which are logically isolated and can be reused. You can instantiate a modular pipeline multiple times as a \"template\" pipeline that can run with different inputs, outputs, and parameters.\n \n \n ### Optional: Extend the project with namespacing and a modular pipeline\n This is optional code so is **not** provided in the spaceflights starter. If you want to see this in action, you need to copy and paste the code as instructed.\n \n+<!-- vale off -->",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ankatiyar",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

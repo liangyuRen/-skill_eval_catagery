@@ -1,0 +1,84 @@
+{
+  "task_id": "litgpt__2188",
+  "pr_number": 2188,
+  "repo": "Lightning-AI/litgpt",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 6,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_3",
+      "body": "Should we also parameterize `generate_strategy` in this test and cover both cases\u2014`sequential`and `tensor_parallel`?",
+      "file": "tests/test_serve.py",
+      "line": 298,
+      "diff_hunk": "@@ -254,3 +254,39 @@ def run_server():\n         if process:\n             kill_process_tree(process.pid)\n         server_thread.join()\n+\n+\n+@_RunIf(min_cuda_gpus=1)\n+def test_serve_with_generate_strategy(tmp_path):\n+    seed_everything(123)\n+    ours_config = Config.from_name(\"pythia-14m\")\n+    download_from_hub(repo_id=\"EleutherAI/pythia-14m\", tokenizer_only=True, checkpoint_dir=tmp_path)\n+    shutil.move(str(tmp_path / \"EleutherAI\" / \"pythia-14m\" / \"tokenizer.json\"), str(tmp_path))\n+    shutil.move(str(tmp_path / \"EleutherAI\" / \"pythia-14m\" / \"tokenizer_config.json\"), str(tmp_path))\n+    ours_model = GPT(ours_config)\n+    checkpoint_path = tmp_path / \"lit_model.pth\"\n+    torch.save(ours_model.state_dict(), checkpoint_path)\n+    config_path = tmp_path / \"model_config.yaml\"\n+    with open(config_path, \"w\", encoding=\"utf-8\") as fp:\n+        yaml.dump(asdict(ours_config), fp)\n+\n+    # Test with sequential strategy explicitly\n+    run_command = [\"litgpt\", \"serve\", tmp_path, \"--generate_strategy\", \"sequential\"]\n+\n+    process = None\n+\n+    def run_server():\n+        nonlocal process\n+        try:\n+            process = subprocess.Popen(run_command, stdout=None, stderr=None, text=True)\n+        except subprocess.TimeoutExpired:\n+            print(\"Server start-up timeout expired\")\n+\n+    server_thread = threading.Thread(target=run_server)\n+    server_thread.start()\n+\n+    _wait_and_check_response()\n+\n+    if process:\n+        kill_process_tree(process.pid)\n+    server_thread.join()",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "bhimrazy",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\n        generate_strategy: Optional[str] = None,\n```\nperhaps we could use the same pattern as quantize",
+      "file": "litgpt/deploy/serve.py",
+      "line": null,
+      "diff_hunk": "@@ -85,6 +88,7 @@ def __init__(\n         max_new_tokens: int = 50,\n         devices: int = 1,\n         api_path: Optional[str] = None,\n+        generate_strategy: Optional[Literal[\"sequential\", \"tensor_parallel\"]] = None,",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "bhimrazy",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "```suggestion\n        generate_strategy: Optional[str] = None,\n```",
+      "file": "litgpt/deploy/serve.py",
+      "line": null,
+      "diff_hunk": "@@ -128,6 +133,7 @@ def __init__(\n         max_new_tokens: int = 50,\n         devices: int = 1,\n         api_path: Optional[str] = None,\n+        generate_strategy: Optional[Literal[\"sequential\", \"tensor_parallel\"]] = None,",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "bhimrazy",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Should we also parameterize `generate_strategy` in this test and cover both cases\u2014`sequential`and `tensor_parallel`?",
+      "file": "tests/test_serve.py",
+      "line": 298,
+      "diff_hunk": "@@ -254,3 +254,39 @@ def run_server():\n         if process:\n             kill_process_tree(process.pid)\n         server_thread.join()\n+\n+\n+@_RunIf(min_cuda_gpus=1)\n+def test_serve_with_generate_strategy(tmp_path):\n+    seed_everything(123)\n+    ours_config = Config.from_name(\"pythia-14m\")\n+    download_from_hub(repo_id=\"EleutherAI/pythia-14m\", tokenizer_only=True, checkpoint_dir=tmp_path)\n+    shutil.move(str(tmp_path / \"EleutherAI\" / \"pythia-14m\" / \"tokenizer.json\"), str(tmp_path))\n+    shutil.move(str(tmp_path / \"EleutherAI\" / \"pythia-14m\" / \"tokenizer_config.json\"), str(tmp_path))\n+    ours_model = GPT(ours_config)\n+    checkpoint_path = tmp_path / \"lit_model.pth\"\n+    torch.save(ours_model.state_dict(), checkpoint_path)\n+    config_path = tmp_path / \"model_config.yaml\"\n+    with open(config_path, \"w\", encoding=\"utf-8\") as fp:\n+        yaml.dump(asdict(ours_config), fp)\n+\n+    # Test with sequential strategy explicitly\n+    run_command = [\"litgpt\", \"serve\", tmp_path, \"--generate_strategy\", \"sequential\"]\n+\n+    process = None\n+\n+    def run_server():\n+        nonlocal process\n+        try:\n+            process = subprocess.Popen(run_command, stdout=None, stderr=None, text=True)\n+        except subprocess.TimeoutExpired:\n+            print(\"Server start-up timeout expired\")\n+\n+    server_thread = threading.Thread(target=run_server)\n+    server_thread.start()\n+\n+    _wait_and_check_response()\n+\n+    if process:\n+        kill_process_tree(process.pid)\n+    server_thread.join()",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "bhimrazy",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

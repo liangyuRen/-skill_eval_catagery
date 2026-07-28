@@ -1,0 +1,14 @@
+logs*
+data/*
+!data/swr_datasets_d5c5.jsonl
+__pycache__
+*.zip
+*.tar.gz
+baselines/CodeReviewAgent
+baselines/SWE-agent
+baselines/pr-agent
+data_train
+annotations*
+*.json
+*.jsonl
+!data/swr_datasets_d5c5.jsonl

@@ -1,0 +1,30 @@
+{
+  "updated_at": "2026-07-23T17:17:00+08:00",
+  "datasets": {
+    "swrbench": {
+      "path": "datasets/swrbench",
+      "file_count": 168,
+      "size_bytes": 134388748,
+      "size_human": "128.16M"
+    },
+    "sweprbench": {
+      "path": "datasets/sweprbench",
+      "file_count": 147,
+      "size_bytes": 1592226,
+      "size_human": "1.52M",
+      "annotations_downloaded": 77
+    },
+    "codefuse": {
+      "path": "datasets/codefuse",
+      "file_count": 120,
+      "size_bytes": 1817140,
+      "size_human": "1.73M"
+    },
+    "papers": {
+      "path": "datasets/papers",
+      "file_count": 3,
+      "size_bytes": 3040761,
+      "size_human": "2.90M"
+    }
+  }
+}

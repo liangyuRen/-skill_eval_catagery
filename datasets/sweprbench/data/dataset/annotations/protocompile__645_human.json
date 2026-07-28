@@ -1,0 +1,101 @@
+{
+  "task_id": "protocompile__645",
+  "pr_number": 645,
+  "repo": "bufbuild/protocompile",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 6,
+  "substantive_comment_count": 4,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3",
+    "c_4"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "Related to the question below, this currently doesn't test `ir.Ref[T]` for `*ir.File` and `ir.Import`. If we don't need to enforce the `IsZero` interface, and these are valid values for `ir.Ref`, then I can simplify this.",
+      "file": "experimental/ir/zero_test.go",
+      "line": 33,
+      "diff_hunk": "@@ -0,0 +1,123 @@\n+package ir_test\n+\n+import (\n+\t\"fmt\"\n+\t\"reflect\"\n+\t\"testing\"\n+\n+\t\"github.com/stretchr/testify/assert\"\n+\n+\t\"github.com/bufbuild/protocompile/experimental/id\"\n+\t\"github.com/bufbuild/protocompile/experimental/ir\"\n+)\n+\n+func TestZero(t *testing.T) {\n+\tt.Parallel()\n+\n+\ttestZeroAny[*ir.File](t)\n+\ttestZeroAny[ir.Import](t) // Import embeds *ir.File\n+\ttestZeroAny[*ir.Imports](t)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "doriable",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Wasn't sure if it's entirely necessary to enforce `id.Node`s in this way.\nSimilarly, I'm not sure if it is necessary to enforce `zeroable` either, since `*ir.File` for example would not conform.",
+      "file": "experimental/ir/zero_test.go",
+      "line": 66,
+      "diff_hunk": "@@ -0,0 +1,123 @@\n+package ir_test\n+\n+import (\n+\t\"fmt\"\n+\t\"reflect\"\n+\t\"testing\"\n+\n+\t\"github.com/stretchr/testify/assert\"\n+\n+\t\"github.com/bufbuild/protocompile/experimental/id\"\n+\t\"github.com/bufbuild/protocompile/experimental/ir\"\n+)\n+\n+func TestZero(t *testing.T) {\n+\tt.Parallel()\n+\n+\ttestZeroAny[*ir.File](t)\n+\ttestZeroAny[ir.Import](t) // Import embeds *ir.File\n+\ttestZeroAny[*ir.Imports](t)\n+\n+\ttestZeroNode[ir.FeatureSet](t)\n+\ttestZero[ir.Feature](t)\n+\ttestZero[ir.FeatureInfo](t)\n+\n+\ttestZeroNode[ir.Member](t)\n+\ttestZeroNode[ir.Extend](t)\n+\ttestZeroNode[ir.Oneof](t)\n+\ttestZeroNode[ir.ReservedRange](t)\n+\ttestZero[ir.ReservedName](t)\n+\n+\ttestZero[ir.Service](t)\n+\ttestZero[ir.Method](t)\n+\n+\ttestZeroNode[ir.Symbol](t)\n+\n+\ttestZeroNode[ir.Type](t)\n+\n+\ttestZeroNode[ir.Value](t)\n+\ttestZeroNode[ir.MessageValue](t)\n+\ttestZero[ir.Element](t)\n+}\n+\n+// zeroable is a helper interface to enforce that types implement the IsZero method.\n+type zeroable interface {\n+\tIsZero() bool\n+}\n+\n+// node is a helper interface to enforce [id.Node] types.\n+type node[T any] interface {\n+\tzeroable\n+\tID() id.ID[T]\n+}",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "doriable",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Related to the question below, this currently doesn't test `ir.Ref[T]` for `*ir.File` and `ir.Import`. If we don't need to enforce the `IsZero` interface, and these are valid values for `ir.Ref`, then I can simplify this.",
+      "file": "experimental/ir/zero_test.go",
+      "line": 33,
+      "diff_hunk": "@@ -0,0 +1,123 @@\n+package ir_test\n+\n+import (\n+\t\"fmt\"\n+\t\"reflect\"\n+\t\"testing\"\n+\n+\t\"github.com/stretchr/testify/assert\"\n+\n+\t\"github.com/bufbuild/protocompile/experimental/id\"\n+\t\"github.com/bufbuild/protocompile/experimental/ir\"\n+)\n+\n+func TestZero(t *testing.T) {\n+\tt.Parallel()\n+\n+\ttestZeroAny[*ir.File](t)\n+\ttestZeroAny[ir.Import](t) // Import embeds *ir.File\n+\ttestZeroAny[*ir.Imports](t)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "doriable",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Want to make sure this behaviour is reasonable.",
+      "file": "experimental/ir/ir_value.go",
+      "line": 580,
+      "diff_hunk": "@@ -571,7 +571,13 @@ func (e Element) AST() ast.ExprAny {\n // this element, e.g.\n //\n //\tkey := e.Value().MessageKeys().At(e.ValueNodeIndex())\n+//\n+// If the element is empty, this returns -1.\n func (e Element) ValueNodeIndex() int {\n+\tif e.IsZero() {\n+\t\treturn -1\n+\t}\n+",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "doriable",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_4",
+      "body": "no this is tight, this is to print #0, #1, etc :P",
+      "file": "experimental/ast/zero_test.go",
+      "line": null,
+      "diff_hunk": "@@ -104,7 +104,7 @@ func testZero[Node source.Spanner](t *testing.T) {\n \t\t\t\t\tr = m.Call(nil)[0]\n \t\t\t\t}\n \n-\t\t\t\tassert.Zero(t, r.Interface(), \"non-zero return #%d %#v of %T.%s\", i, r, z, m.Name)\n+\t\t\t\tassert.Zero(t, r.Interface(), \"non-zero return %#d %#v of %T.%s\", i, r, z, m.Name)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "mcy",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

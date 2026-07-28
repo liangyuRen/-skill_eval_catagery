@@ -1,0 +1,10 @@
+{
+  "pr_number": 9862,
+  "repo": "prowler-cloud/prowler",
+  "task_id": "prowler__9862",
+  "config_name": "config_C",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 309,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `api/src/backend/tasks/jobs/attack_paths/prowler.py`: 197 changed lines, 3 function/branch hunks, logic markers=6.\n- `.env`: 4 changed lines, 0 function/branch hunks, logic markers=0.\n- `api/src/backend/tasks/tests/test_attack_paths_scan.py`: 310 changed lines, 4 function/branch hunks, logic markers=0.\n- PR profile: type=bug_fix, difficulty=Type1_Direct, language=Python, files_changed=4.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### .env\n```diff\ndiff --git a/.env b/.env\nindex 54e2c3149d..734b9df42a 100644\n--- a/.env\n+++ b/.env\n@@ -66,7 +66,7 @@ NEO4J_DBMS_SECURITY_PROCEDURES_ALLOWLIST=apoc.*\n NEO4J_DBMS_SECURITY_PROCEDURES_UNRESTRICTED=apoc.*\n NEO4J_DBMS_CONNECTOR_BOLT_LISTEN_ADDRESS=0.0.0.0:7687\n # Neo4j Prowler settings\n-NEO4J_INSERT_BATCH_SIZE=500\n+ATTACK_PATHS_FINDINGS_BATCH_SIZE=1000\n \n # Celery-Prowler task settings\n TASK_RETRY_DELAY_SECONDS=0.1\n```\n\n---\n\n## Layer 3 - Execution Context\n\n---\n\n## Layer 4 - Behavior Mapping\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 4\n- PR type: bug_fix"
+}

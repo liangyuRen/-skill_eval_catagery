@@ -1,0 +1,67 @@
+{
+  "task_id": "stylelint__8992",
+  "pr_number": 8992,
+  "repo": "stylelint/stylelint",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 5,
+  "substantive_comment_count": 3,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\n\t\t\tcwd: toPath(globbyOptions?.cwd) || cwd,\n```",
+      "file": "lib/printConfig.mjs",
+      "line": null,
+      "diff_hunk": "@@ -34,7 +35,7 @@ export default async function printConfig({\n \n \treturn (\n \t\t(await resolveConfig(filePath, {\n-\t\t\tcwd: (globbyOptions && globbyOptions.cwd) || cwd,\n+\t\t\tcwd: toPath(globbyOptions && globbyOptions.cwd) || cwd,",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ybiquitous",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "```suggestion\n\t\tconst globCWD = toPath(globbyOptions?.cwd) || cwd;\n```",
+      "file": "lib/standalone.mjs",
+      "line": null,
+      "diff_hunk": "@@ -181,7 +182,7 @@ export default async function standalone({\n \t}\n \n \tlet fileList = [files].flat().map((entry) => {\n-\t\tconst globCWD = (globbyOptions && globbyOptions.cwd) || cwd;\n+\t\tconst globCWD = toPath(globbyOptions && globbyOptions.cwd) || cwd;",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ybiquitous",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "[suggestion] Optional. Using `import.meta.url` could simplify the test code a bit: no need for `process` or related modules.\n\n```suggestion\n\t\tconst url = new URL(import.meta.url);\n```",
+      "file": "lib/utils/__tests__/toPath.test.mjs",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,22 @@\n+import { fileURLToPath, pathToFileURL } from 'node:url';\n+import process from 'node:process';\n+\n+import { describe, expect, test } from '@jest/globals';\n+\n+import toPath from '../toPath.mjs';\n+\n+describe('toPath', () => {\n+\ttest('returns string as-is', () => {\n+\t\texpect(toPath('/foo/bar')).toBe('/foo/bar');\n+\t});\n+\n+\ttest('converts URL to string path', () => {\n+\t\tconst url = pathToFileURL(process.cwd());",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ybiquitous",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

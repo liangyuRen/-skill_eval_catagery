@@ -1,0 +1,83 @@
+{
+  "task_id": "prowler__9829",
+  "pr_number": 9829,
+  "repo": "prowler-cloud/prowler",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 6,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 2,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "Don't you need to order it by completion time? I assume not but I can't see why.",
+      "file": "api/src/backend/tasks/tasks.py",
+      "line": 301,
+      "diff_hunk": "@@ -275,44 +278,38 @@ def perform_scheduled_scan_task(self, tenant_id: str, provider_id: str):\n         periodic_task_instance = PeriodicTask.objects.get(\n             name=f\"scan-perform-scheduled-{provider_id}\"\n         )\n+        executing_scan = (\n+            Scan.objects.filter(\n+                tenant_id=tenant_id,\n+                provider_id=provider_id,\n+                trigger=Scan.TriggerChoices.SCHEDULED,\n+                state=StateChoices.EXECUTING,\n+            )\n+            .order_by(\"-started_at\")\n+            .first()\n+        )\n+        if executing_scan:\n+            logger.warning(\n+                f\"Scheduled scan already executing for provider {provider_id}. Skipping.\"\n+            )\n+            return ScanTaskSerializer(instance=executing_scan).data\n \n         executed_scan = Scan.objects.filter(\n             tenant_id=tenant_id,\n             provider_id=provider_id,\n             task__task_runner_task__task_id=task_id,\n-        ).order_by(\"completed_at\")\n+        ).first()",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jfagoagas",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "1. Don't we need to increase it for this kind of tasks? \r\n2. Is the message being re-queued?",
+      "file": "api/src/backend/tasks/tasks.py",
+      "line": 304,
+      "diff_hunk": "@@ -275,44 +278,38 @@ def perform_scheduled_scan_task(self, tenant_id: str, provider_id: str):\n         periodic_task_instance = PeriodicTask.objects.get(\n             name=f\"scan-perform-scheduled-{provider_id}\"\n         )\n+        executing_scan = (\n+            Scan.objects.filter(\n+                tenant_id=tenant_id,\n+                provider_id=provider_id,\n+                trigger=Scan.TriggerChoices.SCHEDULED,\n+                state=StateChoices.EXECUTING,\n+            )\n+            .order_by(\"-started_at\")\n+            .first()\n+        )\n+        if executing_scan:\n+            logger.warning(\n+                f\"Scheduled scan already executing for provider {provider_id}. Skipping.\"\n+            )\n+            return ScanTaskSerializer(instance=executing_scan).data\n \n         executed_scan = Scan.objects.filter(\n             tenant_id=tenant_id,\n             provider_id=provider_id,\n             task__task_runner_task__task_id=task_id,\n-        ).order_by(\"completed_at\")\n+        ).first()\n \n-        if (\n-            Scan.objects.filter(\n-                tenant_id=tenant_id,\n-                provider_id=provider_id,\n-                trigger=Scan.TriggerChoices.SCHEDULED,\n-                state=StateChoices.EXECUTING,\n-                scheduler_task_id=periodic_task_instance.id,\n-                scheduled_at__date=datetime.now(timezone.utc).date(),\n-            ).exists()\n-            or executed_scan.exists()\n-        ):\n-            # Duplicated task execution due to visibility timeout or scan is already running\n+        if executed_scan:\n+            # Duplicated task execution due to visibility timeout",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jfagoagas",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Don't you need to order it by completion time? I assume not but I can't see why.",
+      "file": "api/src/backend/tasks/tasks.py",
+      "line": 301,
+      "diff_hunk": "@@ -275,44 +278,38 @@ def perform_scheduled_scan_task(self, tenant_id: str, provider_id: str):\n         periodic_task_instance = PeriodicTask.objects.get(\n             name=f\"scan-perform-scheduled-{provider_id}\"\n         )\n+        executing_scan = (\n+            Scan.objects.filter(\n+                tenant_id=tenant_id,\n+                provider_id=provider_id,\n+                trigger=Scan.TriggerChoices.SCHEDULED,\n+                state=StateChoices.EXECUTING,\n+            )\n+            .order_by(\"-started_at\")\n+            .first()\n+        )\n+        if executing_scan:\n+            logger.warning(\n+                f\"Scheduled scan already executing for provider {provider_id}. Skipping.\"\n+            )\n+            return ScanTaskSerializer(instance=executing_scan).data\n \n         executed_scan = Scan.objects.filter(\n             tenant_id=tenant_id,\n             provider_id=provider_id,\n             task__task_runner_task__task_id=task_id,\n-        ).order_by(\"completed_at\")\n+        ).first()",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jfagoagas",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "1. Don't we need to increase it for this kind of tasks? \r\n2. Is the message being re-queued?",
+      "file": "api/src/backend/tasks/tasks.py",
+      "line": 304,
+      "diff_hunk": "@@ -275,44 +278,38 @@ def perform_scheduled_scan_task(self, tenant_id: str, provider_id: str):\n         periodic_task_instance = PeriodicTask.objects.get(\n             name=f\"scan-perform-scheduled-{provider_id}\"\n         )\n+        executing_scan = (\n+            Scan.objects.filter(\n+                tenant_id=tenant_id,\n+                provider_id=provider_id,\n+                trigger=Scan.TriggerChoices.SCHEDULED,\n+                state=StateChoices.EXECUTING,\n+            )\n+            .order_by(\"-started_at\")\n+            .first()\n+        )\n+        if executing_scan:\n+            logger.warning(\n+                f\"Scheduled scan already executing for provider {provider_id}. Skipping.\"\n+            )\n+            return ScanTaskSerializer(instance=executing_scan).data\n \n         executed_scan = Scan.objects.filter(\n             tenant_id=tenant_id,\n             provider_id=provider_id,\n             task__task_runner_task__task_id=task_id,\n-        ).order_by(\"completed_at\")\n+        ).first()\n \n-        if (\n-            Scan.objects.filter(\n-                tenant_id=tenant_id,\n-                provider_id=provider_id,\n-                trigger=Scan.TriggerChoices.SCHEDULED,\n-                state=StateChoices.EXECUTING,\n-                scheduler_task_id=periodic_task_instance.id,\n-                scheduled_at__date=datetime.now(timezone.utc).date(),\n-            ).exists()\n-            or executed_scan.exists()\n-        ):\n-            # Duplicated task execution due to visibility timeout or scan is already running\n+        if executed_scan:\n+            # Duplicated task execution due to visibility timeout",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jfagoagas",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

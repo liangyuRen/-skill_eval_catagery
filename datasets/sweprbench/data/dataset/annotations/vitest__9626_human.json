@@ -1,0 +1,84 @@
+{
+  "task_id": "vitest__9626",
+  "pr_number": 9626,
+  "repo": "vitest-dev/vitest",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 6,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_3",
+      "body": "Should we also mention here that:\n\n> ```\n> Note that setting this option does not change where coverage HTML report is generated. \n> Configure the `reporter` option to change the directory instead.\n> ```",
+      "file": "docs/config/coverage.md",
+      "line": null,
+      "diff_hunk": "@@ -395,3 +393,13 @@ Concurrency limit used when processing the coverage results.\n - **CLI:** `--coverage.customProviderModule=<path or module name>`\n \n Specifies the module name or path for the custom coverage provider module. See [Guide - Custom Coverage Provider](/guide/coverage#custom-coverage-provider) for more information.\n+\n+## coverage.htmlDir\n+\n+- **Type:** `string`\n+- **Default:** Automatically inferred from `html` or `lcov` coverage reporters\n+- **CLI:** `--coverage.htmlDir=<path>`\n+\n+Directory of HTML coverage output to be served in [Vitest UI](/guide/ui) and [HTML reporter](/guide/reporters.html#html-reporter).\n+\n+This is automatically configured when using builtin coverage reporters that produce HTML output (`html` and `lcov`). Use this option to override with a custom coverage reporting location when using custom coverage reporters.",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "AriPerkkio",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "`reportCoverage` happens after `onTestRunEnd`, so now HTML reporter also needs this to be able to collect coverage html.",
+      "file": "packages/vitest/src/node/core.ts",
+      "line": 1387,
+      "diff_hunk": "@@ -1372,10 +1371,13 @@ export class Vitest {\n \n     if (this.coverageProvider) {\n       await this.coverageProvider.reportCoverage(coverage, { allTestsRun })\n-      // notify coverage iframe reload\n+      // notify builtin ui and html reporter after coverage html is generated\n       for (const reporter of this.reporters) {\n-        if (reporter instanceof WebSocketReporter) {\n-          reporter.onFinishedReportCoverage()\n+        if (\n+          'onFinishedReportCoverage' in reporter\n+          && typeof reporter.onFinishedReportCoverage === 'function'\n+        ) {\n+          await reporter.onFinishedReportCoverage()",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "hi-ogawa",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "There's also `html-spa` if we want to support that \ud83d\udc40 ",
+      "file": "packages/vitest/src/node/config/resolveConfig.ts",
+      "line": null,
+      "diff_hunk": "@@ -430,6 +430,31 @@ export function resolveConfig(\n         `You cannot set \"coverage.reportsDirectory\" as ${reportsDirectory}. Vitest needs to be able to remove this directory before test run`,\n       )\n     }\n+\n+    if (resolved.coverage.htmlDir) {\n+      resolved.coverage.htmlDir = resolve(\n+        resolved.root,\n+        resolved.coverage.htmlDir,\n+      )\n+    }\n+\n+    // infer default based on builtin reporter html output (html and lcov)\n+    if (!resolved.coverage.htmlDir) {\n+      const htmlReporter = resolved.coverage.reporter.find(([name]) => name === 'html')",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "AriPerkkio",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Should we also mention here that:\n\n> ```\n> Note that setting this option does not change where coverage HTML report is generated. \n> Configure the `reporter` option to change the directory instead.\n> ```",
+      "file": "docs/config/coverage.md",
+      "line": null,
+      "diff_hunk": "@@ -395,3 +393,13 @@ Concurrency limit used when processing the coverage results.\n - **CLI:** `--coverage.customProviderModule=<path or module name>`\n \n Specifies the module name or path for the custom coverage provider module. See [Guide - Custom Coverage Provider](/guide/coverage#custom-coverage-provider) for more information.\n+\n+## coverage.htmlDir\n+\n+- **Type:** `string`\n+- **Default:** Automatically inferred from `html` or `lcov` coverage reporters\n+- **CLI:** `--coverage.htmlDir=<path>`\n+\n+Directory of HTML coverage output to be served in [Vitest UI](/guide/ui) and [HTML reporter](/guide/reporters.html#html-reporter).\n+\n+This is automatically configured when using builtin coverage reporters that produce HTML output (`html` and `lcov`). Use this option to override with a custom coverage reporting location when using custom coverage reporters.",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "AriPerkkio",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

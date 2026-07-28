@@ -1,0 +1,33 @@
+{
+  "task_id": "kairos__3823",
+  "pr_number": 3823,
+  "repo": "kairos-io/kairos",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 1,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I wonder if we can somehow set this once by using github action env variables. Alternatively, we can set this somewhere on the repository, since all actions checkout the code anyway.",
+      "file": ".github/workflows/image-master.yaml",
+      "line": 223,
+      "diff_hunk": "@@ -220,11 +212,17 @@ jobs:\n       matrix:\n         base_image:\n           - \"ubuntu:24.04\"\n-          - \"ghcr.io/kairos-io/hadron:v0.0.1-beta1\"\n         test:\n           - \"provider-qrcode-install\"\n           - \"provider-upgrade\"\n           - \"provider-upgrade-k8s\"\n           - \"provider-upgrade-latest-k8s-with-kubernetes\"\n           - \"provider-decentralized-k8s\"\n           - \"provider-k3s-disabled\"\n+        include:\n+          - base_image: \"ghcr.io/kairos-io/hadron:v0.0.1-beta2\"",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jimmykarily",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

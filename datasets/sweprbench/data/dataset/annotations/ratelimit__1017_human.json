@@ -1,0 +1,50 @@
+{
+  "task_id": "ratelimit__1017",
+  "pr_number": 1017,
+  "repo": "envoyproxy/ratelimit",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Remove these codes because each time `this.statsManager.NewStats` is called, logger prints debug log \"Creating stats...\" once. As a result, with current code, each request makes logger log that twice.\r\n\r\nFullKey is automatically assigned to stat.string when rateLimit is initialized; as a result, remove the assignment (redundant). ",
+      "file": "src/config/config_impl.go",
+      "line": 557,
+      "diff_hunk": "@@ -552,9 +551,8 @@ func (this *rateLimitConfigImpl) GetLimit(\n \t\tif enhancedKey != rateLimit.FullKey {\n \t\t\t// Recreate to ensure a clean stats struct, then set to enhanced stats\n \t\t\toriginalShareThresholdKeyPattern := rateLimit.ShareThresholdKeyPattern\n-\t\t\trateLimit = NewRateLimit(rateLimit.Limit.RequestsPerUnit, rateLimit.Limit.Unit, this.statsManager.NewStats(rateLimit.FullKey), rateLimit.Unlimited, rateLimit.ShadowMode, rateLimit.Name, rateLimit.Replaces, rateLimit.DetailedMetric)\n+\t\t\trateLimit = NewRateLimit(rateLimit.Limit.RequestsPerUnit, rateLimit.Limit.Unit, this.statsManager.NewStats(enhancedKey), rateLimit.Unlimited, rateLimit.ShadowMode, rateLimit.Name, rateLimit.Replaces, rateLimit.DetailedMetric)\n \t\t\trateLimit.ShareThresholdKeyPattern = originalShareThresholdKeyPattern\n-\t\t\trateLimit.Stats = this.statsManager.NewStats(enhancedKey)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "xuannam230201",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Refactor the logic to include value in stats. It's not necessary to repeat:\r\n```\r\nvalueToMetricFullKey.WriteString(entry.Key)\r\nvalueToMetricFullKey.WriteString(\"_\")\r\nvalueToMetricFullKey.WriteString(...)\r\n```\r\nseveral times in this logic",
+      "file": "src/config/config_impl.go",
+      "line": 406,
+      "diff_hunk": "@@ -403,57 +403,38 @@ func (this *rateLimitConfigImpl) GetLimit(\n \t\t// Build value_to_metric metrics path for this level\n \t\tvalueToMetricFullKey.WriteString(\".\")\n \t\tif nextDescriptor != nil {\n-\t\t\t// Check if share_threshold is enabled for this entry",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "xuannam230201",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

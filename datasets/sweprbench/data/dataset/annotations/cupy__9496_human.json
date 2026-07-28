@@ -1,0 +1,33 @@
+{
+  "task_id": "cupy__9496",
+  "pr_number": 9496,
+  "repo": "cupy/cupy",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Changes look all straight-forward and good to me, nice!\n\nThe comment seems like temporary note?\n```suggestion\n```",
+      "file": "cupy/_core/core.pyx",
+      "line": 2359,
+      "diff_hunk": "@@ -2356,13 +2356,14 @@ cpdef void warn_on_unsupported_std(tuple options):\n                     'that causes RTC to break when the standard is set '\n                     'to c++11. Please use c++14, or use ROCm > 7.0'\n                 )\n+        # TODO(leofang): Update this. We need C++17 now.",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "seberg",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

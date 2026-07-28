@@ -1,0 +1,67 @@
+{
+  "task_id": "sqlfluff__7436",
+  "pr_number": 7436,
+  "repo": "sqlfluff/sqlfluff",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 6,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "I don't think that is an optimal solution for multiple reasons:\n* COMMENT should be part of the ColumnDefinitionSegment\n* COMMENT should be optional\n* The current grammar would work for `Col1 COMMENT ....`, but I believe it would fail for `Col1 <col_type> COMMENT ....`",
+      "file": "src/sqlfluff/dialects/dialect_snowflake.py",
+      "line": null,
+      "diff_hunk": "@@ -4979,6 +4979,10 @@ class CreateTableStatementSegment(ansi.CreateTableStatementSegment):\n                             OneOf(\n                                 Ref(\"OutOfLineConstraintPropertiesSegment\"),\n                                 Ref(\"ColumnDefinitionSegment\"),\n+                                Sequence(",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "peterbud",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I don't think that is an optimal solution for multiple reasons:\n* COMMENT should be part of the ColumnDefinitionSegment\n* COMMENT should be optional\n* The current grammar would work for `Col1 COMMENT ....`, but I believe it would fail for `Col1 <col_type> COMMENT ....`",
+      "file": "src/sqlfluff/dialects/dialect_snowflake.py",
+      "line": null,
+      "diff_hunk": "@@ -4979,6 +4979,10 @@ class CreateTableStatementSegment(ansi.CreateTableStatementSegment):\n                             OneOf(\n                                 Ref(\"OutOfLineConstraintPropertiesSegment\"),\n                                 Ref(\"ColumnDefinitionSegment\"),\n+                                Sequence(",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "peterbud",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "add more example with/without col type, with/without comment etc ",
+      "file": "test/fixtures/dialects/snowflake/create_dynamic_table.sql",
+      "line": 57,
+      "diff_hunk": "@@ -44,3 +44,18 @@ CREATE DYNAMIC TABLE product\n   REQUIRE USER\n   AS\n     SELECT product_id, product_name FROM staging_table;\n+\n+CREATE DYNAMIC TABLE product (",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "peterbud",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

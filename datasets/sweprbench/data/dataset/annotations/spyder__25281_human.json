@@ -1,0 +1,33 @@
+{
+  "task_id": "spyder__25281",
+  "pr_number": 25281,
+  "repo": "spyder-ide/spyder",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\r\n        start_line = self.get_conf(\r\n            'startup/pdb_run_lines', default='', section='debugger'\r\n        )\r\n```\r\n\r\nMake code fit in 79 columns.",
+      "file": "spyder/plugins/ipythonconsole/widgets/debugging.py",
+      "line": null,
+      "diff_hunk": "@@ -667,7 +667,7 @@ def pdb_input(self, prompt, password=None, state=None, from_input=False):\n \n         self._pdb_input_ready = True\n \n-        start_line = self.get_conf('startup/pdb_run_lines', default='')\n+        start_line = self.get_conf('startup/pdb_run_lines', default='', section='debugger')",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ccordoba12",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

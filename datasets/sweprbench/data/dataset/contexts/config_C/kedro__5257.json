@@ -1,0 +1,10 @@
+{
+  "pr_number": 5257,
+  "repo": "kedro-org/kedro",
+  "task_id": "kedro__5257",
+  "config_name": "config_C",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 328,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `.github/styles/Kedro/headings.yml`: 6 changed lines, 0 function/branch hunks, logic markers=0.\n- PR profile: type=bug_fix, difficulty=Type1_Direct, language=Python, files_changed=17.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### .github/styles/Kedro/headings.yml\n```diff\ndiff --git a/.github/styles/Kedro/headings.yml b/.github/styles/Kedro/headings.yml\nindex 2ff2a6ab56..30cb764811 100644\n--- a/.github/styles/Kedro/headings.yml\n+++ b/.github/styles/Kedro/headings.yml\n@@ -10,6 +10,7 @@ exceptions:\n   - Amazon\n   - Amazon Web Services\n   - API\n+  - Argo Workflows\n   - Astro Cloud\n   - AWS Batch\n   - AWS Step Functions\n@@ -29,6 +30,7 @@ exceptions:\n   - Docker Compose\n   - Docker Swarm\n   - Dockerfile\n+  - EMR Serverless\n   - Excel\n   - GitHub\n   - GitHub Actions\n@@ -49,6 +51,8 @@ exceptions:\n   - JFrog Artifactory\n   - Jira\n   - Kafka\n+  - Kubeflow\n+  - Kubeflow Pipelines\n   - Kubernetes\n   - Kubernetes Engine\n   - Kubernetes Pod\n```\n\n---\n\n## Layer 3 - Execution Context\n\n---\n\n## Layer 4 - Behavior Mapping\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 17\n- PR type: bug_fix"
+}

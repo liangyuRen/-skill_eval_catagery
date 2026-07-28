@@ -1,0 +1,10 @@
+{
+  "pr_number": 9567,
+  "repo": "cupy/cupy",
+  "task_id": "cupy__9567",
+  "config_name": "config_C",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 338,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `cupy/cuda/stream.pyx`: 106 changed lines, 3 function/branch hunks, logic markers=16.\n- `cupy/_core/core.pyx`: 4 changed lines, 1 function/branch hunks, logic markers=0.\n- `tests/cupy_tests/cuda_tests/test_stream.py`: 237 changed lines, 7 function/branch hunks, logic markers=21.\n- PR profile: type=feature, difficulty=Type2_Contextual, language=Python, files_changed=5.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### cupy/_core/core.pyx\n```diff\ndiff --git a/cupy/_core/core.pyx b/cupy/_core/core.pyx\nindex 06a03e51838..fee6e4edcd2 100644\n--- a/cupy/_core/core.pyx\n+++ b/cupy/_core/core.pyx\n@@ -406,7 +406,7 @@ cdef class _ndarray_base:\n             # Establish no stream order for now (for `stream=None` do it later)\n             stream = None\n         elif stream != curr_stream_ptr:\n-            stream = stream_mod.ExternalStream(stream)\n+            stream = stream_mod._BaseStream(stream, -1)\n             event = curr_stream.record()\n             stream.wait_event(event)\n \n```\n\n---\n\n## Layer 3 - Execution Context\n\n---\n\n## Layer 4 - Behavior Mapping\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 5\n- PR type: feature"
+}

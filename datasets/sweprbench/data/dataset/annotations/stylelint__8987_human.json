@@ -1,0 +1,50 @@
+{
+  "task_id": "stylelint__8987",
+  "pr_number": 8987,
+  "repo": "stylelint/stylelint",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\r\n\tconst args = nodes.filter(({ type }) => type === 'word' || type === 'function');\r\n\tconst isRelativeColor = args[0]?.value.toLowerCase() === 'from';\r\n\r\n\treturn isRelativeColor ? args[2] : args[0];\r\n```\r\n\r\nLet's refactor to be self-documenting and precise in our language.",
+      "file": "lib/rules/lightness-notation/index.mjs",
+      "line": null,
+      "diff_hunk": "@@ -155,7 +155,13 @@ function roundToNumberOfDigits(num, value) {\n  * @param {import('postcss-value-parser').FunctionNode} node\n  */\n function findLightness({ nodes }) {\n-\treturn nodes.find(({ type }) => type === 'word' || type === 'function');\n+\tconst words = nodes.filter(({ type }) => type === 'word' || type === 'function');\n+\n+\tif (words[0] && words[0].value.toLowerCase() === 'from') {\n+\t\treturn words[2];\n+\t}\n+\n+\treturn words[0];",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jeddy3",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "```suggestion\nFixed: `lightness-notation` false negatives for relative colors\n```\n\nMissing `:`",
+      "file": ".changeset/selfish-eyes-battle.md",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,5 @@\n+---\n+\"stylelint\": minor\n+---\n+\n+Fixed `lightness-notation` false negatives for relative colors",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "romainmenke",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

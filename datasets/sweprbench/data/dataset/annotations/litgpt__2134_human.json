@@ -1,0 +1,50 @@
+{
+  "task_id": "litgpt__2134",
+  "pr_number": 2134,
+  "repo": "Lightning-AI/litgpt",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 6,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\r\n    n_shared_experts: Optional[int] = None\r\n```",
+      "file": "litgpt/config.py",
+      "line": 89,
+      "diff_hunk": "@@ -86,7 +86,14 @@ class Config:\n     mlp_class_name: Literal[\"GptNeoxMLP\", \"LLaMAMLP\", \"GemmaMLP\", \"LLaMAMoE\"] = \"GptNeoxMLP\"\n     gelu_approximate: str = \"none\"\n     n_expert: int = 0\n+    n_shared_expert: Optional[int] = None",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "KaelanDt",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "```suggestion\r\n    \"\"\"Test MOE litgpt vs hf\"\"\"\r\n```",
+      "file": "tests/test_deepseek_moe.py",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,114 @@\n+# Copyright Lightning AI. Licensed under the Apache License 2.0, see LICENSE file.\n+\n+import pytest\n+import torch\n+from transformers.models.deepseek_v3 import DeepseekV3Config, DeepseekV3ForCausalLM\n+\n+from litgpt import Config\n+from litgpt.model import GPT, LLaMAMLP\n+\n+\n+@torch.inference_mode()\n+@pytest.mark.parametrize(\"batch_size\", (1, 2))\n+@pytest.mark.parametrize(\"seq_len\", (8, 16))\n+@pytest.mark.parametrize(\"device\", [torch.device(\"cpu\")])\n+def test_deepseek_moe_litgpt_vs_hf(batch_size, seq_len, device):\n+    \"\"\"Test MLA litgpt vs hf\"\"\"",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "KaelanDt",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

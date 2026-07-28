@@ -1,0 +1,84 @@
+{
+  "task_id": "falcon__2581",
+  "pr_number": 2581,
+  "repo": "falconry/falcon",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 8,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_3",
+      "body": "Unfortunately we still haven't built any machinery to synchronize this with `README.rst`. Since `README.rst` is displayed verbatim on GitHub (and PyPI unless we modify it during the build process), our options are fairly limited here. But we could at least write tests or other CI checks to verify that these documents are in sync.\r\n\r\n**Edit**: you don't need to implement these checks now. But you need to at least manually synchronize the two docs.",
+      "file": "examples/things_advanced.py",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "vytas7",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Normally we don't write newsfragments for documentation polishing :slightly_smiling_face:\r\nNow that you have written it, it feels of course sad to remove it... But that's what I vote for.",
+      "file": "docs/_newsfragments/678.misc.rst",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "vytas7",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "This works, but it would probably be more idiomatic to use [`req.bounded_stream.read()`](https://falcon.readthedocs.io/en/stable/api/request_and_response_wsgi.html#falcon.Request.bounded_stream) instead, that's what we recommend when one cannot rely on a specific server's behaviour.",
+      "file": "examples/things_advanced.py",
+      "line": null,
+      "diff_hunk": "@@ -106,7 +106,7 @@ def process_request(self, req, resp):\n             # Nothing to do\n             return\n \n-        body = req.stream.read()\n+        body = req.stream.read(req.content_length or 0)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "vytas7",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Unfortunately we still haven't built any machinery to synchronize this with `README.rst`. Since `README.rst` is displayed verbatim on GitHub (and PyPI unless we modify it during the build process), our options are fairly limited here. But we could at least write tests or other CI checks to verify that these documents are in sync.\r\n\r\n**Edit**: you don't need to implement these checks now. But you need to at least manually synchronize the two docs.",
+      "file": "examples/things_advanced.py",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "vytas7",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "task_id": "ratelimit__996",
+  "pr_number": 996,
+  "repo": "envoyproxy/ratelimit",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 7,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "@xuannam230201 \r\n\r\nShould we add after 419:\r\n\r\nrateLimit.FullKey = enhancedKey \r\n\r\nFullKey is used for logging/debugging (e.g., in base_limiter.go),  Stats.Key is the actual metric key used for statistics.  They should match so logging reflects the actual metrics being tracked\r\n\r\n\r\n// Without the fix:\r\nrateLimit.FullKey = \"domain.route.http_method\"  // Old key (shown in logs)\r\nrateLimit.Stats.Key = \"domain.route_api.http_method_GET\"  // New key (used for metrics)",
+      "file": "src/config/config_impl.go",
+      "line": 429,
+      "diff_hunk": "@@ -367,6 +409,17 @@ func (this *rateLimitConfigImpl) GetLimit(\n \t\trateLimit.Stats = this.statsManager.NewStats(detailedMetricFullKey.String())\n \t}\n \n+\t// If not using detailed metric, but any value_to_metric path produced a different key,\n+\t// override stats to use the value_to_metric-enhanced key\n+\tif rateLimit != nil && !rateLimit.DetailedMetric {\n+\t\tenhancedKey := valueToMetricFullKey.String()\n+\t\tif enhancedKey != rateLimit.FullKey {\n+\t\t\t// Recreate to ensure a clean stats struct, then set to enhanced stats\n+\t\t\trateLimit = NewRateLimit(rateLimit.Limit.RequestsPerUnit, rateLimit.Limit.Unit, this.statsManager.NewStats(rateLimit.FullKey), rateLimit.Unlimited, rateLimit.ShadowMode, rateLimit.Name, rateLimit.Replaces, rateLimit.DetailedMetric)\n+\t\t\trateLimit.Stats = this.statsManager.NewStats(enhancedKey)\n+\t\t}",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "collin-lee",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "could entry.Value here be empty potentially?  If so, maybe add a guard\r\n\r\nif entry.Value != \"\" {\r\n    valueToMetricFullKey.WriteString(\"_\")\r\n    valueToMetricFullKey.WriteString(entry.Value)\r\n}",
+      "file": "src/config/config_impl.go",
+      "line": null,
+      "diff_hunk": "@@ -323,20 +330,55 @@ func (this *rateLimitConfigImpl) GetLimit(\n \n \t\tlogger.Debugf(\"looking up key: %s\", finalKey)\n \t\tnextDescriptor := descriptorsMap[finalKey]\n+\t\tmatchedViaWildcard := false\n \n \t\tif nextDescriptor == nil && len(prevDescriptor.wildcardKeys) > 0 {\n \t\t\tfor _, wildcardKey := range prevDescriptor.wildcardKeys {\n \t\t\t\tif strings.HasPrefix(finalKey, strings.TrimSuffix(wildcardKey, \"*\")) {\n \t\t\t\t\tnextDescriptor = descriptorsMap[wildcardKey]\n+\t\t\t\t\tmatchedViaWildcard = true\n \t\t\t\t\tbreak\n \t\t\t\t}\n \t\t\t}\n \t\t}\n \n+\t\tmatchedUsingValue := nextDescriptor != nil\n \t\tif nextDescriptor == nil {\n \t\t\tfinalKey = entry.Key\n \t\t\tlogger.Debugf(\"looking up key: %s\", finalKey)\n \t\t\tnextDescriptor = descriptorsMap[finalKey]\n+\t\t\tmatchedUsingValue = false\n+\t\t}\n+\n+\t\t// Build value_to_metric metrics path for this level\n+\t\tvalueToMetricFullKey.WriteString(\".\")\n+\t\tif nextDescriptor != nil {\n+\t\t\tif matchedViaWildcard {\n+\t\t\t\tif nextDescriptor.valueToMetric {\n+\t\t\t\t\tvalueToMetricFullKey.WriteString(entry.Key)\n+\t\t\t\t\tvalueToMetricFullKey.WriteString(\"_\")",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "collin-lee",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "@xuannam230201 \r\n\r\nShould we add after 419:\r\n\r\nrateLimit.FullKey = enhancedKey \r\n\r\nFullKey is used for logging/debugging (e.g., in base_limiter.go),  Stats.Key is the actual metric key used for statistics.  They should match so logging reflects the actual metrics being tracked\r\n\r\n\r\n// Without the fix:\r\nrateLimit.FullKey = \"domain.route.http_method\"  // Old key (shown in logs)\r\nrateLimit.Stats.Key = \"domain.route_api.http_method_GET\"  // New key (used for metrics)",
+      "file": "src/config/config_impl.go",
+      "line": 429,
+      "diff_hunk": "@@ -367,6 +409,17 @@ func (this *rateLimitConfigImpl) GetLimit(\n \t\trateLimit.Stats = this.statsManager.NewStats(detailedMetricFullKey.String())\n \t}\n \n+\t// If not using detailed metric, but any value_to_metric path produced a different key,\n+\t// override stats to use the value_to_metric-enhanced key\n+\tif rateLimit != nil && !rateLimit.DetailedMetric {\n+\t\tenhancedKey := valueToMetricFullKey.String()\n+\t\tif enhancedKey != rateLimit.FullKey {\n+\t\t\t// Recreate to ensure a clean stats struct, then set to enhanced stats\n+\t\t\trateLimit = NewRateLimit(rateLimit.Limit.RequestsPerUnit, rateLimit.Limit.Unit, this.statsManager.NewStats(rateLimit.FullKey), rateLimit.Unlimited, rateLimit.ShadowMode, rateLimit.Name, rateLimit.Replaces, rateLimit.DetailedMetric)\n+\t\t\trateLimit.Stats = this.statsManager.NewStats(enhancedKey)\n+\t\t}",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "collin-lee",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

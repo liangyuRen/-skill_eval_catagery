@@ -1,0 +1,33 @@
+{
+  "task_id": "serverless-application-model__3856",
+  "pr_number": 3856,
+  "repo": "aws/serverless-application-model",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "What does the `exclude_none` do here?",
+      "file": "samtranslator/model/sam_resources.py",
+      "line": 1507,
+      "diff_hunk": "@@ -1504,7 +1504,7 @@ def to_cloudformation(self, **kwargs: Any) -> List[Resource]:\n             instance_requirements=(\n                 model.InstanceRequirements.dict(exclude_none=True) if model.InstanceRequirements else None\n             ),\n-            scaling_config=model.ScalingConfig.dict() if model.ScalingConfig else None,\n+            scaling_config=model.ScalingConfig.dict(exclude_none=True) if model.ScalingConfig else None,",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "reedham-aws",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

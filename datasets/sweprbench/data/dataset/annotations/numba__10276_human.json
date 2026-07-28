@@ -1,0 +1,100 @@
+{
+  "task_id": "numba__10276",
+  "pr_number": 10276,
+  "repo": "numba/numba",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 4,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 2,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "Can we change this to check `sys.version_info` like the change in `mathimpl` please? When 3.10 support is eventually dropped, it's easier to spot old dead implementations if they reference the lower version bound than just using `hasattr`.",
+      "file": "numba/core/typing/mathdecl.py",
+      "line": null,
+      "diff_hunk": "@@ -40,7 +40,8 @@ class Math_unary(ConcreteTemplate):\n         signature(types.float32, types.float32),\n         signature(types.float64, types.float64),\n     ]\n-\n+if hasattr(math, 'exp2'):",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gmarkall",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "I think this will need a guard to ensure it doesn't break Python < 3.11.\r\n\r\n(However, the CUDA changes should be taken out of this PR, and added to a PR in https://github.com/NVIDIA/numba-cuda) instead please.",
+      "file": "numba/cuda/cudamath.py",
+      "line": null,
+      "diff_hunk": "@@ -43,6 +43,7 @@ class Math_unary(ConcreteTemplate):\n @infer_global(math.log2)\n @infer_global(math.log10)\n @infer_global(math.exp)\n+@infer_global(math.exp2)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gmarkall",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Can we change this to check `sys.version_info` like the change in `mathimpl` please? When 3.10 support is eventually dropped, it's easier to spot old dead implementations if they reference the lower version bound than just using `hasattr`.",
+      "file": "numba/core/typing/mathdecl.py",
+      "line": null,
+      "diff_hunk": "@@ -40,7 +40,8 @@ class Math_unary(ConcreteTemplate):\n         signature(types.float32, types.float32),\n         signature(types.float64, types.float64),\n     ]\n-\n+if hasattr(math, 'exp2'):",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gmarkall",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "We need a test function that exercises this function in the `TestMathLib` class too.",
+      "file": "numba/tests/test_mathlib.py",
+      "line": 78,
+      "diff_hunk": "@@ -74,6 +74,8 @@ def npy_sqrt(x):\n def exp(x):\n     return math.exp(x)\n \n+def exp2(x):",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gmarkall",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "I think this will need a guard to ensure it doesn't break Python < 3.11.\r\n\r\n(However, the CUDA changes should be taken out of this PR, and added to a PR in https://github.com/NVIDIA/numba-cuda) instead please.",
+      "file": "numba/cuda/cudamath.py",
+      "line": null,
+      "diff_hunk": "@@ -43,6 +43,7 @@ class Math_unary(ConcreteTemplate):\n @infer_global(math.log2)\n @infer_global(math.log10)\n @infer_global(math.exp)\n+@infer_global(math.exp2)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gmarkall",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

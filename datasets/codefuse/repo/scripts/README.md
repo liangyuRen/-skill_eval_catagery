@@ -1,0 +1,218 @@
+# SWE-CARE Evaluation Pipeline Scripts
+
+This directory contains scripts to automate the SWE-CARE evaluation pipeline and analyze results.
+
+## `run_eval_pipeline.py`
+
+A bootstrap script that runs the complete evaluation pipeline:
+
+1. **Generate text datasets** from collected SWE-CARE data
+2. **Run LLM inference** on code review tasks  
+3. **Evaluate predictions** using LLM evaluator (default: OpenAI o3)
+
+### Prerequisites
+
+Set up the required environment variables:
+
+```bash
+# Required
+export OPENAI_API_KEY="your-openai-api-key"
+export LLM_EVALUATOR_OPENAI_API_KEY="your-evaluation-api-key"
+
+# Optional
+export ANTHROPIC_API_KEY="your-anthropic-api-key"
+export OPENAI_BASE_URL="https://your-custom-openai-endpoint"
+export LLM_EVALUATOR_OPENAI_BASE_URL="https://your-custom-eval-endpoint"
+```
+
+### Usage
+
+Basic usage with no file context:
+
+```bash
+# Using default Hugging Face dataset
+python scripts/run_eval_pipeline.py \
+    --output-dir results/pipeline_output \
+    --model gpt-4o \
+    --model-provider openai \
+    --file-source none
+
+# Using local dataset file
+python scripts/run_eval_pipeline.py \
+    --dataset-name-or-path results/dataset/code_review_task_instances.jsonl \
+    --output-dir results/pipeline_output \
+    --model gpt-4o \
+    --model-provider openai \
+    --file-source none
+```
+
+With oracle file source and custom model args:
+
+```bash
+python scripts/run_eval_pipeline.py \
+    --dataset-name-or-path results/dataset/code_review_task_instances.jsonl \
+    --output-dir results/pipeline_output \
+    --model claude-3-5-sonnet-20241022 \
+    --model-provider anthropic \
+    --model-args "temperature=0.5,max_tokens=4096" \
+    --file-source oracle \
+    --github-tokens "token1" "token2"
+```
+
+With BM25 retrieval:
+
+```bash
+python scripts/run_eval_pipeline.py \
+    --dataset-name-or-path results/dataset/code_review_task_instances.jsonl \
+    --output-dir results/pipeline_output \
+    --model "models/gemini-2.5-pro" \
+    --model-provider openai \
+    --file-source bm25 \
+    --k 10 \
+    --retrieval-output-dir results/retrieval_output
+```
+
+Using Tree-sitter skeletons for Python files (works with any file-source):
+
+```bash
+python scripts/run_eval_pipeline.py \
+    --dataset-name-or-path results/dataset/code_review_task_instances.jsonl \
+    --output-dir results/pipeline_output \
+    --model gpt-4o \
+    --model-provider openai \
+    --file-source oracle \
+    --use-skeleton
+```
+
+### Arguments
+
+**Required:**
+
+- `--output-dir`: Directory to save all pipeline outputs
+- `--model`: Model name to use for inference
+- `--model-provider`: Model provider (openai, anthropic, deepseek, qwen, moonshot, gemini)
+
+**Optional:**
+
+- `--dataset-name-or-path`: Path to the input SWE-CARE dataset file or Hugging Face dataset name (default: inclusionAI/SWE-CARE)
+- `--model-args`: Comma-separated model arguments (e.g., 'temperature=0.7,top_p=0.9')
+- `--evaluator-model`: Model name to use for LLM evaluation (default: o3)
+- `--file-source`: Source strategy for files (none, oracle, bm25, all)
+- `--k`: Maximum number of files to use (required for bm25/all)
+- `--retrieval-output-dir`: Output directory for retrieval operations (required for bm25/all)
+- `--github-tokens`: GitHub API token(s) for fetching data
+- `--jobs`: Number of parallel jobs (default: 2)
+- `--skip-existing`: Skip instances that already have outputs (text/predictions/evaluations)
+
+### Output Structure
+
+The script creates the following directory structure:
+
+```
+
+<output-dir>/
+├── pipeline_config_YYYYMMDD_HHMMSS.json    # Complete pipeline configuration (timestamped)
+├── pipeline_YYYYMMDD_HHMMSS.log           # Detailed execution log (timestamped)
+├── code_review_text/                       # Generated text datasets
+│   └── <dataset_name>__<file_source>[**skeleton].jsonl
+│   └── <dataset_name>**<file_source>**k<N>[**skeleton].jsonl  # For bm25/all with k parameter
+├── predictions/                            # Model predictions organized by model
+│   └── <safe_model_name>/                  # Model-specific subdirectory
+│       └── <dataset_name>**<safe_model_name>.jsonl
+└── evaluation/                             # Evaluation results organized by evaluator model
+    └── <safe_evaluator_model_name>/         # Evaluator model subdirectory (e.g., o3)
+        └── <safe_model_name>/               # Inference model subdirectory
+            └── <dataset_name>**<safe_model_name>_report.jsonl
+
+```
+
+### Notes
+
+- The script automatically handles model names with slashes (e.g., `models/gemini-2.5-pro`)
+- Model predictions and evaluation results are organized in subdirectories by model name for better organization
+- LLM evaluation uses `temperature=1` for `--evaluator-model o3` (required) and `temperature=0` for other evaluator models
+- Use separate API keys for inference and evaluation via environment variables
+- All intermediate results are saved for debugging and analysis
+- The pipeline configuration and logs are timestamped for reproducibility
+- Evaluation report detection ensures only reports generated by the current run are used
+- Timestamps follow the format YYYYMMDD_HHMMSS for easy sorting and identification
+
+## `eval_report.py`
+
+A comprehensive analysis script that generates detailed evaluation reports from pipeline results:
+
+1. **Collects evaluation results** from multiple models and settings
+2. **Aggregates performance metrics** across different dimensions
+3. **Handles missing instances** by assigning score 0 for fair comparison
+4. **Generates rankings** of model-setting configurations
+
+### Prerequisites
+
+Ensure you have run the evaluation pipeline first using `run_eval_pipeline.py`.
+
+### Usage
+
+Basic usage:
+
+```bash
+# Using local dataset file
+python scripts/eval_report.py \
+    --dataset-name-or-path results/dataset/code_review_task_instances.jsonl \
+    --eval-output-dir results/pipeline_output/evaluation/o3 \
+    --report-output-file results/evaluation_report.json
+
+# Using default Hugging Face dataset
+python scripts/eval_report.py \
+    --eval-output-dir results/pipeline_output/evaluation/o3 \
+    --report-output-file results/evaluation_report.json
+```
+
+### Arguments
+
+**Required:**
+
+- `--eval-output-dir`: Directory containing evaluation results (organized by model)
+- `--report-output-file`: Path for the output JSON report file
+
+**Optional:**
+
+- `--dataset-name-or-path`: Path to the dataset file or Hugging Face dataset name (default: inclusionAI/SWE-CARE)
+
+### Notes
+
+- The script expects evaluation results to be organized in subdirectories by model name
+- Filename pattern must match: `{dataset}__<file_source>__<model>_report.jsonl` (legacy: `_report_YYYYMMDD_HHMMSS.jsonl`)
+- For bm25 settings: `{dataset}__bm25__k<N>__<model>_report.jsonl` (legacy: `_report_YYYYMMDD_HHMMSS.jsonl`)
+- All scores are averaged including zeros for missing instances to ensure fair comparison
+
+## `eval_benchmark.py`
+
+Post-process evaluation outputs:
+
+- (Optional) Merge reward-model scores into existing evaluation JSONLs
+- Group results across evaluator models into `<eval output dir>/all`
+- Write a unified report to `<eval output dir>/../report_all.json`
+
+```bash
+python scripts/eval_benchmark.py --eval-output-dir results/exp/evaluation
+python scripts/eval_benchmark.py --eval-output-dir results/exp/evaluation --reward-model-scores-file results/exp/reward_model_scores/scores.jsonl
+```
+
+## `print_eval_report_markdown_tables.py`
+
+Print markdown tables from an `eval_report.py` JSON report (e.g., `report_all.json`):
+
+```bash
+python scripts/print_eval_report_markdown_tables.py results/exp/report_all.json
+```
+
+To include standard deviation across per-evaluator reports, use the `--each` flag (repeatable):
+
+```bash
+python scripts/print_eval_report_markdown_tables.py results/exp/report_all.json \
+    --each results/exp/report_evaluator_A.json \
+    --each results/exp/report_evaluator_B.json \
+    --each results/exp/report_evaluator_C.json
+```
+
+Each numeric cell will be formatted as `mean ± std`.

@@ -1,0 +1,10 @@
+{
+  "pr_number": 5334,
+  "repo": "kedro-org/kedro",
+  "task_id": "kedro__5334",
+  "config_name": "config_C",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 233,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `.github/styles/Kedro/headings.yml`: 3 changed lines, 0 function/branch hunks, logic markers=0.\n- PR profile: type=feature, difficulty=Type2_Contextual, language=Python, files_changed=3.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### .github/styles/Kedro/headings.yml\n```diff\ndiff --git a/.github/styles/Kedro/headings.yml b/.github/styles/Kedro/headings.yml\nindex c0d0486c7e..4344a0a9df 100644\n--- a/.github/styles/Kedro/headings.yml\n+++ b/.github/styles/Kedro/headings.yml\n@@ -91,3 +91,4 @@ exceptions:\n   - YAML\n   - VS Code\n   - Visual Studio Code\n+  - JSON\n```\n\n---\n\n## Layer 3 - Execution Context\n\n---\n\n## Layer 4 - Behavior Mapping\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 3\n- PR type: feature"
+}

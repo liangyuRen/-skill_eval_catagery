@@ -1,0 +1,10 @@
+{
+  "pr_number": 4539,
+  "repo": "deepchem/deepchem",
+  "task_id": "deepchem__4539",
+  "config_name": "config_B",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 372,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `deepchem/models/torch_models/lnn.py`: 98 changed lines, 1 function/branch hunks, logic markers=2.\n- `deepchem/models/torch_models/__init__.py`: 4 changed lines, 0 function/branch hunks, logic markers=0.\n- `deepchem/models/torch_models/tests/test_lnn.py`: 90 changed lines, 1 function/branch hunks, logic markers=1.\n- PR profile: type=feature, difficulty=Type1_Direct, language=Python, files_changed=4.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### deepchem/models/torch_models/__init__.py\n```diff\ndiff --git a/deepchem/models/torch_models/__init__.py b/deepchem/models/torch_models/__init__.py\nindex 5479767ed6..dc57e218a2 100644\n--- a/deepchem/models/torch_models/__init__.py\n+++ b/deepchem/models/torch_models/__init__.py\n@@ -51,7 +51,7 @@\n from deepchem.models.torch_models.hnn import HNN, HNNModel\n from deepchem.models.torch_models.ChemCeption import ChemCeption\n from deepchem.models.torch_models.fno import FNO, FNOModel\n-from deepchem.models.torch_models.lnn import LNN\n+from deepchem.models.torch_models.lnn import LNN, LNNModel\n \n try:\n     from deepchem.models.torch_models.dmpnn import DMPNN, DMPNNModel\n```\n\n---\n\n## Layer 3 - Execution Context\n\n---\n\n## Layer 4 - Behavior Mapping\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 4\n- PR type: feature"
+}

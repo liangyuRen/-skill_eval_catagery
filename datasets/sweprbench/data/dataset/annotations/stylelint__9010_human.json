@@ -1,0 +1,50 @@
+{
+  "task_id": "stylelint__9010",
+  "pr_number": 9010,
+  "repo": "stylelint/stylelint",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 4,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "[suggestion] Minor. This `.pnp` check is duplicated with `if (isBareSpecifier && process.versions.pnp)`. Can we remove it?\r\n\r\n```diff\r\n-if (!process.versions.pnp) {\r\n-\treturn undefined;\r\n-}\r\n```",
+      "file": "lib/utils/resolveSilent.mjs",
+      "line": null,
+      "diff_hunk": "@@ -8,6 +10,68 @@ import { fileURLToPath, pathToFileURL } from 'node:url';\n // @see https://github.com/stylelint/stylelint/pull/8886\n import { resolve } from 'import-meta-resolve';\n \n+/**\n+ * Attempts to resolve a module specifier using Yarn PnP's API.\n+ *\n+ * When running under Yarn PnP, the import-meta-resolve polyfill doesn't work\n+ * because it bypasses PnP's virtual filesystem. This function uses\n+ * Module.findPnpApi() to get the PnP API for the target directory and\n+ * resolves packages through it.\n+ *\n+ * @see https://yarnpkg.com/advanced/pnpapi\n+ * @see https://github.com/stylelint/stylelint/issues/8971\n+ * @param {string} specifier The module specifier to resolve.\n+ * @param {string} issuer The directory to resolve from. Must end with /.\n+ * @returns {string | undefined} The resolved path, or undefined if resolution fails.\n+ */\n+function resolvePnP(specifier, issuer) {\n+\t// Only available in PnP environments.\n+\tif (!process.versions.pnp) {\n+\t\treturn undefined;\n+\t}\n+",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ybiquitous",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "[suggestion] This one-line `@type` is hard to read. What if switching to `@typedef` like this?\n\n```js\n/**\n * @typedef {{\n *   resolveRequest: (request: string, issuer: string | null) => string | null;\n *   resolveToUnqualified: (request: string, issuer: string | null) => string | null;\n * }} PnpApi\n * @typedef {(lookupSource: URL | string) => PnpApi | null} FindPnpApi\n */\n\n// ...\n\nconst mod = /** @type {typeof module & { findPnpApi?: FindPnpApi }} */ (module);\n```",
+      "file": "lib/utils/resolveSilent.mjs",
+      "line": null,
+      "diff_hunk": "@@ -8,6 +10,68 @@ import { fileURLToPath, pathToFileURL } from 'node:url';\n // @see https://github.com/stylelint/stylelint/pull/8886\n import { resolve } from 'import-meta-resolve';\n \n+/**\n+ * Attempts to resolve a module specifier using Yarn PnP's API.\n+ *\n+ * When running under Yarn PnP, the import-meta-resolve polyfill doesn't work\n+ * because it bypasses PnP's virtual filesystem. This function uses\n+ * Module.findPnpApi() to get the PnP API for the target directory and\n+ * resolves packages through it.\n+ *\n+ * @see https://yarnpkg.com/advanced/pnpapi\n+ * @see https://github.com/stylelint/stylelint/issues/8971\n+ * @param {string} specifier The module specifier to resolve.\n+ * @param {string} issuer The directory to resolve from. Must end with /.\n+ * @returns {string | undefined} The resolved path, or undefined if resolution fails.\n+ */\n+function resolvePnP(specifier, issuer) {\n+\t// Only available in PnP environments.\n+\tif (!process.versions.pnp) {\n+\t\treturn undefined;\n+\t}\n+\n+\t// Module.findPnpApi is added by Yarn PnP at runtime.\n+\tconst mod =\n+\t\t/** @type {typeof module & { findPnpApi?: (issuer: string) => { resolveRequest: (specifier: string, issuer: string) => string | null, resolveToUnqualified: (specifier: string, issuer: string) => string | null } | null }} */ (",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ybiquitous",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

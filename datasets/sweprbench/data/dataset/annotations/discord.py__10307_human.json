@@ -1,0 +1,84 @@
+{
+  "task_id": "discord.py__10307",
+  "pr_number": 10307,
+  "repo": "Rapptz/discord.py",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 3,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "We should practice what we preach in the discord server. We should not be making \"public access\" commands that are restricted to an owner.\n\nCould we change the example command to something like anonymous photo submission or similar?",
+      "file": "examples/modals/uploader.py",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,111 @@\n+from typing import Optional\n+import discord\n+from discord import app_commands\n+\n+import traceback\n+\n+# The guild in which this slash command will be registered.\n+# It is recommended to have a test guild to separate from your \"production\" bot\n+TEST_GUILD = discord.Object(0)\n+# The user ID of the bot owner. This is used to restrict access to the command.\n+BOT_OWNER_ID = 0  # Replace with your user ID\n+\n+\n+class MyClient(discord.Client):\n+    # Suppress error on the User attribute being None since it fills up later\n+    user: discord.ClientUser\n+\n+    def __init__(self) -> None:\n+        # Just default intents and a `discord.Client` instance\n+        # We don't need a `commands.Bot` instance because we are not\n+        # creating text-based commands.\n+        intents = discord.Intents.default()\n+        super().__init__(intents=intents)\n+\n+        # We need an `discord.app_commands.CommandTree` instance\n+        # to register application commands (slash commands in this case)\n+        self.tree = app_commands.CommandTree(self)\n+\n+    async def on_ready(self):\n+        print(f'Logged in as {self.user} (ID: {self.user.id})')\n+        print('------')\n+\n+    async def setup_hook(self) -> None:\n+        # Sync the application command with Discord.\n+        await self.tree.sync(guild=TEST_GUILD)\n+\n+\n+class BotUpdateModal(discord.ui.Modal, title='Set Bot Avatar & Banner'):\n+    # We can use a Label to attach a rich label and description to our item.\n+    avatar = discord.ui.Label(\n+        text='Avatar',\n+        description='The new avatar for the bot. Optional.',\n+        component=discord.ui.FileUpload(\n+            max_values=1,  # The maximum number of files that can be uploaded\n+            required=False,\n+        ),\n+    )\n+\n+    banner = discord.ui.Label(\n+        text='Banner',\n+        description='The new banner for the bot. Optional.',\n+        component=discord.ui.FileUpload(\n+            max_values=1,\n+            required=False,\n+        ),\n+    )\n+\n+    async def on_submit(self, interaction: discord.Interaction[MyClient]):\n+        # We defer the response because updating the avatar and banner can take a bit of time\n+        await interaction.response.defer()\n+\n+        # Get our bot to update its avatar and banner\n+        client = interaction.client\n+\n+        # Tell the type checker what our components are...\n+        assert isinstance(self.avatar.component, discord.ui.FileUpload)\n+        assert isinstance(self.banner.component, discord.ui.FileUpload)\n+\n+        avatar: Optional[discord.Attachment] = self.avatar.component.values[0] if self.avatar.component.values else None\n+        banner: Optional[discord.Attachment] = self.banner.component.values[0] if self.banner.component.values else None\n+\n+        # Update the avatar and banner\n+        # We read the bytes from the attachment and pass it to edit\n+        # If no file was uploaded, we pass `discord.utils.MISSING`, to not update that field\n+        await client.user.edit(\n+            avatar=await avatar.read() if avatar else discord.utils.MISSING,\n+            banner=await banner.read() if banner else discord.utils.MISSING,\n+        )\n+\n+        # Let the user know it was successful, this is optional\n+        await interaction.followup.send(\n+            f\"Updated {client.user.mention}'s avatar / banner.\",\n+            ephemeral=True,\n+        )\n+\n+    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:\n+        await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)\n+\n+        # Make sure we know what the error actually is\n+        traceback.print_exception(type(error), error, error.__traceback__)\n+\n+\n+client = MyClient()\n+\n+\n+@client.tree.command(guild=TEST_GUILD, description=\"Update the bot's avatar and banner\")\n+async def update_bot(interaction: discord.Interaction):\n+    # Locking this command to the bot owner only\n+    # We don't want anyone else changing our bot's avatar and banner!\n+    # Realistically, this should be proper checks, but this is just an example.\n+    if interaction.user.id != BOT_OWNER_ID:\n+        await interaction.response.send_message('You are not the owner of this bot.', ephemeral=True)\n+        return",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "AbstractUmbra",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "> guild separate from your production \"bot\"\nA guild separated from a bot makes little sense, or at least this reads poorly to me.\nMaybe change it to something akin to \"test guild before syncing globally\" or similar.",
+      "file": "examples/modals/uploader.py",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,111 @@\n+from typing import Optional\n+import discord\n+from discord import app_commands\n+\n+import traceback\n+\n+# The guild in which this slash command will be registered.\n+# It is recommended to have a test guild to separate from your \"production\" bot",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "AbstractUmbra",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "We should practice what we preach in the discord server. We should not be making \"public access\" commands that are restricted to an owner.\n\nCould we change the example command to something like anonymous photo submission or similar?",
+      "file": "examples/modals/uploader.py",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,111 @@\n+from typing import Optional\n+import discord\n+from discord import app_commands\n+\n+import traceback\n+\n+# The guild in which this slash command will be registered.\n+# It is recommended to have a test guild to separate from your \"production\" bot\n+TEST_GUILD = discord.Object(0)\n+# The user ID of the bot owner. This is used to restrict access to the command.\n+BOT_OWNER_ID = 0  # Replace with your user ID\n+\n+\n+class MyClient(discord.Client):\n+    # Suppress error on the User attribute being None since it fills up later\n+    user: discord.ClientUser\n+\n+    def __init__(self) -> None:\n+        # Just default intents and a `discord.Client` instance\n+        # We don't need a `commands.Bot` instance because we are not\n+        # creating text-based commands.\n+        intents = discord.Intents.default()\n+        super().__init__(intents=intents)\n+\n+        # We need an `discord.app_commands.CommandTree` instance\n+        # to register application commands (slash commands in this case)\n+        self.tree = app_commands.CommandTree(self)\n+\n+    async def on_ready(self):\n+        print(f'Logged in as {self.user} (ID: {self.user.id})')\n+        print('------')\n+\n+    async def setup_hook(self) -> None:\n+        # Sync the application command with Discord.\n+        await self.tree.sync(guild=TEST_GUILD)\n+\n+\n+class BotUpdateModal(discord.ui.Modal, title='Set Bot Avatar & Banner'):\n+    # We can use a Label to attach a rich label and description to our item.\n+    avatar = discord.ui.Label(\n+        text='Avatar',\n+        description='The new avatar for the bot. Optional.',\n+        component=discord.ui.FileUpload(\n+            max_values=1,  # The maximum number of files that can be uploaded\n+            required=False,\n+        ),\n+    )\n+\n+    banner = discord.ui.Label(\n+        text='Banner',\n+        description='The new banner for the bot. Optional.',\n+        component=discord.ui.FileUpload(\n+            max_values=1,\n+            required=False,\n+        ),\n+    )\n+\n+    async def on_submit(self, interaction: discord.Interaction[MyClient]):\n+        # We defer the response because updating the avatar and banner can take a bit of time\n+        await interaction.response.defer()\n+\n+        # Get our bot to update its avatar and banner\n+        client = interaction.client\n+\n+        # Tell the type checker what our components are...\n+        assert isinstance(self.avatar.component, discord.ui.FileUpload)\n+        assert isinstance(self.banner.component, discord.ui.FileUpload)\n+\n+        avatar: Optional[discord.Attachment] = self.avatar.component.values[0] if self.avatar.component.values else None\n+        banner: Optional[discord.Attachment] = self.banner.component.values[0] if self.banner.component.values else None\n+\n+        # Update the avatar and banner\n+        # We read the bytes from the attachment and pass it to edit\n+        # If no file was uploaded, we pass `discord.utils.MISSING`, to not update that field\n+        await client.user.edit(\n+            avatar=await avatar.read() if avatar else discord.utils.MISSING,\n+            banner=await banner.read() if banner else discord.utils.MISSING,\n+        )\n+\n+        # Let the user know it was successful, this is optional\n+        await interaction.followup.send(\n+            f\"Updated {client.user.mention}'s avatar / banner.\",\n+            ephemeral=True,\n+        )\n+\n+    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:\n+        await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)\n+\n+        # Make sure we know what the error actually is\n+        traceback.print_exception(type(error), error, error.__traceback__)\n+\n+\n+client = MyClient()\n+\n+\n+@client.tree.command(guild=TEST_GUILD, description=\"Update the bot's avatar and banner\")\n+async def update_bot(interaction: discord.Interaction):\n+    # Locking this command to the bot owner only\n+    # We don't want anyone else changing our bot's avatar and banner!\n+    # Realistically, this should be proper checks, but this is just an example.\n+    if interaction.user.id != BOT_OWNER_ID:\n+        await interaction.response.send_message('You are not the owner of this bot.', ephemeral=True)\n+        return",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "AbstractUmbra",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Again, practicing our preaching. We don't sync on startup and we advise everyone not to.\n\nI'm not sure if this is what we do in other examples, but if so, a comment explaining to not do this in \"real\" bots would be ideal.",
+      "file": "examples/modals/uploader.py",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,111 @@\n+from typing import Optional\n+import discord\n+from discord import app_commands\n+\n+import traceback\n+\n+# The guild in which this slash command will be registered.\n+# It is recommended to have a test guild to separate from your \"production\" bot\n+TEST_GUILD = discord.Object(0)\n+# The user ID of the bot owner. This is used to restrict access to the command.\n+BOT_OWNER_ID = 0  # Replace with your user ID\n+\n+\n+class MyClient(discord.Client):\n+    # Suppress error on the User attribute being None since it fills up later\n+    user: discord.ClientUser\n+\n+    def __init__(self) -> None:\n+        # Just default intents and a `discord.Client` instance\n+        # We don't need a `commands.Bot` instance because we are not\n+        # creating text-based commands.\n+        intents = discord.Intents.default()\n+        super().__init__(intents=intents)\n+\n+        # We need an `discord.app_commands.CommandTree` instance\n+        # to register application commands (slash commands in this case)\n+        self.tree = app_commands.CommandTree(self)\n+\n+    async def on_ready(self):\n+        print(f'Logged in as {self.user} (ID: {self.user.id})')\n+        print('------')\n+\n+    async def setup_hook(self) -> None:\n+        # Sync the application command with Discord.\n+        await self.tree.sync(guild=TEST_GUILD)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "AbstractUmbra",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

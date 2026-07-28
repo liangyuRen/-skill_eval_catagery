@@ -1,0 +1,67 @@
+{
+  "task_id": "spyder__25194",
+  "pr_number": 25194,
+  "repo": "spyder-ide/spyder",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 3,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\r\n        self.setCursorWidth(1)  # querying cursor position requires valid width\r\n\r\n```\r\n\r\nFor clarity.",
+      "file": "spyder/widgets/mixins.py",
+      "line": 1550,
+      "diff_hunk": "@@ -1546,18 +1546,21 @@ def inputMethodQuery(self, query):\n         This was suggested by a user in spyder-ide/spyder#23313. So, it's not\n         tested by us.\n         \"\"\"\n+        old_width = self.cursorWidth()  # may be 0 for multicursor rendering\n+        self.setCursorWidth(1)  # querying cursor position requires valid width",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ccordoba12",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "```suggestion\r\n\r\n        self.setCursorWidth(old_width)  # restore original cursor width\r\n```\r\n\r\nFor clarity.",
+      "file": "spyder/widgets/mixins.py",
+      "line": 1564,
+      "diff_hunk": "@@ -1546,18 +1546,21 @@ def inputMethodQuery(self, query):\n         This was suggested by a user in spyder-ide/spyder#23313. So, it's not\n         tested by us.\n         \"\"\"\n+        old_width = self.cursorWidth()  # may be 0 for multicursor rendering\n+        self.setCursorWidth(1)  # querying cursor position requires valid width\n         if query == Qt.ImInputItemClipRectangle:\n             cursor_rect = self.cursorRect()\n             margins = self.viewportMargins()\n             cursor_rect.moveTopLeft(\n                 cursor_rect.topLeft() + QPoint(margins.left(), margins.top())\n             )\n-            return cursor_rect\n-\n-        if isinstance(self, QPlainTextEdit):\n-            return QPlainTextEdit.inputMethodQuery(self, query)\n+            response = cursor_rect\n+        elif isinstance(self, QPlainTextEdit):\n+            response = QPlainTextEdit.inputMethodQuery(self, query)\n         elif isinstance(self, QTextEdit):\n-            return QTextEdit.inputMethodQuery(self, query)\n+            response = QTextEdit.inputMethodQuery(self, query)\n+        self.setCursorWidth(old_width)  # restore original cursor width",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ccordoba12",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "```suggestion\r\n@pytest.mark.skipif(\r\n    os.name == 'nt' and running_in_ci(),\r\n    reason=\"Race condition(?) with update timer\"\r\n)\r\n```\r\n\r\nCode style fixes and improve reason a bit.",
+      "file": "spyder/plugins/editor/widgets/codeeditor/tests/test_decorations.py",
+      "line": null,
+      "diff_hunk": "@@ -95,6 +97,8 @@ def test_decorations(codeeditor, qtbot):\n \n @flaky(max_runs=10)\n @pytest.mark.skipif(PYQT6, reason=\"Fails with PyQt6\")\n+@pytest.mark.skipif(os.name == 'nt' and running_in_ci(),\n+                    reason=\"Race condition? with update timer\")",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ccordoba12",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

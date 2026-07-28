@@ -1,0 +1,67 @@
+{
+  "task_id": "agents__3608",
+  "pr_number": 3608,
+  "repo": "livekit/agents",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 4,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "Few Suggestions:\r\n\r\n1) Correct control message (TTS):\r\n`await ws.send_str(json.dumps({\"type\": \"Close\"}))  # not \"CloseStream\"`\r\n\r\n2) Flush before close (if any text was streamed):\r\n```\r\nawait ws.send_str(json.dumps({\"type\": \"Flush\"}))\r\nawait ws.send_str(json.dumps({\"type\": \"Close\"}))\r\n```\r\n\r\n3) Avoid fixed sleep; wait briefly for server ack:\r\n```\r\ntry:\r\n    msg = await asyncio.wait_for(ws.receive(), timeout=1.0)\r\nexcept asyncio.TimeoutError:\r\n    pass\r\n```\r\n\r\n4) Drain one message, then close (prevents race conditions):\r\n```\r\ntry:\r\n    msg = await asyncio.wait_for(ws.receive(), timeout=1.0)\r\n    # optional: print(msg.type, msg.data)\r\nexcept asyncio.TimeoutError:\r\n    pass\r\nfinally:\r\n    await ws.close()\r\n```\r\n\r\nThese set of  tweaks should eliminate lingering TTS sessions and prevent projects from hitting concurrency caps (429 Too Many Requests).\r\n\r\nAlso, here is  a minimal example using the Deepgram Python SDK that demonstrates the proper \u201cFlush + Close\u201d sequence for TTS: https://github.com/deepgram/deepgram-python-sdk/blob/main/examples/speak/v1/connect/async.py",
+      "file": "livekit-plugins/livekit-plugins-deepgram/livekit/plugins/deepgram/tts.py",
+      "line": 240,
+      "diff_hunk": "@@ -220,6 +230,8 @@ async def _run(self, output_emitter: tts.AudioEmitter) -> None:\n \n \n class SynthesizeStream(tts.SynthesizeStream):\n+    _CLOSE_MSG: str = json.dumps({\"type\": \"CloseStream\"})\n+",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jeniya-tabassum",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "is this necessary? the fixed constant here is a bit worrisome. if DG is expected to send an update, latency/processing delays could still make this an unreliable measure.",
+      "file": "livekit-plugins/livekit-plugins-deepgram/livekit/plugins/deepgram/tts.py",
+      "line": null,
+      "diff_hunk": "@@ -125,7 +125,17 @@ async def _connect_ws(self, timeout: float) -> aiohttp.ClientWebSocketResponse:\n         )\n \n     async def _close_ws(self, ws: aiohttp.ClientWebSocketResponse) -> None:\n-        await ws.close()\n+        try:\n+            # Send CloseStream message to ensure Deepgram processes all remaining audio\n+            # before closing the connection, as per Deepgram's API requirements\n+            await ws.send_str(SynthesizeStream._CLOSE_MSG)\n+\n+            # Wait briefly for any final messages from Deepgram\n+            await asyncio.sleep(0.1)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "davidzhao",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Few Suggestions:\r\n\r\n1) Correct control message (TTS):\r\n`await ws.send_str(json.dumps({\"type\": \"Close\"}))  # not \"CloseStream\"`\r\n\r\n2) Flush before close (if any text was streamed):\r\n```\r\nawait ws.send_str(json.dumps({\"type\": \"Flush\"}))\r\nawait ws.send_str(json.dumps({\"type\": \"Close\"}))\r\n```\r\n\r\n3) Avoid fixed sleep; wait briefly for server ack:\r\n```\r\ntry:\r\n    msg = await asyncio.wait_for(ws.receive(), timeout=1.0)\r\nexcept asyncio.TimeoutError:\r\n    pass\r\n```\r\n\r\n4) Drain one message, then close (prevents race conditions):\r\n```\r\ntry:\r\n    msg = await asyncio.wait_for(ws.receive(), timeout=1.0)\r\n    # optional: print(msg.type, msg.data)\r\nexcept asyncio.TimeoutError:\r\n    pass\r\nfinally:\r\n    await ws.close()\r\n```\r\n\r\nThese set of  tweaks should eliminate lingering TTS sessions and prevent projects from hitting concurrency caps (429 Too Many Requests).\r\n\r\nAlso, here is  a minimal example using the Deepgram Python SDK that demonstrates the proper \u201cFlush + Close\u201d sequence for TTS: https://github.com/deepgram/deepgram-python-sdk/blob/main/examples/speak/v1/connect/async.py",
+      "file": "livekit-plugins/livekit-plugins-deepgram/livekit/plugins/deepgram/tts.py",
+      "line": 240,
+      "diff_hunk": "@@ -220,6 +230,8 @@ async def _run(self, output_emitter: tts.AudioEmitter) -> None:\n \n \n class SynthesizeStream(tts.SynthesizeStream):\n+    _CLOSE_MSG: str = json.dumps({\"type\": \"CloseStream\"})\n+",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jeniya-tabassum",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

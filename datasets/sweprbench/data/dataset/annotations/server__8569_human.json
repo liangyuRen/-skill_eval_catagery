@@ -1,0 +1,50 @@
+{
+  "task_id": "server__8569",
+  "pr_number": 8569,
+  "repo": "triton-inference-server/server",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 4,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I think this needs a `lora_config.name is not None` as well.",
+      "file": "python/openai/openai_frontend/engine/utils/triton.py",
+      "line": 149,
+      "diff_hunk": "@@ -135,8 +146,8 @@ def _create_vllm_generate_request(\n             request_logprobs = True\n     inputs[\"return_logprobs\"] = np.bool_([request_logprobs])\n \n-    if lora_name is not None:\n-        sampling_parameters[\"lora_name\"] = lora_name\n+    if lora_config is not None:",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "whoisj",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "do we need if `lora_config.name is not None` instead of just removing the check?",
+      "file": "python/openai/openai_frontend/engine/utils/triton.py",
+      "line": 174,
+      "diff_hunk": "@@ -167,15 +178,10 @@ def _create_trtllm_generate_request(\n     model,\n     prompt,\n     request: CreateChatCompletionRequest | CreateCompletionRequest,\n-    lora_name: str | None,\n+    lora_config: TritonLoraConfig | None,\n     echo_tensor_name: str | None,\n     default_max_tokens: int,\n ):\n-    if lora_name is not None:",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "whoisj",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

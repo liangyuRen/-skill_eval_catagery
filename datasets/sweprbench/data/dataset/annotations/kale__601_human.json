@@ -1,0 +1,67 @@
+{
+  "task_id": "kale__601",
+  "pr_number": 601,
+  "repo": "kubeflow/kale",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 6,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "Will this be required in production to have this working? Notice that some users may want to keep files hidden, hence we must make sure that we document that this feature only works with this flag.",
+      "file": "Makefile",
+      "line": null,
+      "diff_hunk": "@@ -190,7 +190,7 @@ lock-upgrade: check-uv ## Upgrade all dependencies and update lock\n ##@ Development Helpers\n \n jupyter: ## Start JupyterLab\n-\tSETUPTOOLS_SCM_PRETEND_VERSION=$(DEV_VERSION) $(UV) run jupyter lab\n+\tSETUPTOOLS_SCM_PRETEND_VERSION=$(DEV_VERSION) $(UV) run jupyter lab --ContentsManager.allow_hidden=True",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jesuino",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I would remove the text and leave only the icon",
+      "file": "labextension/src/widgets/deploys-progress/DeployProgress.tsx",
+      "line": null,
+      "diff_hunk": "@@ -215,6 +240,15 @@ export const DeployProgress: React.FunctionComponent<\n             style={{ color: DeployUtils.color.success, height: 18, width: 18 }}\n           />\n         </a>\n+        <a\n+          onClick={handleDownloadClick}\n+          style={{ cursor: 'pointer', marginLeft: 4 }}\n+          role=\"button\"\n+          tabIndex={0}\n+        >\n+          Download",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jesuino",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Will this be required in production to have this working? Notice that some users may want to keep files hidden, hence we must make sure that we document that this feature only works with this flag.",
+      "file": "Makefile",
+      "line": null,
+      "diff_hunk": "@@ -190,7 +190,7 @@ lock-upgrade: check-uv ## Upgrade all dependencies and update lock\n ##@ Development Helpers\n \n jupyter: ## Start JupyterLab\n-\tSETUPTOOLS_SCM_PRETEND_VERSION=$(DEV_VERSION) $(UV) run jupyter lab\n+\tSETUPTOOLS_SCM_PRETEND_VERSION=$(DEV_VERSION) $(UV) run jupyter lab --ContentsManager.allow_hidden=True",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jesuino",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

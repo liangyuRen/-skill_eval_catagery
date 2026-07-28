@@ -1,0 +1,50 @@
+{
+  "task_id": "autogluon__5586",
+  "pr_number": 5586,
+  "repo": "autogluon/autogluon",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 4,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "add reasoning for version limit as a comment in this file",
+      "file": ".github/workflow_scripts/env_setup.sh",
+      "line": 89,
+      "diff_hunk": "@@ -85,7 +85,7 @@ function install_all_no_tests {\n }\n \n function build_pkg {\n-    pip install --upgrade setuptools wheel\n+    pip install --upgrade \"setuptools<82\" wheel",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "Innixma",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "@prateekdesai04 @Innixma investigated an alternative that avoids pinning setuptools entirely. Since mmdet 3.3.0 supports mmengine>=0.7.1, <1.0.0, we can upgrade the full stack:\n\n```bash\npython3 -m pip install \"mmengine==0.11.0rc2\"\npython3 -m pip install \"mmcv==2.1.0\" --no-build-isolation --timeout 60\npython3 -m pip install \"mmdet==3.3.0\"\n```\nmmengine 0.11.0rc2 replaces pkg_resources with importlib natively ([open-mmlab/mmengine#1676](https://github.com/open-mmlab/mmengine/pull/1676)), so no setuptools<82 pin needed at all.\nWorth testing \u2014 if it passes CI, the only follow-up would be updating the AutoGluon docs which currently reference mmdet==3.2.0.",
+      "file": ".github/workflow_scripts/setup_mmcv.sh",
+      "line": 12,
+      "diff_hunk": "@@ -3,8 +3,9 @@ function setup_mmcv {\n     echo \"Skipping MMCV installation on Python 3.13 (not supported)\"\n     return 0\n   fi\n-  # Install MMEngine from git with the fix for torch 2.5\n-  python3 -m pip install \"git+https://github.com/open-mmlab/mmengine.git@2e0ab7a92220d2f0c725798047773495d589c548\"\n-  mim install \"mmcv==2.1.0\" --timeout 60\n+  # Install MMEngine from PyPI wheel to avoid setuptools>=82 removing pkg_resources\n+  python3 -m pip install \"setuptools<82\"\n+  python3 -m pip install \"mmengine==0.10.5\"\n+  python3 -m pip install \"mmcv==2.1.0\" --no-build-isolation --timeout 60\n   python3 -m pip install \"mmdet==3.2.0\"\n }",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "celestinoxp",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "pr_number": 7706,
+  "repo": "firebase/firebase-android-sdk",
+  "task_id": "firebase-android-sdk__7706",
+  "config_name": "config_B",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 157,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `firebase-ai/src/main/kotlin/com/google/firebase/ai/GenerativeModel.kt`: 178 changed lines, 0 function/branch hunks, logic markers=7.\n- PR profile: type=feature, difficulty=Type1_Direct, language=Java, files_changed=1.\n\n---\n\n## Layer 2 - Diff (Core)\n\n---\n\n## Layer 3 - Execution Context\n\n---\n\n## Layer 4 - Behavior Mapping\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Java\n- Files changed: 1\n- PR type: feature"
+}

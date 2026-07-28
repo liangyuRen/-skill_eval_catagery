@@ -1,0 +1,10 @@
+{
+  "pr_number": 20351,
+  "repo": "Chia-Network/chia-blockchain",
+  "task_id": "chia-blockchain__20351",
+  "config_name": "config_B",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 444,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `chia/full_node/tx_processing_queue.py`: 113 changed lines, 3 function/branch hunks, logic markers=15.\n- `chia/full_node/full_node.py`: 6 changed lines, 1 function/branch hunks, logic markers=0.\n- `chia/_tests/core/full_node/test_tx_processing_queue.py`: 102 changed lines, 7 function/branch hunks, logic markers=1.\n- PR profile: type=feature, difficulty=Type1_Direct, language=Python, files_changed=3.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### chia/full_node/full_node.py\n```diff\ndiff --git a/chia/full_node/full_node.py b/chia/full_node/full_node.py\nindex 3ae028198e49..cad351bd62e8 100644\n--- a/chia/full_node/full_node.py\n+++ b/chia/full_node/full_node.py\n@@ -286,7 +286,9 @@ async def manage(self) -> AsyncIterator[None]:\n                 single_threaded=single_threaded,\n             ) as self._mempool_manager:\n                 # Transactions go into this queue from the server, and get sent to respond_transaction\n-                self._transaction_queue = TransactionQueue(1000, self.log)\n+                self._transaction_queue = TransactionQueue(\n+                    1000, self.log, max_tx_clvm_cost=uint64(self.constants.MAX_BLOCK_COST_CLVM // 2)\n+                )\n                 self._transaction_queue_task: asyncio.Task[None] = create_referenced_task(self._handle_transactions())\n \n                 self._init_weight_proof = create_referenced_task(self.initialize_weight_proof())\n```\n\n---\n\n## Layer 3 - Execution Context\n\n---\n\n## Layer 4 - Behavior Mapping\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 3\n- PR type: feature"
+}

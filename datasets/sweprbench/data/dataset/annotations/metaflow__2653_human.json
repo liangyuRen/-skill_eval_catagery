@@ -1,0 +1,84 @@
+{
+  "task_id": "metaflow__2653",
+  "pr_number": 2653,
+  "repo": "Netflix/metaflow",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 5,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_3",
+      "body": "This is a very unit-testable chunk of code. Can we add unit test to:\r\n1. To trigger the scenario that caused the error.\r\n2. Verify the unit test fails before this code change.\r\n3. Verify the unit test passes after this fix.",
+      "file": "metaflow/runner/utils.py",
+      "line": 147,
+      "diff_hunk": "@@ -129,30 +130,32 @@ def read_from_fifo_when_ready(\n             data = os.read(fifo_fd, 8192)\n             if data:\n                 content += data\n+                # We got data! Now switch to blocking mode for guaranteed complete reads.\n+                # In blocking mode, read() won't return 0 until writer closes AND all\n+                # kernel buffers are drained - this is POSIX guaranteed.\n+                flags = fcntl.fcntl(fifo_fd, fcntl.F_GETFL)\n+                fcntl.fcntl(fifo_fd, fcntl.F_SETFL, flags & ~os.O_NONBLOCK)\n+\n+                # Now do blocking reads until true EOF\n+                while True:\n+                    chunk = os.read(fifo_fd, 8192)\n+                    if not chunk:\n+                        # True EOF - all data drained\n+                        break\n+                    content += chunk\n+                # All data read, exit main loop\n+                break",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "aquarin",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "why is this needed? wouldn't f.close() already take care of this?",
+      "file": "metaflow/plugins/aws/step_functions/step_functions_cli.py",
+      "line": null,
+      "diff_hunk": "@@ -191,6 +191,7 @@ def create(\n                 },\n                 f,\n             )\n+            f.flush()",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "savingoyal",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "When does this happen? So we got some event (like file close?) and no data?",
+      "file": "metaflow/runner/utils.py",
+      "line": 149,
+      "diff_hunk": "@@ -129,30 +130,32 @@ def read_from_fifo_when_ready(\n             data = os.read(fifo_fd, 8192)\n             if data:\n                 content += data\n+                # We got data! Now switch to blocking mode for guaranteed complete reads.\n+                # In blocking mode, read() won't return 0 until writer closes AND all\n+                # kernel buffers are drained - this is POSIX guaranteed.\n+                flags = fcntl.fcntl(fifo_fd, fcntl.F_GETFL)\n+                fcntl.fcntl(fifo_fd, fcntl.F_SETFL, flags & ~os.O_NONBLOCK)\n+\n+                # Now do blocking reads until true EOF\n+                while True:\n+                    chunk = os.read(fifo_fd, 8192)\n+                    if not chunk:\n+                        # True EOF - all data drained\n+                        break\n+                    content += chunk\n+                # All data read, exit main loop\n+                break\n             else:\n                 if len(events):",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "romain-intel",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "This is a very unit-testable chunk of code. Can we add unit test to:\r\n1. To trigger the scenario that caused the error.\r\n2. Verify the unit test fails before this code change.\r\n3. Verify the unit test passes after this fix.",
+      "file": "metaflow/runner/utils.py",
+      "line": 147,
+      "diff_hunk": "@@ -129,30 +130,32 @@ def read_from_fifo_when_ready(\n             data = os.read(fifo_fd, 8192)\n             if data:\n                 content += data\n+                # We got data! Now switch to blocking mode for guaranteed complete reads.\n+                # In blocking mode, read() won't return 0 until writer closes AND all\n+                # kernel buffers are drained - this is POSIX guaranteed.\n+                flags = fcntl.fcntl(fifo_fd, fcntl.F_GETFL)\n+                fcntl.fcntl(fifo_fd, fcntl.F_SETFL, flags & ~os.O_NONBLOCK)\n+\n+                # Now do blocking reads until true EOF\n+                while True:\n+                    chunk = os.read(fifo_fd, 8192)\n+                    if not chunk:\n+                        # True EOF - all data drained\n+                        break\n+                    content += chunk\n+                # All data read, exit main loop\n+                break",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "aquarin",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

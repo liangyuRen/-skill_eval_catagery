@@ -1,0 +1,50 @@
+{
+  "task_id": "coreos-assembler__4386",
+  "pr_number": 4386,
+  "repo": "coreos/coreos-assembler",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 4,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nFor efficiency, you can use a single `jq` command to extract all the required values from the manifest file. This avoids spawning multiple `jq` processes for the same file. Using `jq`'s `@sh` format specifier ensures that the values are correctly shell-escaped, making the `eval` safe.\n\n```\neval \"$(jq -r '\"name=\" + (.metadata.name // .rojig.name | @sh), \"summary=\" + (.metadata.summary // .rojig.summary | @sh), \"ref=\" + (.ref // \"\" | @sh)' < \"${flattened_manifest}\")\"\n```",
+      "file": "src/cmd-build",
+      "line": 156,
+      "diff_hunk": "@@ -148,6 +148,14 @@ done\n \n prepare_build\n \n+# Use metadata.name as the name of the VM images\n+# Also grab metadata.summary for image upload descriptions\n+# XXX: delete the rojig fallbacks once we've moved over to metadata\n+name=$(jq -r '.metadata.name//.rojig.name' < \"${flattened_manifest}\")\n+summary=$(jq -r '.metadata.summary//.rojig.summary' < \"${flattened_manifest}\")\n+ref=$(jq -r '.ref//\"\"' < \"${flattened_manifest}\")",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "I think we've completed the move to metadata in RHCOS & FCOS so we could simplify that.",
+      "file": "src/cmd-build",
+      "line": 155,
+      "diff_hunk": "@@ -148,6 +148,14 @@ done\n \n prepare_build\n \n+# Use metadata.name as the name of the VM images\n+# Also grab metadata.summary for image upload descriptions\n+# XXX: delete the rojig fallbacks once we've moved over to metadata\n+name=$(jq -r '.metadata.name//.rojig.name' < \"${flattened_manifest}\")\n+summary=$(jq -r '.metadata.summary//.rojig.summary' < \"${flattened_manifest}\")",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "travier",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

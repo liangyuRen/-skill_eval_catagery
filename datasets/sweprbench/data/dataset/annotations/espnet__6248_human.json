@@ -1,0 +1,50 @@
+{
+  "task_id": "espnet__6248",
+  "pr_number": 6248,
+  "repo": "espnet/espnet",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "![high](https://www.gstatic.com/codereviewagent/high-priority.svg)\n\nThe `torchaudio.functional.forced_align` function requires that the target sequence does not contain any blank tokens. It's crucial to add an assertion to validate this precondition. Without this check, the function might fail with an unclear error message from within `torchaudio` or produce incorrect alignments if the input `ys_pad` contains blank tokens.\n\n```suggestion\n        assert not (ys_pad == blank_idx).any(), \"Target cannot contain blank tokens.\"\n        align_label, align_prob = torchaudio.functional.forced_align(\n            log_probs, ys_pad, hlens, ys_lens, blank=blank_idx\n        )\n```",
+      "file": "espnet2/asr/ctc.py",
+      "line": 243,
+      "diff_hunk": "@@ -212,3 +212,28 @@ def argmax(self, hs_pad):\n             torch.Tensor: argmax applied 2d tensor (B, Tmax)\n         \"\"\"\n         return torch.argmax(self.ctc_lo(hs_pad), dim=2)\n+    \n+    def forced_align(self, hs_pad, hlens, ys_pad, ys_lens, blank_idx=0):\n+        \"\"\"Force alignment between input and target sequences (Viterbi path).\n+        Args:\n+            hs_pad: batch of padded hidden state sequences (B, Tmax, D)\n+            hlens: batch of lengths of hidden state sequences (B)\n+            ys_pad: batch of padded character id sequence tensor (B, Lmax)\n+            ys_lens: batch of lengths of character sequence (B)\n+            blank_idx: index of blank symbol\n+            Note: B must be 1.\n+        Returns:\n+            alignments: Tuple(tensor, tensor):\n+                - Label for each time step in the alignment path computed using forced alignment.\n+                - Log probability scores of the labels for each time step.\n+            https://docs.pytorch.org/audio/main/generated/torchaudio.functional.forced_align.html\n+        \"\"\"\n+        import torchaudio\n+        if self.ctc_type != \"builtin\":\n+            raise NotImplementedError(\"force_align is only implemented for builtin CTC\")\n+        log_probs = self.log_softmax(hs_pad)  # (B, Tmax, odim)\n+        assert log_probs.size(0) == 1, \"Forced alignment only works with batch size 1.\"\n+        align_label, align_prob = torchaudio.functional.forced_align(\n+            log_probs, ys_pad, hlens, ys_lens, blank=blank_idx\n+        )",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "![high](https://www.gstatic.com/codereviewagent/high-priority.svg)\n\nModifying the input tensor `text` in-place is a side effect that can lead to unexpected behavior and hard-to-debug issues in the calling code. It's much safer to create a new tensor with the modifications, for example by using `torch.where` or by cloning the tensor before modification.\n\n```suggestion\n        text = torch.where(text == -1, self.ignore_id, text)\n```",
+      "file": "espnet2/s2t/espnet_model.py",
+      "line": null,
+      "diff_hunk": "@@ -120,6 +120,58 @@ def __init__(\n             assert (\n                 self.frontend is None\n             ), \"frontend should be None when using full Whisper model\"\n+    \n+    def forced_align(self, speech, speech_lengths, text, text_lengths):\n+        \"\"\"Calculate frame-wise alignment from CTC probabilities.\n+\n+        Args:\n+            speech: (Batch, Length, ...)\n+            speech_lengths: (Batch,)\n+            text: (Batch, Length)\n+            text_lengths: (Batch,)\n+        Returns:\n+            alignments: Tuple(tensor, tensor):\n+                - Label for each time step in the alignment path computed using forced alignment.\n+                - Log probability scores of the labels for each time step.\n+            https://docs.pytorch.org/audio/main/generated/torchaudio.functional.forced_align.html\n+        \"\"\"\n+        assert self.ctc is not None, \"CTC is not used in this model. Cannot compute forced alignment.\"\n+        assert text_lengths.dim() == 1, text_lengths.shape\n+        # Check that batch_size is unified\n+        assert (\n+            speech.shape[0]\n+            == speech_lengths.shape[0]\n+            == text.shape[0]\n+            == text_lengths.shape[0]\n+        ), (\n+            speech.shape,\n+            speech_lengths.shape,\n+            text.shape,\n+            text_lengths.shape,\n+        )\n+        batch_size = speech.shape[0]\n+        assert batch_size==1, \"Forced alignment only works with batch size 1.\"\n+\n+        # -1 is used as padding index in collate fn\n+        text[text == -1] = self.ignore_id",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "task_id": "kedro__5352",
+  "pr_number": 5352,
+  "repo": "kedro-org/kedro",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "It seems to make sense to wrap this logic in a helper like `self._clear_version_cache()`",
+      "file": "kedro/io/core.py",
+      "line": null,
+      "diff_hunk": "@@ -870,7 +890,33 @@ def exists(self) -> bool:\n \n     def _release(self) -> None:\n         super()._release()\n-        self._version_cache.clear()\n+        # Clear version cache\n+        with self._version_cache_lock:\n+            self._cached_load_version = None\n+            self._cached_save_version = None",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "DimedS",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "This part isn\u2019t particularly elegant, but I\u2019m not sure there\u2019s a clean way to avoid the two methods here.",
+      "file": "kedro/io/core.py",
+      "line": null,
+      "diff_hunk": "@@ -870,7 +890,33 @@ def exists(self) -> bool:\n \n     def _release(self) -> None:\n         super()._release()\n-        self._version_cache.clear()\n+        # Clear version cache\n+        with self._version_cache_lock:\n+            self._cached_load_version = None\n+            self._cached_save_version = None\n+\n+    def __getstate__(self) -> dict[str, Any]:",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "DimedS",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

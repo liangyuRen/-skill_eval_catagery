@@ -1,0 +1,33 @@
+{
+  "task_id": "pipecat__3025",
+  "pr_number": 3025,
+  "repo": "pipecat-ai/pipecat",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 5,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Not sure how we could have an unknown context type...guess we'd be living in the upside-down",
+      "file": "src/pipecat/utils/tracing/service_decorators.py",
+      "line": 403,
+      "diff_hunk": "@@ -382,43 +384,57 @@ async def wrapped_start_llm_usage_metrics(tokens):\n                             # Replace push_frame to capture output\n                             self.push_frame = traced_push_frame\n \n-                            # Detect if we're using Google's service\n-                            is_google_service = \"google\" in service_class_name.lower()\n-\n-                            # Try to get messages based on service type\n+                            # Get messages for logging\n+                            # For OpenAILLMContext: use context's own get_messages_for_logging() method\n+                            # For LLMContext: use adapter's get_messages_for_logging() which returns\n+                            # messages in provider's native format with sensitive data sanitized\n                             messages = None\n                             serialized_messages = None\n \n-                            # TODO: Revisit once we unify the messages across services\n-                            if is_google_service:\n-                                # Handle Google service specifically\n-                                if hasattr(context, \"get_messages_for_logging\"):\n-                                    messages = context.get_messages_for_logging()\n-                            else:\n-                                # Handle other services like OpenAI\n-                                if hasattr(context, \"get_messages\"):\n-                                    messages = context.get_messages()\n-                                elif hasattr(context, \"messages\"):\n-                                    messages = context.messages\n+                            if isinstance(context, OpenAILLMContext):\n+                                # OpenAILLMContext and subclasses have their own method\n+                                messages = context.get_messages_for_logging()\n+                            elif isinstance(context, LLMContext):\n+                                # Universal LLMContext - use adapter for provider-native format\n+                                if hasattr(self, \"get_llm_adapter\"):\n+                                    adapter = self.get_llm_adapter()\n+                                    messages = adapter.get_messages_for_logging(context)\n+                            elif hasattr(context, \"get_messages\"):\n+                                # Fallback for unknown context types",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "kompfner",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

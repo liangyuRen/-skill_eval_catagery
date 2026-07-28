@@ -1,0 +1,50 @@
+{
+  "task_id": "linkding__1261",
+  "pr_number": 1261,
+  "repo": "sissbruecker/linkding",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 3,
+  "substantive_comment_count": 1,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "There's two issues here:\n- This will result in a relative URL that on its own will not resolve to the favicon, which makes it less useful.\n- It's a breaking change. Any client that displays fav icons would now have to be changed to prepend some base URL. That alone makes it a no go for me.\n\nI'm not sure what a proper fix would be but it would probably involve passing a specific header to linkding or configuring some environment variable. Django uses this to determine the host name, so maybe that gives some pointers: https://github.com/django/django/blob/d6ae2ed868e43671afc4d433c3d8f4d27f7eb555/django/http/request.py#L167-L183",
+      "file": "bookmarks/api/serializers.py",
+      "line": null,
+      "diff_hunk": "@@ -107,16 +107,14 @@ def get_favicon_url(self, obj: Bookmark):\n         if not obj.favicon_file:\n             return None\n         request = self.context.get(\"request\")\n-        favicon_file_path = static(obj.favicon_file)\n-        favicon_url = request.build_absolute_uri(favicon_file_path)\n+        favicon_url = static(obj.favicon_file)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "sissbruecker",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "There's two issues here:\n- This will result in a relative URL that on its own will not resolve to the favicon, which makes it less useful.\n- It's a breaking change. Any client that displays fav icons would now have to be changed to prepend some base URL. That alone makes it a no go for me.\n\nI'm not sure what a proper fix would be but it would probably involve passing a specific header to linkding or configuring some environment variable. Django uses this to determine the host name, so maybe that gives some pointers: https://github.com/django/django/blob/d6ae2ed868e43671afc4d433c3d8f4d27f7eb555/django/http/request.py#L167-L183",
+      "file": "bookmarks/api/serializers.py",
+      "line": null,
+      "diff_hunk": "@@ -107,16 +107,14 @@ def get_favicon_url(self, obj: Bookmark):\n         if not obj.favicon_file:\n             return None\n         request = self.context.get(\"request\")\n-        favicon_file_path = static(obj.favicon_file)\n-        favicon_url = request.build_absolute_uri(favicon_file_path)\n+        favicon_url = static(obj.favicon_file)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "sissbruecker",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

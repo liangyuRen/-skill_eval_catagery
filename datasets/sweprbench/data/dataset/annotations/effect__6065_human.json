@@ -1,0 +1,101 @@
+{
+  "task_id": "effect__6065",
+  "pr_number": 6065,
+  "repo": "Effect-TS/effect",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 4,
+  "substantive_comment_count": 4,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3",
+    "c_4"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "The schema should be constrained to an input of unknown",
+      "file": "packages/rpc/src/Rpc.ts",
+      "line": null,
+      "diff_hunk": "@@ -171,6 +172,7 @@ export interface AnyWithProps {\n   readonly payloadSchema: AnySchema\n   readonly successSchema: Schema.Schema.Any\n   readonly errorSchema: Schema.Schema.All\n+  readonly defectSchema: Schema.Schema.Any",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "tim-smart",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "The schema will have to have no requirements as well",
+      "file": "packages/rpc/src/Rpc.ts",
+      "line": null,
+      "diff_hunk": "@@ -58,6 +58,7 @@ export interface Rpc<\n   readonly payloadSchema: Payload\n   readonly successSchema: Success\n   readonly errorSchema: Error\n+  readonly defectSchema: Schema.Schema.Any",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "tim-smart",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "The schema should be constrained to an input of unknown",
+      "file": "packages/rpc/src/Rpc.ts",
+      "line": null,
+      "diff_hunk": "@@ -171,6 +172,7 @@ export interface AnyWithProps {\n   readonly payloadSchema: AnySchema\n   readonly successSchema: Schema.Schema.Any\n   readonly errorSchema: Schema.Schema.All\n+  readonly defectSchema: Schema.Schema.Any",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "tim-smart",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "```suggestion\n  readonly defectSchema: Schema.Schema<unknown, any>\n```\n\nThe encoded type we don't care about, as long as we can give it an unknown value to encode.",
+      "file": "packages/rpc/src/Rpc.ts",
+      "line": null,
+      "diff_hunk": "@@ -58,6 +58,7 @@ export interface Rpc<\n   readonly payloadSchema: Payload\n   readonly successSchema: Success\n   readonly errorSchema: Error\n+  readonly defectSchema: Schema.Schema<unknown, unknown>",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "tim-smart",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_4",
+      "body": "```suggestion\n\"@effect/rpc\": patch\n```",
+      "file": ".changeset/custom-defect-schema.md",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,5 @@\n+---\n+\"@effect/rpc\": minor",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "tim-smart",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

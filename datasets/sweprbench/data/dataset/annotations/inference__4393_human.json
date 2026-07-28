@@ -1,0 +1,101 @@
+{
+  "task_id": "inference__4393",
+  "pr_number": 4393,
+  "repo": "xorbitsai/inference",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 12,
+  "substantive_comment_count": 4,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3",
+    "c_4"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "Should numpy be such an old version?",
+      "file": "xinference/deploy/docker/requirements_12.9/requirements-cu129-ml.txt",
+      "line": 54,
+      "diff_hunk": "@@ -51,3 +51,4 @@ xgrammar>=0.1.10\n cuda-python\n sgl-kernel>=0.0.3.post3,<=0.1.4\n IPython\n+numpy==1.26.4",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "qinxuye",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Should numpy be such an old version?",
+      "file": "xinference/deploy/docker/requirements_12.9/requirements-cu129-ml.txt",
+      "line": 54,
+      "diff_hunk": "@@ -51,3 +51,4 @@ xgrammar>=0.1.10\n cuda-python\n sgl-kernel>=0.0.3.post3,<=0.1.4\n IPython\n+numpy==1.26.4",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "qinxuye",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "In dockerfile cannot be the proxy.",
+      "file": "xinference/deploy/docker/Dockerfile.cu129",
+      "line": null,
+      "diff_hunk": "@@ -26,7 +26,7 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/python3.10/dist-packages/nvi\n \n # Install pip dependencies\n ARG LLAMA_CPP_USE_CUDA=true\n-ARG PIP_INDEX=https://pypi.org/simple\n+ARG PIP_INDEX=https://pypi.tuna.tsinghua.edu.cn/simple/",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "qinxuye",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Why pin triton and torchcodec",
+      "file": "xinference/deploy/docker/Dockerfile.cu129",
+      "line": 81,
+      "diff_hunk": "@@ -76,7 +77,10 @@ RUN /opt/conda/bin/conda create -n ffmpeg-env -c conda-forge 'ffmpeg<7' -y && \\\n \n # The pre-release version used should be noted for date changes\n RUN pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128 \\\n-    --no-deps\n+    --no-deps && \\\n+    pip install triton==3.4.0 && \\",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "qinxuye",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_4",
+      "body": "xinference v1.10.1\u53d1\u5e03\u8bf4\u660e\u5df2\u7ecf\u652f\u6301qwen3-next\u6a21\u578b\uff0c\u800ctransformers 4.57.0\u624d\u652f\u6301qwen3-next\uff0cdocker\u7684transformers\u7684\u7248\u672c\u662f\u5426\u53ef\u4ee5\u9ad8\u4e9b\u3002",
+      "file": "xinference/deploy/docker/Dockerfile.cu129",
+      "line": 46,
+      "diff_hunk": "@@ -40,17 +40,18 @@ RUN pip install --upgrade -i \"$PIP_INDEX\" pip setuptools wheel && \\\n     # use pre-built whl package for llama-cpp-python, otherwise may core dump when init llama in some envs\n     pip install -i \"$PIP_INDEX\" \"diskcache>=5.6.1\" \"jinja2>=2.11.3\" && \\\n     pip install -i \"$PIP_INDEX\" \"cython>=0.29\" && \\\n-    pip install -i \"$PIP_INDEX\" --upgrade-strategy only-if-needed -r /opt/inference/xinference/deploy/docker/requirements_12.8/requirements-cu128-base.txt && \\\n-    pip install -i \"$PIP_INDEX\" --upgrade-strategy only-if-needed -r /opt/inference/xinference/deploy/docker/requirements_12.8/requirements-cu128-ml.txt && \\\n-    pip install -i \"$PIP_INDEX\" --upgrade-strategy only-if-needed -r /opt/inference/xinference/deploy/docker/requirements_12.8/requirements-cu128-models.txt && \\\n-    pip install -i \"$PIP_INDEX\" transformers==4.53.2 && \\\n-    pip install -i \"$PIP_INDEX\" --no-deps sglang==0.4.9.post5 && \\\n-    pip install -i \"$PIP_INDEX\" sgl-kernel==0.3.15 && \\\n+    pip install -i \"$PIP_INDEX\" --upgrade-strategy only-if-needed -r /opt/inference/xinference/deploy/docker/requirements_12.9/requirements-cu129-base.txt && \\\n+    pip install -i \"$PIP_INDEX\" --upgrade-strategy only-if-needed -r /opt/inference/xinference/deploy/docker/requirements_12.9/requirements-cu129-ml.txt && \\\n+    pip install -i \"$PIP_INDEX\" --upgrade-strategy only-if-needed -r /opt/inference/xinference/deploy/docker/requirements_12.9/requirements-cu129-models.txt && \\\n+    pip install -i \"$PIP_INDEX\" transformers==4.55.2 && \\",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "liukaifei",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

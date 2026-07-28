@@ -1,0 +1,84 @@
+{
+  "task_id": "espnet__6280",
+  "pr_number": 6280,
+  "repo": "espnet/espnet",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 5,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_3",
+      "body": "As mentioned in another PR, please consider inheriting from `AbsIterFactory`.",
+      "file": "espnet2/speechlm/dataloader/iterator.py",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "Masao-Someki",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "![critical](https://www.gstatic.com/codereviewagent/critical.svg)\n\nThe current implementation using `ProcessPoolExecutor` will raise a `ValueError` if `num_worker` is 0. This can occur, for instance, in `sequential_load` mode. It's also inefficient to create a process pool for a single worker. It would be more robust to handle the sequential case (`num_worker <= 1`) separately to prevent crashes and improve efficiency.\n\n```python\n        # Use ProcessPoolExecutor for parallel loading\n        max_workers = min(num_worker, len(dataset_paths))\n        if max_workers > 1:\n            with ProcessPoolExecutor(max_workers=max_workers) as executor:\n                # Submit all loading tasks\n                futures = [\n                    executor.submit(_load_dataset_worker, args) for args in worker_args\n                ]\n\n                # Collect results as they complete\n                for future in as_completed(futures):\n                    try:\n                        dataset_name, dataset, dataset_len = future.result()\n                        self.datasets[dataset_name] = dataset\n                        logging.info(\n                            f\"Loaded dataset [{dataset_name}]. \"\n                            f\"Local dataset size: [{dataset_len}].\"\n                        )\n                    except Exception as e:\n                        raise RuntimeError(f\"Failed to load dataset: {e}\") from e\n        else:\n            # Load sequentially\n            for args in worker_args:\n                try:\n                    dataset_name, dataset, dataset_len = _load_dataset_worker(args)\n                    self.datasets[dataset_name] = dataset\n                    logging.info(\n                        f\"Loaded dataset [{dataset_name}]. \"\n                        f\"Local dataset size: [{dataset_len}].\"\n                    )\n                except Exception as e:\n                    raise RuntimeError(f\"Failed to load dataset: {e}\") from e\n```",
+      "file": "espnet2/speechlm/dataloader/dataset.py",
+      "line": 191,
+      "diff_hunk": "@@ -114,45 +130,59 @@ def __init__(\n         self,\n         datasets: List[Tuple[str, str]] = [],\n         registered_datasets: List[str] = [],\n+        num_worker: int = 1,\n         rank: int = 0,\n         world_size: int = 1,\n     ):\n         self.datasets: Dict[str, SingleDataset] = {}\n \n-        # Load datasets from direct paths\n+        # Step 1: Collect all (dataset_name, json_path) pairs\n+        dataset_paths = []\n+        seen_names = set()\n+\n+        # Collect from direct paths\n         for dataset_name, json_path in datasets:\n-            if dataset_name in self.datasets:\n+            if dataset_name in seen_names:\n                 raise ValueError(f\"Duplicate dataset name: {dataset_name}\")\n-            single_dataset = SingleDataset(json_path, rank=rank, world_size=world_size)\n-            self.datasets[dataset_name] = single_dataset\n-            logging.info(\n-                f\"Loaded dataset [{dataset_name}] at {json_path}. \"\n-                f\"Local dataset size: [{len(single_dataset)}].\"\n-            )\n-\n-        # Load datasets from registry\n-        registry_data = self._load_registry()\n+            dataset_paths.append((dataset_name, json_path))\n+            seen_names.add(dataset_name)\n \n-        # TODO(Jinchuan): use multi-processing to initialize single datasets,\n-        # which would accelerate the initializaiton.\n+        # Collect from registry\n+        registry_data = self._load_registry()\n         for dataset_name in registered_datasets:\n-            if dataset_name in registry_data:\n-                if dataset_name in self.datasets:\n-                    raise ValueError(f\"Duplicate dataset name: {dataset_name}\")\n-                json_path = registry_data[dataset_name]\n-                single_dataset = SingleDataset(\n-                    json_path, rank=rank, world_size=world_size\n-                )\n-                self.datasets[dataset_name] = single_dataset\n-                logging.info(\n-                    f\"Loaded dataset [{dataset_name}] at {json_path}. \"\n-                    f\"Local dataset size: [{len(single_dataset)}].\"\n-                )\n-            else:\n+            if dataset_name in seen_names:\n+                raise ValueError(f\"Duplicate dataset name: {dataset_name}\")\n+            if dataset_name not in registry_data:\n                 raise ValueError(\n                     f\"Dataset '{dataset_name}' not found in registry. \"\n                     f\"Available datasets: {list(registry_data.keys())}\"\n                 )\n+            dataset_paths.append((dataset_name, registry_data[dataset_name]))\n+            seen_names.add(dataset_name)\n+\n+        # Step 2: Load all datasets in parallel using multiprocessing\n+        # Prepare arguments for multiprocessing\n+        worker_args = [(name, path, rank, world_size) for name, path in dataset_paths]\n+\n+        # Use ProcessPoolExecutor for parallel loading\n+        max_workers = min(num_worker, len(dataset_paths))\n+        with ProcessPoolExecutor(max_workers=max_workers) as executor:\n+            # Submit all loading tasks\n+            futures = [\n+                executor.submit(_load_dataset_worker, args) for args in worker_args\n+            ]\n+\n+            # Collect results as they complete\n+            for future in as_completed(futures):\n+                try:\n+                    dataset_name, dataset, dataset_len = future.result()\n+                    self.datasets[dataset_name] = dataset\n+                    logging.info(\n+                        f\"Loaded dataset [{dataset_name}]. \"\n+                        f\"Local dataset size: [{dataset_len}].\"\n+                    )\n+                except Exception as e:\n+                    raise RuntimeError(f\"Failed to load dataset: {e}\") from e",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Is this the same function as the existing to_device?\r\n\r\nhttps://espnet.github.io/espnet/guide/espnet2/torch_utils/to_device.html",
+      "file": "espnet2/speechlm/utils/data.py",
+      "line": 92,
+      "diff_hunk": "@@ -0,0 +1,124 @@\n+\"\"\"Data utilities for SpeechLM module.\"\"\"\n+\n+import dataclasses\n+from typing import List, Tuple, Union\n+\n+import numpy as np\n+import torch\n+\n+\n+def pad_list(\n+    sequences: List[Union[np.ndarray, torch.Tensor]], pad_value: float = 0.0\n+) -> Tuple[torch.Tensor, torch.Tensor]:\n+    \"\"\"Pad a list of sequences to the same length and stack them.\n+\n+    Uses right padding (padding at the end of sequences).\n+    Assumes the FIRST dimension is the time/sequence length.\n+\n+    Args:\n+        sequences: List of sequences to pad and stack.\n+                  Each can be of any shape [seq_len, ...] where seq_len is variable\n+        pad_value: Value to use for padding (default: 0.0)\n+\n+    Returns:\n+        Tuple of:\n+        - Padded and stacked tensor of shape [batch, max_seq_len, ...]\n+        - Length tensor of shape [batch] with original sequence lengths (dtype=long)\n+\n+    Raises:\n+        ValueError: If sequence list is empty or sequences have inconsistent shapes\n+        TypeError: If sequences contain non-tensor/non-array types\n+    \"\"\"\n+    if not sequences:\n+        raise ValueError(\"Empty sequence list\")\n+\n+    # Convert to tensors and collect info in one pass\n+    tensors = []\n+    lengths = []\n+    max_len = 0\n+    device = None\n+\n+    for seq in sequences:\n+        if isinstance(seq, np.ndarray):\n+            t = torch.from_numpy(seq)\n+        elif isinstance(seq, torch.Tensor):\n+            t = seq\n+            if device is None:\n+                device = t.device\n+        else:\n+            raise TypeError(f\"Expected numpy array or torch tensor, got {type(seq)}\")\n+\n+        tensors.append(t)\n+        seq_len = t.shape[0]  # First dimension is the length\n+        lengths.append(seq_len)\n+        max_len = max(max_len, seq_len)\n+\n+    # Validate shapes and find common dtype\n+    other_dims = tensors[0].shape[1:]  # All dimensions except the first\n+\n+    for t in tensors[1:]:\n+        if t.shape[1:] != other_dims:\n+            raise ValueError(\n+                \"All sequences must have the same shape except for the first dimension\"\n+            )\n+\n+    # Find common dtype using torch's type promotion\n+    dtype = tensors[0].dtype\n+    for t in tensors[1:]:\n+        dtype = torch.promote_types(dtype, t.dtype)\n+\n+    # Pre-allocate output tensor\n+    batch_size = len(tensors)\n+    output_shape = (batch_size, max_len) + other_dims\n+    padded = torch.full(output_shape, pad_value, dtype=dtype, device=device)\n+\n+    # Fill sequences\n+    for i, t in enumerate(tensors):\n+        padded[i, : lengths[i], ...] = t.to(\n+            dtype=dtype, device=device, non_blocking=True\n+        )\n+\n+    # Create length tensor\n+    length_tensor = torch.tensor(lengths, dtype=torch.long, device=device)\n+\n+    return padded, length_tensor\n+\n+\n+def to_device(data, device=None, dtype=None, non_blocking=False, copy=False):",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "Masao-Someki",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "As mentioned in another PR, please consider inheriting from `AbsIterFactory`.",
+      "file": "espnet2/speechlm/dataloader/iterator.py",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "Masao-Someki",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

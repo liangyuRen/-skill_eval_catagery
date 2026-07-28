@@ -1,0 +1,83 @@
+{
+  "task_id": "agents__4835",
+  "pr_number": 4835,
+  "repo": "livekit/agents",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 2,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "Should we also catch `Exception` here for `ChanClosed` or `ChanFull` exceptions?",
+      "file": "livekit-agents/livekit/agents/stt/fallback_adapter.py",
+      "line": null,
+      "diff_hunk": "@@ -291,22 +291,25 @@ async def _run(self) -> None:\n \n         async def _forward_input_task() -> None:\n             async for data in self._input_ch:\n-                try:\n-                    for stream in self._recovering_streams:\n+                for stream in list(self._recovering_streams):\n+                    try:\n                         if isinstance(data, rtc.AudioFrame):\n                             stream.push_frame(data)\n                         elif isinstance(data, self._FlushSentinel):\n                             stream.flush()\n+                    except RuntimeError:",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "chenghao-mou",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "we should rename the two`tts` occurrences too.",
+      "file": "tests/test_stt_fallback.py",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "chenghao-mou",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Should we also catch `Exception` here for `ChanClosed` or `ChanFull` exceptions?",
+      "file": "livekit-agents/livekit/agents/stt/fallback_adapter.py",
+      "line": null,
+      "diff_hunk": "@@ -291,22 +291,25 @@ async def _run(self) -> None:\n \n         async def _forward_input_task() -> None:\n             async for data in self._input_ch:\n-                try:\n-                    for stream in self._recovering_streams:\n+                for stream in list(self._recovering_streams):\n+                    try:\n                         if isinstance(data, rtc.AudioFrame):\n                             stream.push_frame(data)\n                         elif isinstance(data, self._FlushSentinel):\n                             stream.flush()\n+                    except RuntimeError:",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "chenghao-mou",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "we should rename the two`tts` occurrences too.",
+      "file": "tests/test_stt_fallback.py",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "chenghao-mou",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

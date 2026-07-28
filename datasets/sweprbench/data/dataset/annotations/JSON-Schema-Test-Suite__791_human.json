@@ -1,0 +1,50 @@
+{
+  "task_id": "JSON-Schema-Test-Suite__791",
+  "pr_number": 791,
+  "repo": "json-schema-org/JSON-Schema-Test-Suite",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "I'm not sure why draft-next was included in this bullet. That doesn't seem correct to me and I don't think it's correct for v1 either.\n\n\n```suggestion\n* For draft-07 and earlier, and implementations unable to detect via `$schema`, implementations MUST be configured to expect the version matching the test directory name\n```",
+      "file": "README.md",
+      "line": 110,
+      "diff_hunk": "@@ -107,8 +106,8 @@ The precise steps described do not need to be followed exactly, but the results\n \n To test a specific version:\n \n-* For 2019-09 and later published drafts, implementations that are able to detect the draft of each schema via `$schema` SHOULD be configured to do so\n-* For draft-07 and earlier, draft-next, and implementations unable to detect via `$schema`, implementations MUST be configured to expect the draft matching the test directory name\n+* For 2019-09 and later published versions, implementations that are able to detect the version of each schema via `$schema` SHOULD be configured to do so\n+* For draft-07 and earlier, v1 (not yet released), and implementations unable to detect via `$schema`, implementations MUST be configured to expect the version matching the test directory name",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jdesrosiers",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I'm not sure why draft-next was included in this bullet. That doesn't seem correct to me and I don't think it's correct for v1 either.\n\n\n```suggestion\n* For draft-07 and earlier, and implementations unable to detect via `$schema`, implementations MUST be configured to expect the version matching the test directory name\n```",
+      "file": "README.md",
+      "line": 110,
+      "diff_hunk": "@@ -107,8 +106,8 @@ The precise steps described do not need to be followed exactly, but the results\n \n To test a specific version:\n \n-* For 2019-09 and later published drafts, implementations that are able to detect the draft of each schema via `$schema` SHOULD be configured to do so\n-* For draft-07 and earlier, draft-next, and implementations unable to detect via `$schema`, implementations MUST be configured to expect the draft matching the test directory name\n+* For 2019-09 and later published versions, implementations that are able to detect the version of each schema via `$schema` SHOULD be configured to do so\n+* For draft-07 and earlier, v1 (not yet released), and implementations unable to detect via `$schema`, implementations MUST be configured to expect the version matching the test directory name",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jdesrosiers",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

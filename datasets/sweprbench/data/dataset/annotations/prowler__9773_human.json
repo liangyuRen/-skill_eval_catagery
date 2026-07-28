@@ -1,0 +1,67 @@
+{
+  "task_id": "prowler__9773",
+  "pr_number": 9773,
+  "repo": "prowler-cloud/prowler",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 6,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "This logic is duplicated.\nHardcoded magic numbers\n```\n  if (score >= 80) return \"SUCCESS\";\n  if (score >= 40) return \"WARNING\";\n```\nConsider extracting these thresholds to named constants for maintainability:\n`const SCORE_THRESHOLDS = { SUCCESS: 80, WARNING: 40 } as const;`",
+      "file": "ui/components/compliance/compliance-charts/threatscore-breakdown-card.tsx",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,179 @@\n+\"use client\";\n+\n+import { Progress } from \"@heroui/progress\";\n+\n+import type { SectionScores } from \"@/actions/overview/threat-score\";\n+import { RadialChart } from \"@/components/graphs/radial-chart\";\n+import { Card, CardContent, CardHeader, CardTitle } from \"@/components/shadcn\";\n+\n+interface ThreatScoreBreakdownCardProps {\n+  overallScore: number;\n+  sectionScores: SectionScores;\n+}\n+\n+const SCORE_COLORS = {\n+  DANGER: \"var(--bg-fail-primary)\",\n+  WARNING: \"var(--bg-warning-primary)\",\n+  SUCCESS: \"var(--bg-pass-primary)\",\n+  NEUTRAL: \"var(--bg-neutral-tertiary)\",\n+} as const;\n+\n+function getScoreLevel(score: number): \"SUCCESS\" | \"WARNING\" | \"DANGER\" {\n+  if (score >= 80) return \"SUCCESS\";\n+  if (score >= 40) return \"WARNING\";\n+  return \"DANGER\";\n+}\n+\n+function getScoreColor(score: number): \"success\" | \"warning\" | \"danger\" {\n+  if (score >= 80) return \"success\";\n+  if (score >= 40) return \"warning\";\n+  return \"danger\";\n+}",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "alejandrobailo",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Repeated JSX for score text coloring `(threatscore-breakdown-card.tsx:82-88, 118-123, 140-145)`\nThe ternary chain for text colors appears 3 times:\n```jsx\nclassName={`... ${score >= 80 ? \"text-success\" : score >= 40 ? \"text-warning\" : \"text-danger\"}`}\n```\nConsider extracting to a helper function for DRYness.",
+      "file": "ui/components/compliance/compliance-charts/threatscore-breakdown-card.tsx",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,179 @@\n+\"use client\";\n+\n+import { Progress } from \"@heroui/progress\";\n+\n+import type { SectionScores } from \"@/actions/overview/threat-score\";\n+import { RadialChart } from \"@/components/graphs/radial-chart\";\n+import { Card, CardContent, CardHeader, CardTitle } from \"@/components/shadcn\";\n+\n+interface ThreatScoreBreakdownCardProps {\n+  overallScore: number;\n+  sectionScores: SectionScores;\n+}\n+\n+const SCORE_COLORS = {\n+  DANGER: \"var(--bg-fail-primary)\",\n+  WARNING: \"var(--bg-warning-primary)\",\n+  SUCCESS: \"var(--bg-pass-primary)\",\n+  NEUTRAL: \"var(--bg-neutral-tertiary)\",\n+} as const;\n+\n+function getScoreLevel(score: number): \"SUCCESS\" | \"WARNING\" | \"DANGER\" {\n+  if (score >= 80) return \"SUCCESS\";\n+  if (score >= 40) return \"WARNING\";\n+  return \"DANGER\";\n+}\n+\n+function getScoreColor(score: number): \"success\" | \"warning\" | \"danger\" {\n+  if (score >= 80) return \"success\";\n+  if (score >= 40) return \"warning\";\n+  return \"danger\";\n+}\n+\n+function getScoreLabel(score: number): string {\n+  if (score >= 80) return \"Secure\";\n+  if (score >= 40) return \"Moderate Risk\";\n+  return \"Critical Risk\";\n+}\n+\n+export function ThreatScoreBreakdownCard({\n+  overallScore,\n+  sectionScores,\n+}: ThreatScoreBreakdownCardProps) {\n+  const scoreLevel = getScoreLevel(overallScore);\n+  const scoreColor = SCORE_COLORS[scoreLevel];\n+\n+  // Convert section scores to tooltip data for the radial chart\n+  const tooltipData = Object.entries(sectionScores).map(([name, value]) => ({\n+    name,\n+    value,\n+    color: SCORE_COLORS[getScoreLevel(value)],\n+  }));\n+\n+  // Sort sections by score (lowest first to highlight areas needing attention)\n+  const sortedSections = Object.entries(sectionScores).sort(\n+    ([, a], [, b]) => a - b,\n+  );\n+\n+  return (\n+    <Card\n+      variant=\"base\"\n+      className=\"flex min-h-[372px] w-full flex-col justify-between md:w-auto md:max-w-[320px] md:min-w-[280px]\"\n+    >\n+      <CardHeader>\n+        <CardTitle>ThreatScore Breakdown</CardTitle>\n+      </CardHeader>\n+      <CardContent className=\"flex flex-1 flex-col gap-3\">\n+        {/* Overall Score - Compact */}\n+        <div className=\"flex items-center gap-4\">\n+          <div className=\"relative h-[100px] w-[100px] flex-shrink-0\">\n+            <RadialChart\n+              percentage={overallScore}\n+              label=\"Score\"\n+              color={scoreColor}\n+              backgroundColor={SCORE_COLORS.NEUTRAL}\n+              height={100}\n+              innerRadius={35}\n+              outerRadius={45}\n+              startAngle={200}\n+              endAngle={-20}\n+              tooltipData={tooltipData}\n+              showCenterLabel={false}\n+            />\n+          </div>\n+          <div className=\"flex flex-col\">\n+            <span className=\"text-default-500 text-xs\">Overall Score</span>\n+            <span\n+              className={`text-2xl font-bold ${\n+                overallScore >= 80\n+                  ? \"text-success\"\n+                  : overallScore >= 40\n+                    ? \"text-warning\"\n+                    : \"text-danger\"",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "alejandrobailo",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Missing aria labels on collapsible\nThe collapsible button lacks explicit accessibility attributes:\n`<CollapsibleTrigger className=\"text-default-500...\">`\nSuggestion: Add aria-expanded handling (though Radix handles this automatically, verify it's working).",
+      "file": "ui/components/compliance/threatscore-badge.tsx",
+      "line": null,
+      "diff_hunk": "@@ -126,6 +142,57 @@ export const ThreatScoreBadge = ({\n             />\n           </div>\n         </button>\n+\n+        {sectionScores && Object.keys(sectionScores).length > 0 && (\n+          <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>\n+            <CollapsibleTrigger className=\"text-default-500 hover:text-default-700 flex w-full items-center justify-center gap-1 py-1 text-xs transition-colors\">",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "alejandrobailo",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

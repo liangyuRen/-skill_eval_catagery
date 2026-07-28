@@ -1,0 +1,50 @@
+{
+  "task_id": "deepchem__4489",
+  "pr_number": 4489,
+  "repo": "deepchem/deepchem",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "Maybe `df_row: list[int | None | str] = [ind, smiles, mol]` might fix mypy issues",
+      "file": "deepchem/utils/data_utils.py",
+      "line": 282,
+      "diff_hunk": "@@ -264,29 +268,46 @@ def load_sdf_files(input_files: List[str],\n                                    strictParsing=False)\n         for ind, mol in enumerate(suppl):\n             if mol is None:\n-                continue\n-            smiles = Chem.MolToSmiles(mol)\n-            df_row = [ind, smiles, mol]\n-            if not has_csv:  # Get task targets from .sdf file\n-                for task in tasks:\n-                    df_row.append(mol.GetProp(str(task)))\n-\n-            conf = mol.GetConformer()\n-            positions = conf.GetPositions()\n-            pos_x, pos_y, pos_z = zip(*positions)\n-            df_row.append(str(pos_x))\n-            df_row.append(str(pos_y))\n-            df_row.append(str(pos_z))\n-            df_rows.append(df_row)\n+                # add place holder for invalid mols to preserve alignment with csv shards\n+                logger.warning(\n+                    f\"Molecule on index (1-based) {ind+1} in {input_file} failed to load.\"\n+                )\n+                df_row = [ind, None, None]\n+                if not has_csv:\n+                    df_row = df_row + [None] * len(tasks)\n+                df_row = df_row + [None] * 3\n+                df_rows.append(df_row)\n+            else:\n+                smiles = Chem.MolToSmiles(mol)\n+                df_row = [ind, smiles, mol]",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "JoseAntonioSiguenza",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Maybe `df_row: list[int | None | str] = [ind, smiles, mol]` might fix mypy issues",
+      "file": "deepchem/utils/data_utils.py",
+      "line": 282,
+      "diff_hunk": "@@ -264,29 +268,46 @@ def load_sdf_files(input_files: List[str],\n                                    strictParsing=False)\n         for ind, mol in enumerate(suppl):\n             if mol is None:\n-                continue\n-            smiles = Chem.MolToSmiles(mol)\n-            df_row = [ind, smiles, mol]\n-            if not has_csv:  # Get task targets from .sdf file\n-                for task in tasks:\n-                    df_row.append(mol.GetProp(str(task)))\n-\n-            conf = mol.GetConformer()\n-            positions = conf.GetPositions()\n-            pos_x, pos_y, pos_z = zip(*positions)\n-            df_row.append(str(pos_x))\n-            df_row.append(str(pos_y))\n-            df_row.append(str(pos_z))\n-            df_rows.append(df_row)\n+                # add place holder for invalid mols to preserve alignment with csv shards\n+                logger.warning(\n+                    f\"Molecule on index (1-based) {ind+1} in {input_file} failed to load.\"\n+                )\n+                df_row = [ind, None, None]\n+                if not has_csv:\n+                    df_row = df_row + [None] * len(tasks)\n+                df_row = df_row + [None] * 3\n+                df_rows.append(df_row)\n+            else:\n+                smiles = Chem.MolToSmiles(mol)\n+                df_row = [ind, smiles, mol]",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "JoseAntonioSiguenza",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

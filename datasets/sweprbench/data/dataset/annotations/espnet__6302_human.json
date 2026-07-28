@@ -1,0 +1,33 @@
+{
+  "task_id": "espnet__6302",
+  "pr_number": 6302,
+  "repo": "espnet/espnet",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "![critical](https://www.gstatic.com/codereviewagent/critical.svg)\n\nThis block has a critical flaw: it will raise an `IndexError` if `sequence_keys` is empty, causing a crash. This occurs for samples without sequence data.\n\nThe `else` branch is also redundant, as the logic at lines 163-166 ensures `sequence_keys[0]` is always in `actual_lengths` when `sequence_keys` is not empty.\n\nThe suggested change fixes the crash and simplifies the logic.\n\n```suggestion\n                if sequence_keys:\n                    L = actual_lengths[sequence_keys[0]]\n                else:\n                    L = 0\n```",
+      "file": "espnet2/iterators/category_chunk_iter_factory.py",
+      "line": null,
+      "diff_hunk": "@@ -189,7 +191,10 @@ def build_iter(\n                 default_fs = fs if self.default_fs is None else self.default_fs\r\n                 assert fs % default_fs == 0 or default_fs % fs == 0\r\n \r\n-                L = len(curr_batch[sequence_keys[0]])\r\n+                if sequence_keys[0] in actual_lengths:\r\n+                    L = actual_lengths[sequence_keys[0]]\r\n+                else:\r\n+                    L = len(curr_batch[sequence_keys[0]])\r",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "task_id": "stylelint__9018",
+  "pr_number": 9018,
+  "repo": "stylelint/stylelint",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 1,
+  "substantive_comment_count": 1,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "[suggestion] Minor, please ignore it if you don't mind.\n\nIf we want to recommend using JS config/plugin files, typically `stylelint.config.js`, it may be better to document `.js` instead of `.json`.\n\n```suggestion\n+ extends: [\"./index.js\"]\n```\n",
+      "file": "docs/migration-guide/to-17.md",
+      "line": null,
+      "diff_hunk": "@@ -30,7 +30,16 @@ And changed:\n \n We've removed the CommonJs Node.js API that we deprecated in 16.0.0.\n \n-We recommend updating your plugin(s) and any consuming code to ESM (ECMAScript modules) as detailed in our [16.0.0 migration guide](./to-16.md#deprecated-commonjs-api).\n+You should update your config to use full paths for locators, such as `extends` and `plugins`:\n+\n+```diff js\n+export default {\n+- extends: [\"./\"]\n++ extends: [\"./index.json\"]",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ybiquitous",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "[suggestion] Minor, please ignore it if you don't mind.\n\nIf we want to recommend using JS config/plugin files, typically `stylelint.config.js`, it may be better to document `.js` instead of `.json`.\n\n```suggestion\n+ extends: [\"./index.js\"]\n```\n",
+      "file": "docs/migration-guide/to-17.md",
+      "line": null,
+      "diff_hunk": "@@ -30,7 +30,16 @@ And changed:\n \n We've removed the CommonJs Node.js API that we deprecated in 16.0.0.\n \n-We recommend updating your plugin(s) and any consuming code to ESM (ECMAScript modules) as detailed in our [16.0.0 migration guide](./to-16.md#deprecated-commonjs-api).\n+You should update your config to use full paths for locators, such as `extends` and `plugins`:\n+\n+```diff js\n+export default {\n+- extends: [\"./\"]\n++ extends: [\"./index.json\"]",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ybiquitous",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "task_id": "espnet__6284",
+  "pr_number": 6284,
+  "repo": "espnet/espnet",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 5,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 2,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "![high](https://www.gstatic.com/codereviewagent/high-priority.svg)\n\nThe current implementation of `sample_multinomial` is functionally correct but overly complex and potentially fragile due to manual floating-point arithmetic for re-normalizing probabilities (`prob / remainder`). A much simpler, more robust, and idiomatic way to achieve this is by using `torch.distributions.Multinomial`. This will also avoid the unnecessary device transfer to CPU and back.\n\n```suggestion\n    from torch.distributions import Multinomial\n\n    dist = Multinomial(total_count, probs=probs)\n    return dist.sample().to(dtype=torch.long)\n```",
+      "file": "espnet2/gan_codec/shared/quantizer/modules/core_vq.py",
+      "line": 113,
+      "diff_hunk": "@@ -72,27 +92,113 @@ def sample_vectors(samples, num: int):\n     return samples[indices]\n \n \n-def kmeans(samples, num_clusters: int, num_iters: int = 10):\n-    dim, dtype = samples.shape[-1], samples.dtype\n+def pad_shape(shape, size, dim=0):\n+    return [size if i == dim else s for i, s in enumerate(shape)]\n \n-    means = sample_vectors(samples, num_clusters)\n+\n+def sample_multinomial(total_count, probs):\n+    device = probs.device\n+    probs = probs.cpu()\n+\n+    total_count = probs.new_full((), total_count)\n+    remainder = probs.new_ones(())\n+    sample = torch.empty_like(probs, dtype=torch.long)\n+\n+    num_probs = len(probs)\n+\n+    for i, prob in enumerate(probs):\n+        is_last = i == (num_probs - 1)\n+\n+        s = (\n+            torch.binomial(total_count, prob / remainder)\n+            if not is_last\n+            else total_count",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "![high](https://www.gstatic.com/codereviewagent/high-priority.svg)\n\nThe current order of operations in the k-means update step (division then `all_reduce`) is mathematically correct but can be numerically unstable. Performing `all_reduce` on the summed vectors *before* dividing by the counts is generally more robust as it avoids potential precision loss from intermediate divisions, especially when cluster counts (`bins`) are large.\n\n```suggestion\n        all_reduce_fn(new_means)\n        new_means = new_means / rearrange(bins_min_clamped, '... -> ... 1')\n```",
+      "file": "espnet2/gan_codec/shared/quantizer/modules/core_vq.py",
+      "line": 183,
+      "diff_hunk": "@@ -72,27 +92,113 @@ def sample_vectors(samples, num: int):\n     return samples[indices]\n \n \n-def kmeans(samples, num_clusters: int, num_iters: int = 10):\n-    dim, dtype = samples.shape[-1], samples.dtype\n+def pad_shape(shape, size, dim=0):\n+    return [size if i == dim else s for i, s in enumerate(shape)]\n \n-    means = sample_vectors(samples, num_clusters)\n+\n+def sample_multinomial(total_count, probs):\n+    device = probs.device\n+    probs = probs.cpu()\n+\n+    total_count = probs.new_full((), total_count)\n+    remainder = probs.new_ones(())\n+    sample = torch.empty_like(probs, dtype=torch.long)\n+\n+    num_probs = len(probs)\n+\n+    for i, prob in enumerate(probs):\n+        is_last = i == (num_probs - 1)\n+\n+        s = (\n+            torch.binomial(total_count, prob / remainder)\n+            if not is_last\n+            else total_count\n+        )\n+        sample[i] = s\n+        total_count -= s\n+        remainder -= prob\n+\n+    assert total_count == 0, f\"invalid total count {total_count}\"\n+\n+    return sample.to(device)\n+\n+\n+def all_gather_sizes(x, dim):\n+    size = torch.tensor(x.shape[dim], dtype=torch.long, device=x.device)\n+    all_sizes = [torch.empty_like(size) for _ in range(distributed.get_world_size())]\n+    distributed.all_gather(all_sizes, size)\n+    return torch.stack(all_sizes)\n+\n+\n+def all_gather_variably_sized(x, sizes, dim=0):\n+    rank = distributed.get_rank()\n+    all_x = []\n+\n+    for i, size in enumerate(sizes):\n+        t = x if i == rank else x.new_empty(pad_shape(x.shape, size, dim))\n+        distributed.broadcast(t, src=i, async_op=True)\n+        all_x.append(t)\n+\n+    distributed.barrier()\n+    return all_x\n+\n+\n+def sample_vectors_distributed(local_samples, num):\n+    rank = distributed.get_rank()\n+    all_num_samples = all_gather_sizes(local_samples, dim=0)\n+\n+    if rank == 0:\n+        samples_per_rank = sample_multinomial(\n+            num, all_num_samples / all_num_samples.sum()\n+        )\n+    else:\n+        samples_per_rank = torch.empty_like(all_num_samples)\n+\n+    distributed.broadcast(samples_per_rank, src=0)\n+    samples_per_rank = samples_per_rank.tolist()\n+\n+    local_samples = sample_vectors(local_samples, samples_per_rank[rank])\n+    all_samples = all_gather_variably_sized(local_samples, samples_per_rank, dim=0)\n+    out = torch.cat(all_samples, dim=0)\n+\n+    return out\n+\n+\n+def kmeans(\n+    samples,\n+    num_clusters,\n+    num_iters=10,\n+    use_cosine_sim=False,\n+    sample_fn=sample_vectors,\n+    all_reduce_fn=noop,\n+):\n+    dim, dtype = samples.shape[-1], samples.dtype\n+    means = sample_fn(samples, num_clusters)\n \n     for _ in range(num_iters):\n-        diffs = rearrange(samples, \"n d -> n () d\") - rearrange(means, \"c d -> () c d\")\n-        dists = -(diffs**2).sum(dim=-1)\n+        if use_cosine_sim:\n+            dists = samples @ rearrange(means, \"h n d -> h d n\")\n+        else:\n+            dists = -cdist(samples, means)\n \n-        buckets = dists.max(dim=-1).indices\n+        buckets = torch.argmax(dists, dim=-1)\n         bins = torch.bincount(buckets, minlength=num_clusters)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "![high](https://www.gstatic.com/codereviewagent/high-priority.svg)\n\nThe current implementation of `sample_multinomial` is functionally correct but overly complex and potentially fragile due to manual floating-point arithmetic for re-normalizing probabilities (`prob / remainder`). A much simpler, more robust, and idiomatic way to achieve this is by using `torch.distributions.Multinomial`. This will also avoid the unnecessary device transfer to CPU and back.\n\n```suggestion\n    from torch.distributions import Multinomial\n\n    dist = Multinomial(total_count, probs=probs)\n    return dist.sample().to(dtype=torch.long)\n```",
+      "file": "espnet2/gan_codec/shared/quantizer/modules/core_vq.py",
+      "line": 113,
+      "diff_hunk": "@@ -72,27 +92,113 @@ def sample_vectors(samples, num: int):\n     return samples[indices]\n \n \n-def kmeans(samples, num_clusters: int, num_iters: int = 10):\n-    dim, dtype = samples.shape[-1], samples.dtype\n+def pad_shape(shape, size, dim=0):\n+    return [size if i == dim else s for i, s in enumerate(shape)]\n \n-    means = sample_vectors(samples, num_clusters)\n+\n+def sample_multinomial(total_count, probs):\n+    device = probs.device\n+    probs = probs.cpu()\n+\n+    total_count = probs.new_full((), total_count)\n+    remainder = probs.new_ones(())\n+    sample = torch.empty_like(probs, dtype=torch.long)\n+\n+    num_probs = len(probs)\n+\n+    for i, prob in enumerate(probs):\n+        is_last = i == (num_probs - 1)\n+\n+        s = (\n+            torch.binomial(total_count, prob / remainder)\n+            if not is_last\n+            else total_count",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "![high](https://www.gstatic.com/codereviewagent/high-priority.svg)\n\nThe current order of operations in the k-means update step (division then `all_reduce`) is mathematically correct but can be numerically unstable. Performing `all_reduce` on the summed vectors *before* dividing by the counts is generally more robust as it avoids potential precision loss from intermediate divisions, especially when cluster counts (`bins`) are large.\n\n```suggestion\n        all_reduce_fn(new_means)\n        new_means = new_means / rearrange(bins_min_clamped, '... -> ... 1')\n```",
+      "file": "espnet2/gan_codec/shared/quantizer/modules/core_vq.py",
+      "line": 183,
+      "diff_hunk": "@@ -72,27 +92,113 @@ def sample_vectors(samples, num: int):\n     return samples[indices]\n \n \n-def kmeans(samples, num_clusters: int, num_iters: int = 10):\n-    dim, dtype = samples.shape[-1], samples.dtype\n+def pad_shape(shape, size, dim=0):\n+    return [size if i == dim else s for i, s in enumerate(shape)]\n \n-    means = sample_vectors(samples, num_clusters)\n+\n+def sample_multinomial(total_count, probs):\n+    device = probs.device\n+    probs = probs.cpu()\n+\n+    total_count = probs.new_full((), total_count)\n+    remainder = probs.new_ones(())\n+    sample = torch.empty_like(probs, dtype=torch.long)\n+\n+    num_probs = len(probs)\n+\n+    for i, prob in enumerate(probs):\n+        is_last = i == (num_probs - 1)\n+\n+        s = (\n+            torch.binomial(total_count, prob / remainder)\n+            if not is_last\n+            else total_count\n+        )\n+        sample[i] = s\n+        total_count -= s\n+        remainder -= prob\n+\n+    assert total_count == 0, f\"invalid total count {total_count}\"\n+\n+    return sample.to(device)\n+\n+\n+def all_gather_sizes(x, dim):\n+    size = torch.tensor(x.shape[dim], dtype=torch.long, device=x.device)\n+    all_sizes = [torch.empty_like(size) for _ in range(distributed.get_world_size())]\n+    distributed.all_gather(all_sizes, size)\n+    return torch.stack(all_sizes)\n+\n+\n+def all_gather_variably_sized(x, sizes, dim=0):\n+    rank = distributed.get_rank()\n+    all_x = []\n+\n+    for i, size in enumerate(sizes):\n+        t = x if i == rank else x.new_empty(pad_shape(x.shape, size, dim))\n+        distributed.broadcast(t, src=i, async_op=True)\n+        all_x.append(t)\n+\n+    distributed.barrier()\n+    return all_x\n+\n+\n+def sample_vectors_distributed(local_samples, num):\n+    rank = distributed.get_rank()\n+    all_num_samples = all_gather_sizes(local_samples, dim=0)\n+\n+    if rank == 0:\n+        samples_per_rank = sample_multinomial(\n+            num, all_num_samples / all_num_samples.sum()\n+        )\n+    else:\n+        samples_per_rank = torch.empty_like(all_num_samples)\n+\n+    distributed.broadcast(samples_per_rank, src=0)\n+    samples_per_rank = samples_per_rank.tolist()\n+\n+    local_samples = sample_vectors(local_samples, samples_per_rank[rank])\n+    all_samples = all_gather_variably_sized(local_samples, samples_per_rank, dim=0)\n+    out = torch.cat(all_samples, dim=0)\n+\n+    return out\n+\n+\n+def kmeans(\n+    samples,\n+    num_clusters,\n+    num_iters=10,\n+    use_cosine_sim=False,\n+    sample_fn=sample_vectors,\n+    all_reduce_fn=noop,\n+):\n+    dim, dtype = samples.shape[-1], samples.dtype\n+    means = sample_fn(samples, num_clusters)\n \n     for _ in range(num_iters):\n-        diffs = rearrange(samples, \"n d -> n () d\") - rearrange(means, \"c d -> () c d\")\n-        dists = -(diffs**2).sum(dim=-1)\n+        if use_cosine_sim:\n+            dists = samples @ rearrange(means, \"h n d -> h d n\")\n+        else:\n+            dists = -cdist(samples, means)\n \n-        buckets = dists.max(dim=-1).indices\n+        buckets = torch.argmax(dists, dim=-1)\n         bins = torch.bincount(buckets, minlength=num_clusters)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "If expire codes are in later stage, shall we do another all_reduce to keep all gpus the same?",
+      "file": "espnet2/gan_codec/shared/quantizer/modules/core_vq.py",
+      "line": 375,
+      "diff_hunk": "@@ -232,24 +359,20 @@ def forward(self, x):\n         quantize = self.dequantize(embed_ind)  # (B, T, D)\n \n         if self.training:\n-            # We do the expiry of code at that point as buffers are in sync\n-            # and all the workers will take the same decision.\n-            self.expire_codes_(x)\n-\n             # ema update number of frames per cluster\n-            ema_inplace(self.cluster_size, embed_onehot.sum(0), self.decay)\n+            cluster_size = embed_onehot.sum(0)\n+            self.all_reduce_fn(cluster_size)\n+            ema_inplace(self.cluster_size, cluster_size, self.decay)\n \n             # Use encoder embedding to update ema with assignments\n             embed_sum = x.t() @ embed_onehot  # (D, BxT) @ (BxT, V) -> (D, V)\n+            self.all_reduce_fn(embed_sum)\n \n-            # ema udpate embedding\n+            # ema update embedding\n             ema_inplace(self.embed_avg, embed_sum.t(), self.decay)\n-            cluster_size = (\n-                laplace_smoothing(self.cluster_size, self.codebook_size, self.epsilon)\n-                * self.cluster_size.sum()\n-            )\n-            embed_normalized = self.embed_avg / cluster_size.unsqueeze(1)\n-            self.embed.data.copy_(embed_normalized)\n+            self.update_ema()\n+\n+            self.expire_codes_(x)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ftshijt",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+openai
+tqdm
+numpy
+loguru
+tenacity
+python-dateutil
+requests
+PyGithub
+pandas
+tiktoken
+gitpython

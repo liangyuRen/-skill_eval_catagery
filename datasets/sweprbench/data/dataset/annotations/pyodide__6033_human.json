@@ -1,0 +1,50 @@
+{
+  "task_id": "pyodide__6033",
+  "pr_number": 6033,
+  "repo": "pyodide/pyodide",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 6,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Shouldn't ssl and hashlib stay disabled?",
+      "file": "cpython/Setup.local",
+      "line": 21,
+      "diff_hunk": "@@ -14,11 +14,9 @@ _posixsubprocess _posixsubprocess.c\n _bz2 _bz2module.c -lbz2\n zlib zlibmodule.c\n \n+_sqlite3 _sqlite/blob.c _sqlite/connection.c _sqlite/cursor.c _sqlite/microprotocols.c _sqlite/module.c _sqlite/prepare_protocol.c _sqlite/row.c _sqlite/statement.c _sqlite/util.c -lsqlite3\n+_lzma _lzmamodule.c -I../lzma/dist/include -L../lzma/dist/lib -llzma\n \n *disabled*\n pwd\n-_sqlite3\n-_ssl",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "hoodmane",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Seems like it would be harmless to keep these...",
+      "file": "docs/usage/wasm-constraints.md",
+      "line": 36,
+      "diff_hunk": "@@ -32,15 +30,9 @@ Instead, it is better to load individual modules as needed using\n   **before** importing hashlib.\n \n - decimal: The decimal module has C (\\_decimal) and Python (\\_pydecimal) implementations\n-  with the same functionality. The Python implementation is not available by default.\n-  If you need a Python implementation of decimal, you need to call\n-  `pyodide.loadPackage('pydecimal')` or `micropip.install('pydecimal')`,\n-  then explicitly import `_pydecimal`.\n-\n-- pydoc: Help messages for Python builtins are not available by default\n-  in order to reduce the initial download size. You need to call\n-  `pyodide.loadPackage('pydoc_data')` or `micropip.install('pydoc_data')`\n-  to enable them.",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "hoodmane",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

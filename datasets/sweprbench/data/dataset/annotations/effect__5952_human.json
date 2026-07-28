@@ -1,0 +1,50 @@
+{
+  "task_id": "effect__5952",
+  "pr_number": 5952,
+  "repo": "Effect-TS/effect",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 5,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I think just get rid of all the optional deps",
+      "file": "packages/opentelemetry/package.json",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "tim-smart",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "```suggestion\n\"@effect/opentelemetry\": minor\n```",
+      "file": ".changeset/move-sdk-to-subpath-exports.md",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,5 @@\n+---\n+\"@effect/opentelemetry\": patch",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "tim-smart",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

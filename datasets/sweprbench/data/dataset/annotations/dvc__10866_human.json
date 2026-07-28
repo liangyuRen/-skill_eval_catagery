@@ -1,0 +1,33 @@
+{
+  "task_id": "dvc__10866",
+  "pr_number": 10866,
+  "repo": "treeverse/dvc",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 6,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "What's the point of using `--no-hydra` here? \n\nWould this still hydrate `yaml` file using hydra? Or, is this only limited to sweeps?",
+      "file": "tests/func/experiments/test_set_params.py",
+      "line": 196,
+      "diff_hunk": "@@ -137,3 +139,76 @@ def test_hydra_sweep_prefix_name(tmp_dir, params_repo, dvc):\n     exp_names = [entry.name for entry in dvc.experiments.celery_queue.iter_queued()]\n     for name, expected in zip(exp_names, expected_names):\n         assert name == expected\n+\n+\n+def test_mixing_no_hydra_and_params_flags(tmp_dir, params_repo, dvc):\n+    # Passing no_hydra should not prevent user from\n+    # using --set-param on unmodified params.yaml\n+    hydra_setup(\n+        tmp_dir,\n+        config_dir=\"conf\",\n+        config_name=\"config\",\n+    )\n+\n+    with dvc.config.edit() as conf:\n+        conf[\"hydra\"][\"enabled\"] = True\n+        conf[\"hydra\"][\"config_dir\"] = \"conf\"\n+        conf[\"hydra\"][\"config_name\"] = \"config\"\n+\n+    dvc.experiments.run(no_hydra=True, params=[\"goo.bag=10.0\"])\n+\n+    assert (tmp_dir / \"params.yaml\").parse() == {\n+        \"foo\": [{\"bar\": 1}, {\"baz\": 2}],\n+        \"goo\": {\"bag\": 10.0},\n+        \"lorem\": False,\n+    }\n+\n+\n+@pytest.mark.parametrize(\n+    \"hydra_enabled,overrides,expected\",\n+    [\n+        (\n+            True,\n+            [\"db=mysql,postgresql\"],\n+            [\n+                {\"params.yaml\": [\"db=mysql\"]},\n+                {\"params.yaml\": [\"db=postgresql\"]},\n+            ],\n+        ),\n+        (\n+            False,\n+            [\"foo=bar,baz\"],\n+            [{\"params.yaml\": [\"foo=bar\"]}, {\"params.yaml\": [\"foo=baz\"]}],\n+        ),\n+        (\n+            False,\n+            [],\n+            [{}],\n+        ),\n+    ],\n+)\n+@pytest.mark.parametrize(\"no_hydra\", [True, False])\n+def test_mixing_no_hydra_and_sweeps(\n+    tmp_dir, params_repo, dvc, mocker, hydra_enabled, overrides, expected, no_hydra\n+):\n+    # Passing no_hydra should not prevent user from\n+    # queuing sweeps with --set-param and --queue\n+    patched = mocker.patch.object(dvc.experiments, \"queue_one\")",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "skshetry",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

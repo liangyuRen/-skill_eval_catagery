@@ -1,0 +1,50 @@
+{
+  "task_id": "stylelint__9044",
+  "pr_number": 9044,
+  "repo": "stylelint/stylelint",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "[suggestion] Does it make sense to define a selector regex outside the loops?\n\nE.g.\n\n```js\nlet selectorRegex;\nif (primary === 'keyword') {\n\tselectorRegex = HAS_PERCENTAGE;\n} else if (primary === 'percentage') {\n\tselectorRegex = HAS_KEYWORD;\n} else {\n\tselectorRegex = /./; // matches anything\n}\n\nroot.walkAtRules(atRuleRegexes.keyframesName, (atRuleKeyframes) => {\n\t// ...\n\n\tatRuleKeyframes.walkRules(selectorRegex, (keyframeRule) => {\n```",
+      "file": "lib/rules/keyframe-selector-notation/index.mjs",
+      "line": 97,
+      "diff_hunk": "@@ -78,7 +82,13 @@ const rule = (primary) => {\n \t\t\t\t\t: [];\n \n \t\t\tatRuleKeyframes.walkRules((keyframeRule) => {\n-\t\t\t\tconst selectors = parseSelector(getRuleSelector(keyframeRule), result, keyframeRule);\n+\t\t\t\tconst ruleSelector = getRuleSelector(keyframeRule);\n+\n+\t\t\t\tif (primary === 'keyword' && !HAS_PERCENTAGE.test(ruleSelector)) return;\n+\n+\t\t\t\tif (primary === 'percentage' && !HAS_KEYWORD.test(ruleSelector)) return;\n+\n+\t\t\t\tconst selectors = parseSelector(ruleSelector, result, keyframeRule);",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ybiquitous",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "[suggestion] Does it make sense to define an at-rule params regex outside the loop?\n\nE.g.\n\n```js\n/** @type {RegExp | undefined} */\nlet atRuleParamsRegex;\nif (!exceptExactValue) {\n\tif (primary === 'prefix') {\n\t\tatRuleParamsRegex = /[<>]/;\n\t} else if (primary === 'context') {\n\t\tatRuleParamsRegex = /(?:min|max)-/i;\n\t}\n}\n\nroot.walkAtRules(atRuleRegexes.mediaName, (atRule) => {\n\tif (atRuleParamsRegex && !atRuleParamsRegex.test(atRule.params)) return;\n```",
+      "file": "lib/rules/media-feature-range-notation/index.mjs",
+      "line": 74,
+      "diff_hunk": "@@ -59,6 +59,13 @@ const rule = (primary, secondaryOptions) => {\n \t\tconst exceptExactValue = optionsMatches(secondaryOptions, 'except', 'exact-value');\n \n \t\troot.walkAtRules(atRuleRegexes.mediaName, (atRule) => {\n+\t\t\t// Skip checks for `exceptExactValue` as switches expectation\n+\t\t\tif (!exceptExactValue) {\n+\t\t\t\tif (primary === 'prefix' && !/[<>]/.test(atRule.params)) return;\n+\n+\t\t\t\tif (primary === 'context' && !/(?:min|max)-/i.test(atRule.params)) return;\n+\t\t\t}\n+",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ybiquitous",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

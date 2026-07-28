@@ -1,0 +1,67 @@
+{
+  "task_id": "pipecat__3038",
+  "pr_number": 3038,
+  "repo": "pipecat-ai/pipecat",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 6,
+  "substantive_comment_count": 3,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Send with retry can potentially take a really long time, right? (I think I saw that the exponential backoff starts with a 4-second wait?)",
+      "file": "src/pipecat/services/deepgram/flux/stt.py",
+      "line": 390,
+      "diff_hunk": "@@ -337,7 +383,8 @@ async def run_stt(self, audio: bytes) -> AsyncGenerator[Frame, None]:\n             return\n \n         try:\n-            await self._websocket.send(audio)\n+            self._last_stt_time = time.monotonic()\n+            await self.send_with_retry(audio, self._report_error)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "kompfner",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "For my understanding: so if we don't hit the confidence threshold (if one is specified) then the user might say something and the bot simply won't respond, right? At which point the user might just repeat themself, hopefully more clearly?",
+      "file": "src/pipecat/services/deepgram/flux/stt.py",
+      "line": 643,
+      "diff_hunk": "@@ -565,16 +631,26 @@ async def _handle_end_of_turn(self, transcript: str, data: Dict[str, Any]):\n             data: The TurnInfo message data containing event type, transcript and some extra metadata.\n         \"\"\"\n         logger.debug(\"User stopped speaking\")\n-\n-        await self.push_frame(\n-            TranscriptionFrame(\n-                transcript,\n-                self._user_id,\n-                time_now_iso8601(),\n-                self._language,\n-                result=data,\n+        self._user_is_speaking = False\n+\n+        # Compute the average confidence\n+        average_confidence = self._calculate_average_confidence(data)\n+\n+        if not self._params.min_confidence or average_confidence > self._params.min_confidence:",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "kompfner",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "What was the specified issue you were noticing in testing before this change? Was it like you could grumble or cough or something and the bot would give a nonsensical answer?",
+      "file": "examples/foundational/07c-interruptible-deepgram-flux.py",
+      "line": 57,
+      "diff_hunk": "@@ -52,7 +52,10 @@\n async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):\n     logger.info(f\"Starting bot\")\n \n-    stt = DeepgramFluxSTTService(api_key=os.getenv(\"DEEPGRAM_API_KEY\"))\n+    stt = DeepgramFluxSTTService(\n+        api_key=os.getenv(\"DEEPGRAM_API_KEY\"),\n+        params=DeepgramFluxSTTService.InputParams(min_confidence=0.3),",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "kompfner",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

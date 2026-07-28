@@ -1,0 +1,84 @@
+{
+  "task_id": "agents__4145",
+  "pr_number": 4145,
+  "repo": "livekit/agents",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 10,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "Do you think the livekit-rtc `package` should be responsible for directly updating the credentials? ",
+      "file": "livekit-agents/livekit/agents/voice/room_io/_input.py",
+      "line": null,
+      "diff_hunk": "@@ -198,6 +214,14 @@ def _on_track_unavailable(\n             if self._on_track_available(publication.track, publication, participant):\n                 return\n \n+    def _on_token_refreshed(self) -> None:\n+        if (\n+            self._processor is not None\n+            and self._room._token is not None\n+            and self._room._server_url is not None\n+        ):\n+            self._processor._update_credentials(token=self._room._token, url=self._room._server_url)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "theomonnom",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "python sdk already handles the `noise_cancellation` if is a `FrameProcessor` in https://github.com/livekit/python-sdks/pull/533/files#diff-7e2485e8b1480ff233d810a2d222fe14cb1432d0837ce28a6e6182ae8b2422b6R112-R113, here it's processed duplicately?",
+      "file": "livekit-agents/livekit/agents/voice/room_io/_input.py",
+      "line": 248,
+      "diff_hunk": "@@ -209,37 +233,35 @@ def __init__(\n         *,\n         sample_rate: int,\n         num_channels: int,\n-        noise_cancellation: rtc.NoiseCancellationOptions | NoiseCancellationSelector | None,\n+        noise_cancellation: rtc.NoiseCancellationOptions\n+        | rtc.FrameProcessor[rtc.AudioFrame]\n+        | None,\n         pre_connect_audio_handler: PreConnectAudioHandler | None,\n-        frame_size_ms: int = 50,\n     ) -> None:\n+        audio_processor: rtc.FrameProcessor[rtc.AudioFrame] | None = None\n+        if isinstance(noise_cancellation, rtc.FrameProcessor):\n+            audio_processor = noise_cancellation",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "longcw",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Do you think the livekit-rtc `package` should be responsible for directly updating the credentials? ",
+      "file": "livekit-agents/livekit/agents/voice/room_io/_input.py",
+      "line": null,
+      "diff_hunk": "@@ -198,6 +214,14 @@ def _on_track_unavailable(\n             if self._on_track_available(publication.track, publication, participant):\n                 return\n \n+    def _on_token_refreshed(self) -> None:\n+        if (\n+            self._processor is not None\n+            and self._room._token is not None\n+            and self._room._server_url is not None\n+        ):\n+            self._processor._update_credentials(token=self._room._token, url=self._room._server_url)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "theomonnom",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "nit,\r\nin line 127,  function aclose(self) -> None:\r\nadd \r\nself._room.off(\"token_refreshed\", self._on_token_refreshed) ? \r\n",
+      "file": "livekit-agents/livekit/agents/voice/room_io/_input.py",
+      "line": 53,
+      "diff_hunk": "@@ -48,6 +49,9 @@ def __init__(\n \n         self._room.on(\"track_subscribed\", self._on_track_available)\n         self._room.on(\"track_unpublished\", self._on_track_unavailable)\n+        self._room.on(\"token_refreshed\", self._on_token_refreshed)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "xianshijing-lk",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

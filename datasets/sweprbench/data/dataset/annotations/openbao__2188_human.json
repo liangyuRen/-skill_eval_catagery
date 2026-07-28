@@ -1,0 +1,33 @@
+{
+  "task_id": "openbao__2188",
+  "pr_number": 2188,
+  "repo": "openbao/openbao",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 5,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I think now that we unlock early only if the namespace is new and perform the write _afterwards_, a subsequent storage write against the existing namespace could race against it, losing the second write?",
+      "file": "vault/namespace_store.go",
+      "line": 485,
+      "diff_hunk": "@@ -484,6 +480,10 @@ func (ns *NamespaceStore) setNamespaceLocked(ctx context.Context, nsEntry *names\n \t\t}\n \t}\n \n+\tif err := ns.writeNamespace(ctx, storage, entry); err != nil {\n+\t\treturn fmt.Errorf(\"failed to persist namespace: %w\", err)\n+\t}",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "satoqz",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

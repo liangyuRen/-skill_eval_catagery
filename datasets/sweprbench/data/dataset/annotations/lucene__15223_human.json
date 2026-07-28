@@ -1,0 +1,33 @@
+{
+  "task_id": "lucene__15223",
+  "pr_number": 15223,
+  "repo": "apache/lucene",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "What is the purpose of implementing this interface? It gives access to the raw vector bytes but not enough information to interpret them.",
+      "file": "lucene/core/src/java/org/apache/lucene/codecs/lucene104/Lucene104ScalarQuantizedVectorsReader.java",
+      "line": 61,
+      "diff_hunk": "@@ -53,9 +53,12 @@\n import org.apache.lucene.util.hnsw.OrdinalTranslatedKnnCollector;\n import org.apache.lucene.util.hnsw.RandomVectorScorer;\n import org.apache.lucene.util.quantization.OptimizedScalarQuantizer;\n+import org.apache.lucene.util.quantization.QuantizedVectorsReader;\n+import org.apache.lucene.util.quantization.ScalarQuantizer;\n \n /** Reader for scalar quantized vectors in the Lucene 10.4 format. */\n-class Lucene104ScalarQuantizedVectorsReader extends FlatVectorsReader {\n+class Lucene104ScalarQuantizedVectorsReader extends FlatVectorsReader\n+    implements QuantizedVectorsReader {",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "mccullocht",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

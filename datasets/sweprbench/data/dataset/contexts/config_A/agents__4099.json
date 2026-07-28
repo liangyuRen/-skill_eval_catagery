@@ -1,0 +1,10 @@
+{
+  "pr_number": 4099,
+  "repo": "livekit/agents",
+  "task_id": "agents__4099",
+  "config_name": "config_A",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 193,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `livekit-agents/livekit/agents/inference/tts.py`: 102 changed lines, 14 function/branch hunks, logic markers=20.\n- `livekit-agents/livekit/agents/inference/stt.py`: 86 changed lines, 13 function/branch hunks, logic markers=17.\n- `tests/test_inference_stt_fallback.py`: 261 changed lines, 0 function/branch hunks, logic markers=16.\n- PR profile: type=feature, difficulty=Type1_Direct, language=Python, files_changed=4.\n\n---\n\n## Layer 2 - Diff (Core)\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 4\n- PR type: feature"
+}

@@ -1,0 +1,67 @@
+{
+  "task_id": "chia-blockchain__20099",
+  "pr_number": 20099,
+  "repo": "Chia-Network/chia-blockchain",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 2,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "maybe.  but maybe we should be testing on a newer amazon?\n\nwhat's the reason for yum vs dnf.  also odd that we need to use sudo for one and not the other.  was the search for debug?",
+      "file": ".github/workflows/test-install-scripts.yml",
+      "line": null,
+      "diff_hunk": "@@ -215,6 +215,9 @@ jobs:\n         if: ${{ matrix.distribution.type == 'amazon' }}\n         run: |\n           yum install --assumeyes git sudo\n+          sudo dnf update -y\n+          sudo dnf search python3.12\n+          sudo dnf install python3.12 -y",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "altendky",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "maybe.  but maybe we should be testing on a newer amazon?\n\nwhat's the reason for yum vs dnf.  also odd that we need to use sudo for one and not the other.  was the search for debug?",
+      "file": ".github/workflows/test-install-scripts.yml",
+      "line": null,
+      "diff_hunk": "@@ -215,6 +215,9 @@ jobs:\n         if: ${{ matrix.distribution.type == 'amazon' }}\n         run: |\n           yum install --assumeyes git sudo\n+          sudo dnf update -y\n+          sudo dnf search python3.12\n+          sudo dnf install python3.12 -y",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "altendky",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "something is weird here with these being removed.  will chat directly about this.",
+      "file": "poetry.lock",
+      "line": 3903,
+      "diff_hunk": "@@ -3900,48 +3832,27 @@ markers = \"python_version == \\\"3.12\\\"\"\n files = [\n     {file = \"zstd-1.5.5.1-cp310-cp310-macosx_11_0_arm64.whl\", hash = \"sha256:b5cd20afab8d13c52d2b2219bf18cc765eae87b8219343bce20647007890adab\"},\n     {file = \"zstd-1.5.5.1-cp310-cp310-macosx_11_0_x86_64.whl\", hash = \"sha256:0f467ab9b57ab8b4b874e6974d38b802f20406803bb7ec9308df923553cd48f7\"},\n-    {file = \"zstd-1.5.5.1-cp310-cp310-macosx_13_0_arm64.whl\", hash = \"sha256:1866fd2eb37bc80cd0a1bab8f099df5e778a773e829378c633f9fa1325a5dae1\"},",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "altendky",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

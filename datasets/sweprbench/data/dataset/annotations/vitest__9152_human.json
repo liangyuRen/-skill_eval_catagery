@@ -1,0 +1,50 @@
+{
+  "task_id": "vitest__9152",
+  "pr_number": 9152,
+  "repo": "vitest-dev/vitest",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "This isn't good yet. We want to map it to `.ts` file like \r\n\r\nhttps://github.com/vitest-dev/vitest/blob/fa34701d25eced7fc9ada6d8f46a4ab71a61ec4c/test/cli/test/__snapshots__/stacktraces.test.ts.snap#L120-L130",
+      "file": "test/cli/test/__snapshots__/stacktraces.test.ts.snap",
+      "line": null,
+      "diff_hunk": "@@ -56,8 +56,8 @@ Error: __TEST_STACK_TS__\n \n  FAIL  error-in-package.test.js > transpiled\n Error: __TEST_STACK_TRANSPILED__\n- \u276f innerTestStack (NODE_MODULES)/@test/test-dep-error/transpiled.js:7:9\n- \u276f testStack (NODE_MODULES)/@test/test-dep-error/transpiled.js:3:3\n+ \u276f innerTestStack (NODE_MODULES)/@test/test-dep-error/transpiled.js:22:8\n+ \u276f testStack (NODE_MODULES)/@test/test-dep-error/transpiled.js:12:2",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "hi-ogawa",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "This looks like some mix up. Realized you fixed up on Vite but not here https://github.com/vitejs/vite/pull/20959",
+      "file": "packages/utils/src/source-map.ts",
+      "line": 367,
+      "diff_hunk": "@@ -354,7 +354,7 @@ export class DecodedMap {\n     this._decodedMemo = memoizedState()\n     this.url = from\n     this.resolvedSources = (sources || []).map(s =>\n-      resolve(s || '', from),\n+      resolve(from, '..', s || ''),",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "hi-ogawa",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

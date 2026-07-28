@@ -1,0 +1,84 @@
+{
+  "task_id": "pipecat__3410",
+  "pr_number": 3410,
+  "repo": "pipecat-ai/pipecat",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 9,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_3",
+      "body": "Can you list the `fixed_audio_packet_size` param in the changelog?",
+      "file": "changelog/3410.changed.md",
+      "line": 1,
+      "diff_hunk": "@@ -0,0 +1 @@\n+- Enhanced `FastAPIWebsocketTransport` with optional protocol-level audio packetization to support media endpoints requiring strict framing and real-time pacing.",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "markbackman",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Thinking about naming\u2014will this FrameSerializer be used for future Vonage Voice APIs? If not, we might want to make the class name more specific. @varunps2003 I think we'll need your opinion on this. We just want this module to support future Vonage APIs and use cases.",
+      "file": "src/pipecat/serializers/vonage.py",
+      "line": 30,
+      "diff_hunk": "@@ -0,0 +1,182 @@\n+#\n+# Copyright (c) 2024\u20132025, Daily\n+#\n+# SPDX-License-Identifier: BSD 2-Clause License\n+#\n+\n+\"\"\"Vonage Audio Connector WebSocket serializer for Pipecat.\"\"\"\n+\n+import json\n+from typing import Optional\n+\n+from loguru import logger\n+from pydantic import BaseModel\n+\n+from pipecat.audio.dtmf.types import KeypadEntry\n+from pipecat.audio.utils import create_stream_resampler\n+from pipecat.frames.frames import (\n+    AudioRawFrame,\n+    Frame,\n+    InputAudioRawFrame,\n+    InputDTMFFrame,\n+    InterruptionFrame,\n+    OutputTransportMessageFrame,\n+    OutputTransportMessageUrgentFrame,\n+    StartFrame,\n+)\n+from pipecat.serializers.base_serializer import FrameSerializer\n+\n+\n+class VonageFrameSerializer(FrameSerializer):",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "markbackman",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "In taking one last look, I think renaming to `fixed_audio_packet_size` might be more accurate. WDYT\r\n```suggestion\r\n    fixed_audio_packet_size: Optional[int] = None\r\n```",
+      "file": "src/pipecat/transports/websocket/fastapi.py",
+      "line": null,
+      "diff_hunk": "@@ -56,11 +56,14 @@ class FastAPIWebsocketParams(TransportParams):\n         add_wav_header: Whether to add WAV headers to audio frames.\n         serializer: Frame serializer for encoding/decoding messages.\n         session_timeout: Session timeout in seconds, None for no timeout.\n+        audio_packet_bytes: Optional fixed-size packetization for raw PCM audio payloads.\n+            Useful when the remote WebSocket media endpoint requires strict audio framing.\n     \"\"\"\n \n     add_wav_header: bool = False\n     serializer: Optional[FrameSerializer] = None\n     session_timeout: Optional[int] = None\n+    audio_packet_bytes: Optional[int] = None",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "markbackman",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Can you list the `fixed_audio_packet_size` param in the changelog?",
+      "file": "changelog/3410.changed.md",
+      "line": 1,
+      "diff_hunk": "@@ -0,0 +1 @@\n+- Enhanced `FastAPIWebsocketTransport` with optional protocol-level audio packetization to support media endpoints requiring strict framing and real-time pacing.",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "markbackman",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

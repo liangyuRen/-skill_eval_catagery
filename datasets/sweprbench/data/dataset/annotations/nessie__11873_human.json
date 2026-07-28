@@ -1,0 +1,67 @@
+{
+  "task_id": "nessie__11873",
+  "pr_number": 11873,
+  "repo": "projectnessie/nessie",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 4,
+  "substantive_comment_count": 3,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "What motivates this change?",
+      "file": "catalog/format/iceberg/src/main/java/org/projectnessie/catalog/formats/iceberg/manifest/AvroSchema.java",
+      "line": 163,
+      "diff_hunk": "@@ -160,7 +160,7 @@ public Schema schema(InputStream input) {\n       byte header1 = dataInput.readByte();\n       checkState(\n           header0 == Avro.MAGIC_BYTES[0] && header1 == Avro.MAGIC_BYTES[1],\n-          \"Unrecognized header bytes: 0x%02X 0x%02X\",\n+          \"Unrecognized header bytes: %s %s\",",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "adutra",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "What motivates changes in this file?",
+      "file": "catalog/format/iceberg/src/main/java/org/projectnessie/catalog/formats/iceberg/nessie/NessieModelIceberg.java",
+      "line": 1285,
+      "diff_hunk": "@@ -1282,7 +1282,7 @@ public static int icebergSchemaMaxFieldId(IcebergSchema schema) {\n   }\n \n   public static int icebergSchemaMaxFieldId(IcebergNestedField field, Set<Integer> fieldIds) {\n-    checkArgument(fieldIds.add(field.id()), \"Duplicate field ID %d\", field.id());\n+    checkArgument(fieldIds.add(field.id()), \"Duplicate field ID %s\", field.id());",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "adutra",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "```suggestion\n            \"Error while identifying referenced objects in repository '{}'\",\n```",
+      "file": "versioned/storage/cleanup/src/main/java/org/projectnessie/versioned/storage/cleanup/ReferencedObjectsResolverImpl.java",
+      "line": null,
+      "diff_hunk": "@@ -134,7 +134,7 @@ public ResolveResult resolve() throws MustRestartWithBiggerFilterException {\n             e);\n       } else {\n         LOGGER.warn(\n-            \"Error while identifying referenced objects after {} in repository '{}'\",\n+            \"Error while identifying referenced in repository '{}'\",",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "adutra",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "task_id": "cupy__9660",
+  "pr_number": 9660,
+  "repo": "cupy/cupy",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 4,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Yeah, a bit weird to raise, but I didn't feel like adding an indentation level below.\n\nCould refactor it though, to define `bf16_loop` versions and then alias the one we actually want to use.",
+      "file": "cupy/_util.pyx",
+      "line": 230,
+      "diff_hunk": "@@ -223,6 +223,11 @@ def is_shutting_down(_shutting_down=_shutting_down):\n \n \n try:\n+    # We cannot add loops for bfloat16 on because the loops existance alone\n+    # means NumPy code-paths are used that will lead to segfaults.\n+    # (I.e. these crashes happen even without bfloat16 ever being used.)\n+    if numpy.lib.NumpyVersion(numpy.__version__) < \"2.1.2\":\n+        raise ImportError(\"NumPy had a critical result-type issue\")",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "seberg",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

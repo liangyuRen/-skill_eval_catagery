@@ -1,0 +1,50 @@
+{
+  "task_id": "numba__10390",
+  "pr_number": 10390,
+  "repo": "numba/numba",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 3,
+  "substantive_comment_count": 1,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\r\n```\r\n\r\nIIRC the snippet does not need to reference itself. That is inserted automatically with Towncrier?\r\n\r\n\r\n<img width=\"857\" height=\"251\" alt=\"Screenshot 2026-01-14 at 15 31 19\" src=\"https://github.com/user-attachments/assets/aeffcdc1-cac9-411d-bee5-80e7296bf9a5\" />\r\n",
+      "file": "docs/upcoming_changes/10390.bug_fix.rst",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,7 @@\n+Fix ``np.asfortranarray`` and ``np.ascontiguousarray`` readonly handling\n+------------------------------------------------------------------------\n+\n+Fix readonly input producing readonly output even when a copy is made\n+using ``np.asfortranarray`` or ``np.ascontiguousarray``.\n+\n+(`PR-#10390 <https://github.com/numba/numba/pull/10390>`__)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "esc",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\r\n```\r\n\r\nIIRC the snippet does not need to reference itself. That is inserted automatically with Towncrier?\r\n\r\n\r\n<img width=\"857\" height=\"251\" alt=\"Screenshot 2026-01-14 at 15 31 19\" src=\"https://github.com/user-attachments/assets/aeffcdc1-cac9-411d-bee5-80e7296bf9a5\" />\r\n",
+      "file": "docs/upcoming_changes/10390.bug_fix.rst",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,7 @@\n+Fix ``np.asfortranarray`` and ``np.ascontiguousarray`` readonly handling\n+------------------------------------------------------------------------\n+\n+Fix readonly input producing readonly output even when a copy is made\n+using ``np.asfortranarray`` or ``np.ascontiguousarray``.\n+\n+(`PR-#10390 <https://github.com/numba/numba/pull/10390>`__)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "esc",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "task_id": "vitest__9570",
+  "pr_number": 9570,
+  "repo": "vitest-dev/vitest",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "This prototype check is loosened to match our default `toEqual` behavior. This also becomes our `toThrowError` equality, so that got loosened as seen in `test/core/test/jest-expect.test.ts`. I think it's expected that users would need to do `toStrictEqual` to opt-in stricter check (though that's not directly possible via `toThrowError`). I consider this change as a valid fix.",
+      "file": "packages/expect/src/jest-utils.ts",
+      "line": 275,
+      "diff_hunk": "@@ -257,7 +272,7 @@ function isErrorEqual(\n   // - Error names, messages, causes, and errors are always compared, even if these are not enumerable properties. errors is also compared.\n \n   let result = (\n-    Object.getPrototypeOf(a) === Object.getPrototypeOf(b)\n+    Object.prototype.toString.call(a) === Object.prototype.toString.call(b)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "hi-ogawa",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "This prototype check is loosened to match our default `toEqual` behavior. This also becomes our `toThrowError` equality, so that got loosened as seen in `test/core/test/jest-expect.test.ts`. I think it's expected that users would need to do `toStrictEqual` to opt-in stricter check (though that's not directly possible via `toThrowError`). I consider this change as a valid fix.",
+      "file": "packages/expect/src/jest-utils.ts",
+      "line": 275,
+      "diff_hunk": "@@ -257,7 +272,7 @@ function isErrorEqual(\n   // - Error names, messages, causes, and errors are always compared, even if these are not enumerable properties. errors is also compared.\n \n   let result = (\n-    Object.getPrototypeOf(a) === Object.getPrototypeOf(b)\n+    Object.prototype.toString.call(a) === Object.prototype.toString.call(b)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "hi-ogawa",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "The documentation already had `any`, so I changed the type entirely to `any`.",
+      "file": "packages/expect/src/types.ts",
+      "line": 551,
+      "diff_hunk": "@@ -546,8 +546,9 @@ export interface JestAssertion<T = any> extends jest.Matchers<void, T>, CustomMa\n    * @example\n    * expect(() => functionWithError()).toThrowError('Error message');\n    * expect(() => parseJSON('invalid')).toThrowError(SyntaxError);\n+   * expect(() => { throw 42 }).toThrowError(42);\n    */\n-  toThrowError: (expected?: string | Constructable | RegExp | Error) => void\n+  toThrowError: (expected?: any) => void",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "hi-ogawa",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

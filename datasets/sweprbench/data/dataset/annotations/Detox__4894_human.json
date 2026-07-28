@@ -1,0 +1,101 @@
+{
+  "task_id": "Detox__4894",
+  "pr_number": 4894,
+  "repo": "wix/Detox",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 8,
+  "substantive_comment_count": 4,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3",
+    "c_4"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "Perhaps, this one needs to be reverted.",
+      "file": "scripts/upload_artifact.sh",
+      "line": null,
+      "diff_hunk": "@@ -44,9 +44,9 @@ generate_allure_report() {\n   local ROOT_DIR=$1\n \n   cd $ROOT_DIR\n-  if [ -d \"allure-results\" ]; then\n+  if [ -d \"artifacts\" ]; then",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "noomorph",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "What happened here? Is there a problem with synchronization?",
+      "file": "detox/test/e2e/06.device.test.js",
+      "line": null,
+      "diff_hunk": "@@ -1,20 +1,23 @@\n describe('Device', () => {\n   it('reloadReactNative - should tap successfully', async () => {\n     await device.reloadReactNative();\n+    await waitFor(element(by.text('Sanity'))).toBeVisible().withTimeout(2000);",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "noomorph",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Perhaps, this one needs to be reverted.",
+      "file": "scripts/upload_artifact.sh",
+      "line": null,
+      "diff_hunk": "@@ -44,9 +44,9 @@ generate_allure_report() {\n   local ROOT_DIR=$1\n \n   cd $ROOT_DIR\n-  if [ -d \"allure-results\" ]; then\n+  if [ -d \"artifacts\" ]; then",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "noomorph",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "So, if now, the \"Active\" notification is not a problem, why did not you remove those \"waitFor\" workarounds? \ud83e\udd14 ",
+      "file": "detox/test/ios/AppDelegate.m",
+      "line": 130,
+      "diff_hunk": "@@ -121,7 +126,9 @@ - (void)handleChangeScreen:(NSNotification *)notification {\n }\n \n - (void)applicationDidBecomeActive:(NSNotification *)notification {\n-    [self showOverlayMessageWithMessage:@\"Active\"];\n+    if (demoShowActiveNotification) {\n+        [self showOverlayMessageWithMessage:@\"Active\"];",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "noomorph",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_4",
+      "body": "Looks like a leftover (non-reverted something) from my previous attempts to help you with artifacts on Buildkite.",
+      "file": "scripts/upload_artifact.sh",
+      "line": null,
+      "diff_hunk": "@@ -46,7 +46,7 @@ generate_allure_report() {\n   cd $ROOT_DIR\n   if [ -d \"allure-results\" ]; then\n     set -x\n-    allure generate && upload_to_surge allure-report \"Detox Allure Report\"\n+    allure generate artifacts && upload_to_surge allure-report \"Detox Allure Report\"",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "noomorph",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

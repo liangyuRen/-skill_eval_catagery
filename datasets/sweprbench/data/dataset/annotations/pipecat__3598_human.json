@@ -1,0 +1,67 @@
+{
+  "task_id": "pipecat__3598",
+  "pr_number": 3598,
+  "repo": "pipecat-ai/pipecat",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 5,
+  "substantive_comment_count": 3,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Why is `mode` initialized in two places. I would recommend that it be removed from `__init__` and kept in `InputParams` only",
+      "file": "src/pipecat/services/sarvam/stt.py",
+      "line": null,
+      "diff_hunk": "@@ -97,50 +103,89 @@ def __init__(\n         model: str = \"saarika:v2.5\",\n         sample_rate: Optional[int] = None,\n         input_audio_codec: str = \"wav\",\n+        mode: Optional[",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "markbackman",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Remove `mode` from docstring if removing `mode` from `__init__`.",
+      "file": "src/pipecat/services/sarvam/stt.py",
+      "line": null,
+      "diff_hunk": "@@ -97,50 +103,89 @@ def __init__(\n         model: str = \"saarika:v2.5\",\n         sample_rate: Optional[int] = None,\n         input_audio_codec: str = \"wav\",\n+        mode: Optional[\n+            Literal[\"transcribe\", \"translate\", \"verbatim\", \"translit\", \"codemix\"]\n+        ] = None,\n         params: Optional[InputParams] = None,\n         **kwargs,\n     ):\n         \"\"\"Initialize the Sarvam STT service.\n \n         Args:\n             api_key: Sarvam API key for authentication.\n-            model: Sarvam model to use for transcription.\n+            model: Sarvam model to use for transcription. Allowed values:\n+                - \"saarika:v2.5\": Standard STT model\n+                - \"saaras:v2.5\": STT-Translate model (auto-detects language, supports prompts)\n+                - \"saaras:v3\": Advanced STT model (supports mode and prompts)\n             sample_rate: Audio sample rate. Defaults to 16000 if not specified.\n             input_audio_codec: Audio codec/format of the input file. Defaults to \"wav\".\n+            mode: Mode of operation for saaras:v3 models only. Options: transcribe, translate,",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "markbackman",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Is this an intentional removal?",
+      "file": "src/pipecat/services/sarvam/stt.py",
+      "line": 329,
+      "diff_hunk": "@@ -326,10 +374,17 @@ async def _connect(self):\n                 \"model\": self.model_name,\n                 \"vad_signals\": vad_signals_str,\n                 \"high_vad_sensitivity\": high_vad_sensitivity_str,\n-                \"input_audio_codec\": self._input_audio_codec,",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "markbackman",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

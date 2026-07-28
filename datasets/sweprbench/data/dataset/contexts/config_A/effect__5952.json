@@ -1,0 +1,10 @@
+{
+  "pr_number": 5952,
+  "repo": "Effect-TS/effect",
+  "task_id": "effect__5952",
+  "config_name": "config_A",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 383,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `packages/opentelemetry/package.json`: 25 changed lines, 0 function/branch hunks, logic markers=0.\n- PR profile: type=bug_fix, difficulty=Type1_Direct, language=TypeScript, files_changed=2.\n\n---\n\n## Layer 2 - Diff (Core)\n\n### packages/opentelemetry/package.json\n```diff\ndiff --git a/packages/opentelemetry/package.json b/packages/opentelemetry/package.json\nindex f9fb5064b1d..799f54b2edf 100644\n--- a/packages/opentelemetry/package.json\n+++ b/packages/opentelemetry/package.json\n@@ -65,29 +65,6 @@\n     \"@opentelemetry/semantic-conventions\": \"^1.33.0\",\n     \"effect\": \"workspace:^\"\n   },\n-  \"peerDependenciesMeta\": {\n-    \"@opentelemetry/api\": {\n-      \"optional\": true\n-    },\n-    \"@opentelemetry/resources\": {\n-      \"optional\": true\n-    },\n-    \"@opentelemetry/sdk-metrics\": {\n-      \"optional\": true\n-    },\n-    \"@opentelemetry/sdk-trace-base\": {\n-      \"optional\": true\n-    },\n-    \"@opentelemetry/sdk-trace-node\": {\n-      \"optional\": true\n-    },\n-    \"@opentelemetry/sdk-trace-web\": {\n-      \"optional\": true\n-    },\n-    \"@opentelemetry/sdk-logs\": {\n-      \"optional\": true\n-    }\n-  },\n   \"devDependencies\": {\n     \"@effect/platform\": \"workspace:^\",\n     \"@opentelemetry/api\": \"^1.9.0\",\n\n```\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: TypeScript\n- Files changed: 2\n- PR type: bug_fix"
+}

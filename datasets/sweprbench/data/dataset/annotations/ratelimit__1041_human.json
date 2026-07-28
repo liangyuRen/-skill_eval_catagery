@@ -1,0 +1,100 @@
+{
+  "task_id": "ratelimit__1041",
+  "pr_number": 1041,
+  "repo": "envoyproxy/ratelimit",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 6,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 2,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "Why not just return error or panic instead if we detect CREATE or ERROR for REDIS_POOL_ON_EMPTY_BEHAVIOR? Othewise, users who had set REDIS_POOL_ON_EMPTY_BEHAVIOR=ERROR/CREATE will just experience indefinite blocking.",
+      "file": "src/redis/driver_impl.go",
+      "line": null,
+      "diff_hunk": "@@ -73,104 +82,168 @@ func checkError(err error) {\n func NewClientImpl(scope stats.Scope, useTls bool, auth, redisSocketType, redisType, url string, poolSize int,\n \tpipelineWindow time.Duration, pipelineLimit int, tlsConfig *tls.Config, healthCheckActiveConnection bool, srv server.Server,\n \ttimeout time.Duration, poolOnEmptyBehavior string, poolOnEmptyWaitDuration time.Duration, sentinelAuth string,\n+\tuseExplicitPipeline bool,\n ) Client {\n \tmaskedUrl := utils.MaskCredentialsInUrl(url)\n \tlogger.Warnf(\"connecting to redis on %s with pool size %d\", maskedUrl, poolSize)\n \n-\tdf := func(network, addr string) (radix.Conn, error) {\n-\t\tvar dialOpts []radix.DialOpt\n+\t// Create Dialer for connecting to Redis\n+\tvar netDialer net.Dialer\n+\tif timeout > 0 {\n+\t\tnetDialer.Timeout = timeout\n+\t}\n \n-\t\tdialOpts = append(dialOpts, radix.DialTimeout(timeout))\n+\tdialer := radix.Dialer{\n+\t\tNetDialer: &netDialer,\n+\t}\n \n-\t\tif useTls {\n-\t\t\tdialOpts = append(dialOpts, radix.DialUseTLS(tlsConfig))\n+\t// Setup TLS if needed\n+\tif useTls {\n+\t\ttlsNetDialer := tls.Dialer{\n+\t\t\tNetDialer: &netDialer,\n+\t\t\tConfig:    tlsConfig,\n \t\t}\n+\t\tdialer.NetDialer = &tlsNetDialer\n+\t}\n \n-\t\tif auth != \"\" {\n-\t\t\tuser, pass, found := strings.Cut(auth, \":\")\n-\t\t\tif found {\n-\t\t\t\tlogger.Warnf(\"enabling authentication to redis on %s with user %s\", maskedUrl, user)\n-\t\t\t\tdialOpts = append(dialOpts, radix.DialAuthUser(user, pass))\n-\t\t\t} else {\n-\t\t\t\tlogger.Warnf(\"enabling authentication to redis on %s without user\", maskedUrl)\n-\t\t\t\tdialOpts = append(dialOpts, radix.DialAuthPass(auth))\n-\t\t\t}\n+\tif auth != \"\" {\n+\t\tuser, pass, found := strings.Cut(auth, \":\")\n+\t\tif found {\n+\t\t\tlogger.Warnf(\"enabling authentication to redis on %s with user %s\", maskedUrl, user)\n+\t\t\tdialer.AuthUser = user\n+\t\t\tdialer.AuthPass = pass\n+\t\t} else {\n+\t\t\tlogger.Warnf(\"enabling authentication to redis on %s without user\", maskedUrl)\n+\t\t\tdialer.AuthPass = auth\n \t\t}\n-\n-\t\treturn radix.Dial(network, addr, dialOpts...)\n \t}\n \n \tstats := newPoolStats(scope)\n \n-\topts := []radix.PoolOpt{radix.PoolConnFunc(df), radix.PoolWithTrace(poolTrace(&stats, healthCheckActiveConnection, srv))}\n+\t// Create PoolConfig\n+\tpoolConfig := radix.PoolConfig{\n+\t\tDialer: dialer,\n+\t\tSize:   poolSize,\n+\t\tTrace:  poolTrace(&stats, healthCheckActiveConnection, srv),\n+\t}\n+\n+\t// Note: radix v4 handles write buffering via WriteFlushInterval.\n+\t// Explicit pipelining (radix.NewPipeline()) is only used when explicitly requested via useExplicitPipeline parameter.\n+\t// Otherwise, individual Do() calls are used with automatic write buffering via WriteFlushInterval.\n+\t// pipelineLimit parameter is deprecated and ignored in radix v4.\n+\n+\t// Warn if deprecated pipelineLimit is set\n+\tif pipelineLimit > 0 {\n+\t\tlogger.Warnf(\"REDIS_PIPELINE_LIMIT=%d is deprecated and has no effect in radix v4. Write buffering is controlled solely by REDIS_PIPELINE_WINDOW.\", pipelineLimit)\n+\t}\n \n-\timplicitPipelining := true\n-\tif pipelineWindow == 0 && pipelineLimit == 0 {\n-\t\timplicitPipelining = false\n-\t} else {\n-\t\topts = append(opts, radix.PoolPipelineWindow(pipelineWindow, pipelineLimit))\n+\t// Set WriteFlushInterval for automatic write buffering when not using explicit pipeline\n+\tif !useExplicitPipeline && pipelineWindow > 0 {\n+\t\tpoolConfig.Dialer.WriteFlushInterval = pipelineWindow\n+\t\tlogger.Debugf(\"Setting WriteFlushInterval to %v\", pipelineWindow)\n \t}\n-\tlogger.Debugf(\"Implicit pipelining enabled: %v\", implicitPipelining)\n \n+\tlogger.Debugf(\"Use explicit pipeline: %v\", useExplicitPipeline)\n+\n+\t// IMPORTANT: radix v4 pool behavior changes from v3\n+\t//\n+\t// v4 uses a FIXED pool size and BLOCKS when all connections are in use.\n+\t// This is similar to v3's WAIT behavior, NOT CREATE or ERROR behavior.\n+\t//\n+\t// Key differences:\n+\t// - v3 WAIT  \u2192 v4 default (same: blocks until connection available)\n+\t// - v3 CREATE \u2192 v4 INCOMPATIBLE (v4 does NOT create overflow connections, only blocks)\n+\t// - v3 ERROR \u2192 v4 INCOMPATIBLE (v4 does NOT fail-fast, only blocks)\n+\t//\n+\t// Migration recommendations:\n+\t// - Remove REDIS_POOL_ON_EMPTY_BEHAVIOR setting (it has no effect in v4)\n+\t// - Use context timeouts to prevent indefinite blocking:\n+\t//     ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)\n+\t//     defer cancel()\n+\t//     client.Do(ctx, cmd)\n+\t// - Consider increasing REDIS_POOL_SIZE if using CREATE or ERROR previously",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "collin-lee",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "REDIS_PERSECOND_SENTINEL_AUTH should be mentioned in README.md too I think",
+      "file": "src/settings/settings.go",
+      "line": 166,
+      "diff_hunk": "@@ -159,12 +171,15 @@ type Settings struct {\n \t// This is separate from RedisPerSecondAuth which is used for authenticating to the Redis master/replica nodes.\n \t// If empty, no authentication will be attempted when connecting to per-second Sentinel nodes.\n \tRedisPerSecondSentinelAuth string `envconfig:\"REDIS_PERSECOND_SENTINEL_AUTH\" default:\"\"`",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "collin-lee",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Why not just return error or panic instead if we detect CREATE or ERROR for REDIS_POOL_ON_EMPTY_BEHAVIOR? Othewise, users who had set REDIS_POOL_ON_EMPTY_BEHAVIOR=ERROR/CREATE will just experience indefinite blocking.",
+      "file": "src/redis/driver_impl.go",
+      "line": null,
+      "diff_hunk": "@@ -73,104 +82,168 @@ func checkError(err error) {\n func NewClientImpl(scope stats.Scope, useTls bool, auth, redisSocketType, redisType, url string, poolSize int,\n \tpipelineWindow time.Duration, pipelineLimit int, tlsConfig *tls.Config, healthCheckActiveConnection bool, srv server.Server,\n \ttimeout time.Duration, poolOnEmptyBehavior string, poolOnEmptyWaitDuration time.Duration, sentinelAuth string,\n+\tuseExplicitPipeline bool,\n ) Client {\n \tmaskedUrl := utils.MaskCredentialsInUrl(url)\n \tlogger.Warnf(\"connecting to redis on %s with pool size %d\", maskedUrl, poolSize)\n \n-\tdf := func(network, addr string) (radix.Conn, error) {\n-\t\tvar dialOpts []radix.DialOpt\n+\t// Create Dialer for connecting to Redis\n+\tvar netDialer net.Dialer\n+\tif timeout > 0 {\n+\t\tnetDialer.Timeout = timeout\n+\t}\n \n-\t\tdialOpts = append(dialOpts, radix.DialTimeout(timeout))\n+\tdialer := radix.Dialer{\n+\t\tNetDialer: &netDialer,\n+\t}\n \n-\t\tif useTls {\n-\t\t\tdialOpts = append(dialOpts, radix.DialUseTLS(tlsConfig))\n+\t// Setup TLS if needed\n+\tif useTls {\n+\t\ttlsNetDialer := tls.Dialer{\n+\t\t\tNetDialer: &netDialer,\n+\t\t\tConfig:    tlsConfig,\n \t\t}\n+\t\tdialer.NetDialer = &tlsNetDialer\n+\t}\n \n-\t\tif auth != \"\" {\n-\t\t\tuser, pass, found := strings.Cut(auth, \":\")\n-\t\t\tif found {\n-\t\t\t\tlogger.Warnf(\"enabling authentication to redis on %s with user %s\", maskedUrl, user)\n-\t\t\t\tdialOpts = append(dialOpts, radix.DialAuthUser(user, pass))\n-\t\t\t} else {\n-\t\t\t\tlogger.Warnf(\"enabling authentication to redis on %s without user\", maskedUrl)\n-\t\t\t\tdialOpts = append(dialOpts, radix.DialAuthPass(auth))\n-\t\t\t}\n+\tif auth != \"\" {\n+\t\tuser, pass, found := strings.Cut(auth, \":\")\n+\t\tif found {\n+\t\t\tlogger.Warnf(\"enabling authentication to redis on %s with user %s\", maskedUrl, user)\n+\t\t\tdialer.AuthUser = user\n+\t\t\tdialer.AuthPass = pass\n+\t\t} else {\n+\t\t\tlogger.Warnf(\"enabling authentication to redis on %s without user\", maskedUrl)\n+\t\t\tdialer.AuthPass = auth\n \t\t}\n-\n-\t\treturn radix.Dial(network, addr, dialOpts...)\n \t}\n \n \tstats := newPoolStats(scope)\n \n-\topts := []radix.PoolOpt{radix.PoolConnFunc(df), radix.PoolWithTrace(poolTrace(&stats, healthCheckActiveConnection, srv))}\n+\t// Create PoolConfig\n+\tpoolConfig := radix.PoolConfig{\n+\t\tDialer: dialer,\n+\t\tSize:   poolSize,\n+\t\tTrace:  poolTrace(&stats, healthCheckActiveConnection, srv),\n+\t}\n+\n+\t// Note: radix v4 handles write buffering via WriteFlushInterval.\n+\t// Explicit pipelining (radix.NewPipeline()) is only used when explicitly requested via useExplicitPipeline parameter.\n+\t// Otherwise, individual Do() calls are used with automatic write buffering via WriteFlushInterval.\n+\t// pipelineLimit parameter is deprecated and ignored in radix v4.\n+\n+\t// Warn if deprecated pipelineLimit is set\n+\tif pipelineLimit > 0 {\n+\t\tlogger.Warnf(\"REDIS_PIPELINE_LIMIT=%d is deprecated and has no effect in radix v4. Write buffering is controlled solely by REDIS_PIPELINE_WINDOW.\", pipelineLimit)\n+\t}\n \n-\timplicitPipelining := true\n-\tif pipelineWindow == 0 && pipelineLimit == 0 {\n-\t\timplicitPipelining = false\n-\t} else {\n-\t\topts = append(opts, radix.PoolPipelineWindow(pipelineWindow, pipelineLimit))\n+\t// Set WriteFlushInterval for automatic write buffering when not using explicit pipeline\n+\tif !useExplicitPipeline && pipelineWindow > 0 {\n+\t\tpoolConfig.Dialer.WriteFlushInterval = pipelineWindow\n+\t\tlogger.Debugf(\"Setting WriteFlushInterval to %v\", pipelineWindow)\n \t}\n-\tlogger.Debugf(\"Implicit pipelining enabled: %v\", implicitPipelining)\n \n+\tlogger.Debugf(\"Use explicit pipeline: %v\", useExplicitPipeline)\n+\n+\t// IMPORTANT: radix v4 pool behavior changes from v3\n+\t//\n+\t// v4 uses a FIXED pool size and BLOCKS when all connections are in use.\n+\t// This is similar to v3's WAIT behavior, NOT CREATE or ERROR behavior.\n+\t//\n+\t// Key differences:\n+\t// - v3 WAIT  \u2192 v4 default (same: blocks until connection available)\n+\t// - v3 CREATE \u2192 v4 INCOMPATIBLE (v4 does NOT create overflow connections, only blocks)\n+\t// - v3 ERROR \u2192 v4 INCOMPATIBLE (v4 does NOT fail-fast, only blocks)\n+\t//\n+\t// Migration recommendations:\n+\t// - Remove REDIS_POOL_ON_EMPTY_BEHAVIOR setting (it has no effect in v4)\n+\t// - Use context timeouts to prevent indefinite blocking:\n+\t//     ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)\n+\t//     defer cancel()\n+\t//     client.Do(ctx, cmd)\n+\t// - Consider increasing REDIS_POOL_SIZE if using CREATE or ERROR previously",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "collin-lee",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "REDIS_PERSECOND_SENTINEL_AUTH should be mentioned in README.md too I think",
+      "file": "src/settings/settings.go",
+      "line": 166,
+      "diff_hunk": "@@ -159,12 +171,15 @@ type Settings struct {\n \t// This is separate from RedisPerSecondAuth which is used for authenticating to the Redis master/replica nodes.\n \t// If empty, no authentication will be attempted when connecting to per-second Sentinel nodes.\n \tRedisPerSecondSentinelAuth string `envconfig:\"REDIS_PERSECOND_SENTINEL_AUTH\" default:\"\"`",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "collin-lee",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "WIP: Even without `useExplicitPipeline` in Redis Cluster, it may be possible to improve performance by pipelining INCR and EXPIRE for the same key in a single pipeline. I'll verify this and follow up with a commit.",
+      "file": "src/redis/driver_impl.go",
+      "line": null,
+      "diff_hunk": "@@ -204,22 +265,37 @@ func (c *clientImpl) NumActiveConns() int {\n }\n \n func (c *clientImpl) PipeAppend(pipeline Pipeline, rcv interface{}, cmd, key string, args ...interface{}) Pipeline {\n-\treturn append(pipeline, radix.FlatCmd(rcv, cmd, key, args...))\n+\t// Combine key and args into a single slice\n+\tallArgs := make([]interface{}, 0, 1+len(args))\n+\tallArgs = append(allArgs, key)\n+\tallArgs = append(allArgs, args...)\n+\treturn append(pipeline, radix.FlatCmd(rcv, cmd, allArgs...))\n }\n \n func (c *clientImpl) PipeDo(pipeline Pipeline) error {\n-\tif c.implicitPipelining {\n+\tctx := context.Background()\n+\tif c.useExplicitPipeline {",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "upgle",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

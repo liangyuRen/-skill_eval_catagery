@@ -1,0 +1,50 @@
+{
+  "task_id": "chia-blockchain__20237",
+  "pr_number": 20237,
+  "repo": "Chia-Network/chia-blockchain",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 4,
+  "substantive_comment_count": 2,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "nit but i would move this right before the call to get_flags_for_height_and_constants where it is used",
+      "file": "chia/consensus/blockchain.py",
+      "line": null,
+      "diff_hunk": "@@ -270,11 +270,18 @@ async def run_single_block(self, block: FullBlock, fork_info: ForkInfo) -> None:\n         additions: list[tuple[Coin, Optional[bytes]]] = []\n         removals: list[tuple[bytes32, Coin]] = []\n         if block.transactions_generator is not None:\n+            prev_tx_height = prev_tx_block(",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "almogdepaz",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "this function is implemented in `chia_rs` and uses the height only to pass into `get_flags_for_height_and_constants()`.",
+      "file": "chia/full_node/eligible_coin_spends.py",
+      "line": 276,
+      "diff_hunk": "@@ -273,7 +273,7 @@ def process_fast_forward_spends(\n         try:\n             # Run the new spend bundle to make sure it remains valid. What we\n             # care about here is whether this call throws or not.\n-            get_conditions_from_spendbundle(new_sb, mempool_item.conds.cost, constants, height)\n+            get_conditions_from_spendbundle(new_sb, mempool_item.conds.cost, constants, prev_tx_height)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "arvidn",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "task_id": "prowler__10003",
+  "pr_number": 10003,
+  "repo": "prowler-cloud/prowler",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 7,
+  "substantive_comment_count": 3,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "This could mask pagination errors in the future. I think you can override it for the tests you need.",
+      "file": "api/src/backend/config/django/testing.py",
+      "line": null,
+      "diff_hunk": "@@ -18,6 +18,7 @@\n \n DATABASE_ROUTERS = []\n TESTING = True\n+REST_FRAMEWORK[\"PAGE_SIZE\"] = 50  # noqa: F405",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "josema-xyz",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "I think a comment would be nice here.",
+      "file": "api/src/backend/api/utils.py",
+      "line": 223,
+      "diff_hunk": "@@ -208,6 +215,8 @@ def get_prowler_provider_kwargs(\n             **prowler_provider_kwargs,\n             \"filter_accounts\": [provider.uid],\n         }\n+    elif provider.provider == Provider.ProviderChoices.OPENSTACK.value:\n+        pass",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "josema-xyz",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Maybe this file could have harder permissions, like `600`. Check the `api/src/backend/api/apps.py:_write_key_file`.",
+      "file": "prowler/providers/openstack/openstack_provider.py",
+      "line": null,
+      "diff_hunk": "@@ -203,6 +213,39 @@ def setup_session(\n             project_domain_name=resolved_project_domain,\n         )\n \n+    @staticmethod\n+    def _setup_session_from_clouds_yaml_content(\n+        clouds_yaml_content: str,\n+        clouds_yaml_cloud: Optional[str] = None,\n+    ) -> OpenStackSession:\n+        \"\"\"Setup session from clouds.yaml content provided as a string.\n+\n+        Args:\n+            clouds_yaml_content: The full YAML content of a clouds.yaml file.\n+            clouds_yaml_cloud: Cloud name to use from the clouds.yaml content.\n+\n+        Returns:\n+            OpenStackSession configured from the provided clouds.yaml content.\n+        \"\"\"\n+        tmp_file = None\n+        try:\n+            tmp_file = tempfile.NamedTemporaryFile(",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "josema-xyz",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

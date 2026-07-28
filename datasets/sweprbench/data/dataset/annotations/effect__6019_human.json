@@ -1,0 +1,33 @@
+{
+  "task_id": "effect__6019",
+  "pr_number": 6019,
+  "repo": "Effect-TS/effect",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 1,
+  "substantive_comment_count": 1,
+  "changes_required": true,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "Schedules don't have errors in v3, so you don't need this.",
+      "file": "packages/platform/src/HttpClient.ts",
+      "line": null,
+      "diff_hunk": "@@ -526,6 +526,7 @@ export const retryTransient: {\n   <\n     B,\n     E,\n+    ES = never,",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "tim-smart",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "task_id": "vitest__9231",
+  "pr_number": 9231,
+  "repo": "vitest-dev/vitest",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 6,
+  "substantive_comment_count": 4,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3",
+    "c_4"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "I wasn't sure why this check is needed specifically. Let me test run by commenting out. Please let me know if there's a reason for this.",
+      "file": "packages/vitest/src/integrations/snapshot/chai.ts",
+      "line": null,
+      "diff_hunk": "@@ -119,13 +115,19 @@ export const SnapshotPlugin: ChaiPlugin = (chai, utils) => {\n         ...getTestNames(test),\n       })\n \n+      // const isSoft = utils.flag(this, 'soft')\n+      // if (isSoft) {\n+      //   // assert result with soft wrapAssertion instead of recordAsyncExpect\n+      //   return promise\n+      // }",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "hi-ogawa",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "I wasn't sure why this check is needed specifically. Let me test run by commenting out. Please let me know if there's a reason for this.",
+      "file": "packages/vitest/src/integrations/snapshot/chai.ts",
+      "line": null,
+      "diff_hunk": "@@ -119,13 +115,19 @@ export const SnapshotPlugin: ChaiPlugin = (chai, utils) => {\n         ...getTestNames(test),\n       })\n \n+      // const isSoft = utils.flag(this, 'soft')\n+      // if (isSoft) {\n+      //   // assert result with soft wrapAssertion instead of recordAsyncExpect\n+      //   return promise\n+      // }",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "hi-ogawa",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Added a quick guide for snapshot test suites. We can likely simplify `test:generate -> update` combo to unify within a single `test:integration` later.",
+      "file": "test/snapshots/README.md",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "hi-ogawa",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Added minor enhancement on `@vitest/snapshot` side to support more flexible inline snapshot stack offset.",
+      "file": "packages/snapshot/src/port/state.ts",
+      "line": 178,
+      "diff_hunk": "@@ -168,6 +168,15 @@ export default class SnapshotState {\n       return stacks[promiseIndex + 3]\n     }\n \n+    // inline snapshot function can be named __INLINE_SNAPSHOT_OFFSET_<n>__\n+    // to specify a custom stack offset\n+    for (let i = 0; i < stacks.length; i++) {\n+      const match = stacks[i].method.match(/__INLINE_SNAPSHOT_OFFSET_(\\d+)__/)\n+      if (match) {\n+        return stacks[i + Number(match[1])] ?? null\n+      }\n+    }",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "hi-ogawa",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_4",
+      "body": "There are likely several ways to make `soft` and async assertion work together. Some coupling of `recordAsyncExpect` and `wrapAssertion` is imminent and I went with this approach of `recordAsyncExpect` taking over soft logic. Not too clean but code wise simplest.",
+      "file": "packages/expect/src/utils.ts",
+      "line": null,
+      "diff_hunk": "@@ -39,6 +41,12 @@ export function recordAsyncExpect(\n     if (!test.promises) {\n       test.promises = []\n     }\n+    // setup `expect.soft` handler here instead of `wrapAssertion` to avoid double tracking\n+    if (isSoft) {\n+      promise = promise.then(noop, (err) => {\n+        handleTestError(test, err)\n+      })\n+    }",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "hi-ogawa",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

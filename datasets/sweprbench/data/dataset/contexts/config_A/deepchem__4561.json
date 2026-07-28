@@ -1,0 +1,10 @@
+{
+  "pr_number": 4561,
+  "repo": "deepchem/deepchem",
+  "task_id": "deepchem__4561",
+  "config_name": "config_A",
+  "pipeline_version": "v0.4.1",
+  "total_tokens": 143,
+  "was_truncated": false,
+  "rendered": "## Layer 0 - Task + Focus\nYou are reviewing a pull request.\n\nFocus:\n- Identify real issues in the changes.\n- Prioritize correctness and logic.\n- Use surrounding code only if required.\n\nDo not speculate.\n\n---\n\n## Layer 1 - Key Changes Summary\nKey Changes:\n- `examples/tutorials/Introduction_to_Lagrangian_Neural_Network.ipynb`: 669 changed lines, 0 function/branch hunks, logic markers=10.\n- PR profile: type=feature, difficulty=Type1_Direct, language=Python, files_changed=1.\n\n---\n\n## Layer 2 - Diff (Core)\n\n---\n\n## Layer 6 - Minimal Metadata\n- Language: Python\n- Files changed: 1\n- PR type: feature"
+}

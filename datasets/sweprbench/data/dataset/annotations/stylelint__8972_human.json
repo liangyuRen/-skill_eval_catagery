@@ -1,0 +1,33 @@
+{
+  "task_id": "stylelint__8972",
+  "pr_number": 8972,
+  "repo": "stylelint/stylelint",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\nFixed: `selector-type-no-unknown` false positive regressions for `rb`, `rtc` and `menuitem`\n```",
+      "file": ".changeset/sour-carrots-create.md",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,5 @@\n+---\n+\"stylelint\": patch\n+---\n+\n+Fixed: `selector-type-no-unknown` regressions for `rb`, `rtc` and `menuitem`",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jeddy3",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "task_id": "prowler__9561",
+  "pr_number": 9561,
+  "repo": "prowler-cloud/prowler",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 7,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\n * - \"iam\" -> \"Iam\" \n```\ncan we leave this as `IAM`?",
+      "file": "ui/lib/categories.ts",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,15 @@\n+/**\n+ * Converts a category ID to a human-readable label.\n+ * Capitalizes each word and replaces hyphens with spaces.\n+ *\n+ * Examples:\n+ * - \"internet-exposed\" -> \"Internet Exposed\"\n+ * - \"iam\" -> \"Iam\"",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "jfagoagas",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Was this intentional?",
+      "file": "ui/components/filters/active-filter-badge.tsx",
+      "line": 50,
+      "diff_hunk": "@@ -43,11 +43,6 @@ export const DEFAULT_FILTER_BADGES: FilterBadgeConfig[] = [\n     label: \"Check ID\",\n     formatMultiple: (count) => `${count} Check IDs filtered`,\n   },\n-  {\n-    filterKey: \"category__in\",\n-    label: \"Category\",\n-    formatMultiple: (count) => `${count} Categories filtered`,\n-  },",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "alejandrobailo",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

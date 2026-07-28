@@ -1,0 +1,100 @@
+{
+  "task_id": "kedro__5296",
+  "pr_number": 5296,
+  "repo": "kedro-org/kedro",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 7,
+  "substantive_comment_count": 3,
+  "changes_required": true,
+  "requested_change_count": 2,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "thanks, @Mohmn , I like the idea to add `pipelines` without revoming `pipeline` tag. But I think it should be one session for all pipeline runs, not one session per one run, wdyt @ankatiyar , @ElenaKhaustova ?",
+      "file": "kedro/framework/cli/project.py",
+      "line": null,
+      "diff_hunk": "@@ -244,31 +250,40 @@ def run(  # noqa: PLR0913\n     to_outputs: str,\n     load_versions: dict[str, str] | None,\n     pipeline: str,\n+    pipelines: list[str],\n     config: str,\n     conf_source: str,\n     params: dict[str, Any],\n     namespaces: str,\n     only_missing_outputs: bool,\n-) -> dict[str, Any]:\n+) -> None:\n     \"\"\"Run the pipeline.\"\"\"\n \n+    if pipeline and pipelines:\n+        raise click.UsageError(\n+            \"Options '--pipeline' and '--pipelines' cannot be used together\"\n+        )\n+\n+    pipelines_to_run = set(pipelines) or set([pipeline])\n+\n     runner_obj = load_obj(runner or \"SequentialRunner\", \"kedro.runner\")\n     tuple_tags = tuple(tags)\n     tuple_node_names = tuple(node_names)\n \n-    with KedroSession.create(\n-        env=env, conf_source=conf_source, runtime_params=params\n-    ) as session:\n-        return session.run(\n-            tags=tuple_tags,\n-            runner=runner_obj(is_async=is_async),\n-            node_names=tuple_node_names,\n-            from_nodes=from_nodes,\n-            to_nodes=to_nodes,\n-            from_inputs=from_inputs,\n-            to_outputs=to_outputs,\n-            load_versions=load_versions,\n-            pipeline_name=pipeline,\n-            namespaces=namespaces,\n-            only_missing_outputs=only_missing_outputs,\n-        )\n+    for pipeline_name in pipelines_to_run:\n+        with KedroSession.create(",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "DimedS",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Unfortunately, changing a name of an argument in public API is considered a breaking change. It would mean that users that use Kedro as a library have to update their code when this is released. @DimedS or @ankatiyar can you help come up with a solution for this that is not breaking? ",
+      "file": "kedro/framework/cli/project.py",
+      "line": 287,
+      "diff_hunk": "@@ -268,7 +286,7 @@ def run(  # noqa: PLR0913\n             from_inputs=from_inputs,\n             to_outputs=to_outputs,\n             load_versions=load_versions,\n-            pipeline_name=pipeline,\n+            pipeline_names=pipelines_to_run,",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "merelcht",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "thanks, @Mohmn , I like the idea to add `pipelines` without revoming `pipeline` tag. But I think it should be one session for all pipeline runs, not one session per one run, wdyt @ankatiyar , @ElenaKhaustova ?",
+      "file": "kedro/framework/cli/project.py",
+      "line": null,
+      "diff_hunk": "@@ -244,31 +250,40 @@ def run(  # noqa: PLR0913\n     to_outputs: str,\n     load_versions: dict[str, str] | None,\n     pipeline: str,\n+    pipelines: list[str],\n     config: str,\n     conf_source: str,\n     params: dict[str, Any],\n     namespaces: str,\n     only_missing_outputs: bool,\n-) -> dict[str, Any]:\n+) -> None:\n     \"\"\"Run the pipeline.\"\"\"\n \n+    if pipeline and pipelines:\n+        raise click.UsageError(\n+            \"Options '--pipeline' and '--pipelines' cannot be used together\"\n+        )\n+\n+    pipelines_to_run = set(pipelines) or set([pipeline])\n+\n     runner_obj = load_obj(runner or \"SequentialRunner\", \"kedro.runner\")\n     tuple_tags = tuple(tags)\n     tuple_node_names = tuple(node_names)\n \n-    with KedroSession.create(\n-        env=env, conf_source=conf_source, runtime_params=params\n-    ) as session:\n-        return session.run(\n-            tags=tuple_tags,\n-            runner=runner_obj(is_async=is_async),\n-            node_names=tuple_node_names,\n-            from_nodes=from_nodes,\n-            to_nodes=to_nodes,\n-            from_inputs=from_inputs,\n-            to_outputs=to_outputs,\n-            load_versions=load_versions,\n-            pipeline_name=pipeline,\n-            namespaces=namespaces,\n-            only_missing_outputs=only_missing_outputs,\n-        )\n+    for pipeline_name in pipelines_to_run:\n+        with KedroSession.create(",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "DimedS",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Unfortunately, changing a name of an argument in public API is considered a breaking change. It would mean that users that use Kedro as a library have to update their code when this is released. @DimedS or @ankatiyar can you help come up with a solution for this that is not breaking? ",
+      "file": "kedro/framework/cli/project.py",
+      "line": 287,
+      "diff_hunk": "@@ -268,7 +286,7 @@ def run(  # noqa: PLR0913\n             from_inputs=from_inputs,\n             to_outputs=to_outputs,\n             load_versions=load_versions,\n-            pipeline_name=pipeline,\n+            pipeline_names=pipelines_to_run,",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "merelcht",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "Can we raise `KedroCliError` here instead of `click.UsageError`",
+      "file": "kedro/framework/cli/project.py",
+      "line": null,
+      "diff_hunk": "@@ -252,6 +259,13 @@ def run(  # noqa: PLR0913\n ) -> dict[str, Any]:\n     \"\"\"Run the pipeline.\"\"\"\n \n+    if pipeline and pipelines:\n+        raise click.UsageError(",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ankatiyar",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

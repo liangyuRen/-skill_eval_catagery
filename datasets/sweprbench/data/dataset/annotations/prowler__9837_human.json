@@ -1,0 +1,50 @@
+{
+  "task_id": "prowler__9837",
+  "pr_number": 9837,
+  "repo": "prowler-cloud/prowler",
+  "has_severity_annotations": false,
+  "has_requested_changes": true,
+  "total_comment_count": 2,
+  "substantive_comment_count": 1,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_1",
+      "body": "This does not cover all the cases we need to cover, so please take a look at that and do as you did with other checks. ",
+      "file": "prowler/providers/m365/services/defender/defender_atp_safe_attachments_and_docs_configured/defender_atp_safe_attachments_and_docs_configured.py",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "HugoPBrito",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "This does not cover all the cases we need to cover, so please take a look at that and do as you did with other checks. ",
+      "file": "prowler/providers/m365/services/defender/defender_atp_safe_attachments_and_docs_configured/defender_atp_safe_attachments_and_docs_configured.py",
+      "line": null,
+      "diff_hunk": "",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "HugoPBrito",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": false,
+      "thread_resolved": null
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "task_id": "spyder__23761",
+  "pr_number": 23761,
+  "repo": "spyder-ide/spyder",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 4,
+  "substantive_comment_count": 3,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\r\n        # User variables supersede system variables\r\n```\r\n\r\nTypo.",
+      "file": "spyder/plugins/ipythonconsole/utils/kernelspec.py",
+      "line": null,
+      "diff_hunk": "@@ -241,30 +242,40 @@ def argv(self):\n \n     @property\n     def env(self):\n-        \"\"\"Env vars for kernels\"\"\"\n+        \"\"\"Environment variables for kernels\"\"\"\n+        return self._env_vars\n+\n+    @env.setter\n+    def env(self, env_vars):\n+        \"\"\"Setter for environment variables for kernels\"\"\"\n+        env_vars = dict(env_vars)\n+        if os.name == \"nt\":\n+            # Use case insensitive dictionary\n+            env_vars = CaseInsensitiveDict(env_vars)\n+\n+            # HKCU path must be appended to HKLM path\n+            path = os.getenv(\"path\", \"\").split(\";\")  # HKLM Path\n+            path.extend(env_vars.get(\"path\", \"\").split(\";\"))  # HKCU Path\n+            path = \";\".join([p for p in path if p])  # Stringify\n+            env_vars[\"PATH\"] = path\n+\n+        # User variables supercede system variables",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ccordoba12",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Why is `s2` part of this list now if it's unchecked in line **118**?",
+      "file": "spyder/plugins/pythonpath/widgets/tests/test_pathmanager.py",
+      "line": 120,
+      "diff_hunk": "@@ -98,40 +98,38 @@ def test_check_uncheck_path(pathmanager):\n             \"systems and pywin32 is needed\")\n )\n @pytest.mark.parametrize(\n-    'pathmanager', [(['p1', 'p2', 'p3'], ['p4', 'p5', 'p6'], [])],\n+    'pathmanager', [(['s1', 's2', 's3'], ['p1', 'p2', 'p3'], [])],\n     indirect=True\n )\n def test_export_to_PYTHONPATH(pathmanager, mocker, restore_user_env):\n \n-    # Mock the dialog window and answer \"Yes\" to clear contents of PYTHONPATH\n-    # before adding Spyder's path list\n+    # Mock the dialog window and answer \"Yes\" to keep inactive system paths\n     mocker.patch.object(pathmanager_mod.QMessageBox, 'question',\n                         return_value=pathmanager_mod.QMessageBox.Yes)\n \n     # Assert that PYTHONPATH is synchronized correctly with Spyder's path list\n     pathmanager.export_pythonpath()\n-    expected_pathlist = ['p1', 'p2', 'p3']\n+    expected_pathlist = [\"s1\", \"s2\", \"s3\"]\n     env = get_user_env()\n     assert env['PYTHONPATH'] == expected_pathlist\n \n-    # Uncheck 'path2' and assert that it is removed from PYTHONPATH when it\n+    # Uncheck 's2' and assert that it is removed from PYTHONPATH when it\n     # is synchronized with Spyder's path list\n     pathmanager.listwidget.item(6).setCheckState(Qt.Unchecked)\n     pathmanager.export_pythonpath()\n-    expected_pathlist = ['p1', 'p3']\n+    expected_pathlist = [\"s1\", \"s2\", \"s3\"]",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "ccordoba12",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "```suggestion\r\n    # Uncheck 's2' and assert that it is retained in PYTHONPATH when it\r\n```",
+      "file": "spyder/plugins/pythonpath/widgets/tests/test_pathmanager.py",
+      "line": null,
+      "diff_hunk": "@@ -98,40 +98,38 @@ def test_check_uncheck_path(pathmanager):\n             \"systems and pywin32 is needed\")\n )\n @pytest.mark.parametrize(\n-    'pathmanager', [(['p1', 'p2', 'p3'], ['p4', 'p5', 'p6'], [])],\n+    'pathmanager', [(['s1', 's2', 's3'], ['p1', 'p2', 'p3'], [])],\n     indirect=True\n )\n def test_export_to_PYTHONPATH(pathmanager, mocker, restore_user_env):\n \n-    # Mock the dialog window and answer \"Yes\" to clear contents of PYTHONPATH\n-    # before adding Spyder's path list\n+    # Mock the dialog window and answer \"Yes\" to keep inactive system paths\n     mocker.patch.object(pathmanager_mod.QMessageBox, 'question',\n                         return_value=pathmanager_mod.QMessageBox.Yes)\n \n     # Assert that PYTHONPATH is synchronized correctly with Spyder's path list\n     pathmanager.export_pythonpath()\n-    expected_pathlist = ['p1', 'p2', 'p3']\n+    expected_pathlist = [\"s1\", \"s2\", \"s3\"]\n     env = get_user_env()\n     assert env['PYTHONPATH'] == expected_pathlist\n \n-    # Uncheck 'path2' and assert that it is removed from PYTHONPATH when it\n+    # Uncheck 's2' and assert that it is removed from PYTHONPATH when it",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "mrclary",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

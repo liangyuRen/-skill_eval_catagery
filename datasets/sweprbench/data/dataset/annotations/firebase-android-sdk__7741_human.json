@@ -1,0 +1,67 @@
+{
+  "task_id": "firebase-android-sdk__7741",
+  "pr_number": 7741,
+  "repo": "firebase/firebase-android-sdk",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 2,
+  "substantive_comment_count": 2,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_2",
+      "body": "![low](https://www.gstatic.com/codereviewagent/low-priority.svg)\n\nFor consistency with other test files in this pull request and for better readability, please consider re-adding `import com.google.firebase.firestore.pipeline.Expression.Companion.nullValue` and using `nullValue()` without qualification throughout this file. This would align the style with files like `RealtimePipelineTest.kt` and `NestedPropertiesTests.kt`.\n\n```suggestion\n        .where(or(field(\"a\").equal(constant(1L)), field(\"a\").equal(nullValue())))\n```",
+      "file": "firebase-firestore/src/test/java/com/google/firebase/firestore/pipeline/DisjunctiveTests.kt",
+      "line": null,
+      "diff_hunk": "@@ -1044,7 +1041,7 @@ internal class DisjunctiveTests {\n     val pipeline =\n       RealtimePipelineSource(db)\n         .collection(\"/users\")\n-        .where(or(field(\"a\").equal(constant(1L)), isNull(field(\"a\"))))\n+        .where(or(field(\"a\").equal(constant(1L)), field(\"a\").equal(Expression.nullValue())))",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "![low](https://www.gstatic.com/codereviewagent/low-priority.svg)\n\nFor consistency with the other replacements in this file (e.g., `isNull`, `isNan`), it would be clearer to use `field(\"rating\").notEqual(nullValue())` here instead of the static `notEqual` method.\n\n```suggestion\n      db.realtimePipeline().collection(collRef.path).where(field(\"rating\").notEqual(nullValue()))\n```",
+      "file": "firebase-firestore/src/androidTest/java/com/google/firebase/firestore/RealtimePipelineTest.kt",
+      "line": null,
+      "diff_hunk": "@@ -988,7 +994,7 @@ class RealtimePipelineTest {\n \n     // Test isNotNull\n     val pipelineIsNotNull =\n-      db.realtimePipeline().collection(collRef.path).where(isNotNull(\"rating\"))\n+      db.realtimePipeline().collection(collRef.path).where(notEqual(\"rating\", nullValue()))",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "![low](https://www.gstatic.com/codereviewagent/low-priority.svg)\n\nFor consistency with other test files in this pull request and for better readability, please consider re-adding `import com.google.firebase.firestore.pipeline.Expression.Companion.nullValue` and using `nullValue()` without qualification throughout this file. This would align the style with files like `RealtimePipelineTest.kt` and `NestedPropertiesTests.kt`.\n\n```suggestion\n        .where(or(field(\"a\").equal(constant(1L)), field(\"a\").equal(nullValue())))\n```",
+      "file": "firebase-firestore/src/test/java/com/google/firebase/firestore/pipeline/DisjunctiveTests.kt",
+      "line": null,
+      "diff_hunk": "@@ -1044,7 +1041,7 @@ internal class DisjunctiveTests {\n     val pipeline =\n       RealtimePipelineSource(db)\n         .collection(\"/users\")\n-        .where(or(field(\"a\").equal(constant(1L)), isNull(field(\"a\"))))\n+        .where(or(field(\"a\").equal(constant(1L)), field(\"a\").equal(Expression.nullValue())))",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "gemini-code-assist",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

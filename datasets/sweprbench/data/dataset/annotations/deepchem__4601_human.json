@@ -1,0 +1,33 @@
+{
+  "task_id": "deepchem__4601",
+  "pr_number": 4601,
+  "repo": "deepchem/deepchem",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 1,
+  "substantive_comment_count": 1,
+  "changes_required": false,
+  "requested_change_count": 0,
+  "substantive_comment_ids": [
+    "c_1"
+  ],
+  "requested_changes": [],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "There is a typo here! `self.aweight0` is initialised but used `self.weight0`. Shouldn't this be self.aweight0 to avoid attribute error?",
+      "file": "deepchem/models/dft/dftxc.py",
+      "line": null,
+      "diff_hunk": "@@ -60,7 +63,9 @@ def __init__(self, xcstr: str, nnmodel: torch.nn.Module, aweight0: float = 0.0):\n         self.xcstr = xcstr\n         self.nnmodel = nnmodel\n         self.aweight0 = aweight0\n-        self.hybridxc = HybridXC(self.xcstr, self.nnmodel, aweight0=aweight0)\n+        self.hybridxc = HybridXC(self.xcstr,\n+                                 self.nnmodel,\n+                                 aweight0=self.weight0)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "Sathwik-parimi-07",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}

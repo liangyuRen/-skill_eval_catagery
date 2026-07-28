@@ -1,0 +1,101 @@
+{
+  "task_id": "numba__10226",
+  "pr_number": 10226,
+  "repo": "numba/numba",
+  "has_severity_annotations": false,
+  "has_requested_changes": false,
+  "total_comment_count": 7,
+  "substantive_comment_count": 4,
+  "changes_required": true,
+  "requested_change_count": 1,
+  "substantive_comment_ids": [
+    "c_1",
+    "c_2",
+    "c_3",
+    "c_4"
+  ],
+  "requested_changes": [
+    {
+      "comment_id": "c_4",
+      "body": "For this one, you need a `gc.collect()` in `run_jit_inner_function`. A few types of objects, such as classes and code objects, are only collected during GC in the free threaded build. So:\r\n\r\n```python\r\n        with self.assertRefCount(c_do_math, c_mult_10):\r\n            self.assertEqual(c_do_math(1), 50)\r\n```\r\n\r\nshould become\r\n\r\n```python\r\n        import gc\r\n        ...\r\n        gc.collect()\r\n        with self.assertRefCount(c_do_math, c_mult_10):\r\n            self.assertEqual(c_do_math(1), 50)\r\n            gc.collect()  # not necessary for test to pass, but seems like a good idea\r\n```",
+      "file": "numba/tests/test_closure.py",
+      "line": null,
+      "diff_hunk": "@@ -90,6 +91,7 @@ def do_math(x):\n     def test_jit_inner_function(self):\n         self.run_jit_inner_function(forceobj=True)\n \n+    @skip_as_broken_if_freethreading\n     def test_jit_inner_function_npm(self):\n         self.run_jit_inner_function(nopython=True)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "colesbury",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "c_1",
+      "body": "```suggestion\r\nFurther, note that the deprecated ``numba.pycc`` module does not support the\r\n```",
+      "file": "docs/upcoming_changes/10226.new_feature.rst",
+      "line": null,
+      "diff_hunk": "@@ -0,0 +1,12 @@\n+Initial support for free-threading enabled Python\n+-------------------------------------------------\n+\n+The Numba code base now supports Python with free-threading enabled. When\n+free-threading is enabled there are two test failures for the CPU target related\n+to reference counting, but otherwise all the tests pass. Whilst the reference\n+counting problem is likely an isolated and somewhat minor issue, it does\n+emphasise that this work is experimental and subject to further development.\n+\n+Futher, note that the deprecated ``numba.pycc`` module does not support the",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "sklam",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_2",
+      "body": "Isn't this redundant? `MOD_DEF` already calls `MOD_NOGIL`?",
+      "file": "numba/core/typeconv/_typeconv.cpp",
+      "line": null,
+      "diff_hunk": "@@ -41,7 +41,7 @@ MOD_INIT(_typeconv) {\n     MOD_DEF(m, \"_typeconv\", \"No docs\", ext_methods)\n     if (m == NULL)\n         return MOD_ERROR_VAL;\n-\n+    MOD_NOGIL(m);",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "sklam",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_3",
+      "body": "FYI: float constants are interned and immortalized in the free threaded build, so if you want something that you can test reference counting with use `object()`:\r\n\r\n```python\r\nx = object()\r\ny = object()\r\n...\r\n```",
+      "file": "numba/tests/test_support.py",
+      "line": null,
+      "diff_hunk": "@@ -315,6 +316,7 @@ def test_nptimedelta(self):\n \n class TestMisc(TestCase):\n \n+    @skip_as_broken_if_freethreading",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "colesbury",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": false,
+      "is_in_diff": true,
+      "thread_resolved": null
+    },
+    {
+      "comment_id": "c_4",
+      "body": "For this one, you need a `gc.collect()` in `run_jit_inner_function`. A few types of objects, such as classes and code objects, are only collected during GC in the free threaded build. So:\r\n\r\n```python\r\n        with self.assertRefCount(c_do_math, c_mult_10):\r\n            self.assertEqual(c_do_math(1), 50)\r\n```\r\n\r\nshould become\r\n\r\n```python\r\n        import gc\r\n        ...\r\n        gc.collect()\r\n        with self.assertRefCount(c_do_math, c_mult_10):\r\n            self.assertEqual(c_do_math(1), 50)\r\n            gc.collect()  # not necessary for test to pass, but seems like a good idea\r\n```",
+      "file": "numba/tests/test_closure.py",
+      "line": null,
+      "diff_hunk": "@@ -90,6 +91,7 @@ def do_math(x):\n     def test_jit_inner_function(self):\n         self.run_jit_inner_function(forceobj=True)\n \n+    @skip_as_broken_if_freethreading\n     def test_jit_inner_function_npm(self):\n         self.run_jit_inner_function(nopython=True)",
+      "severity": null,
+      "is_blocking": null,
+      "reviewer": "colesbury",
+      "is_initiating_comment": true,
+      "is_reply": false,
+      "reply_to": null,
+      "requires_change": true,
+      "is_in_diff": true,
+      "thread_resolved": null
+    }
+  ]
+}
